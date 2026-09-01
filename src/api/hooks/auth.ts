@@ -1,0 +1,149 @@
+/**
+ * RN port of `frontend/packages/api-client/src/hooks/auth.ts` — same hook
+ * names/params/query-keys. The one behavioral difference from web: token
+ * persistence goes through `react-native-keychain` (async), not
+ * `localStorage` (sync) — see setAuthToken in ../client.ts.
+ */
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { api, getAuthToken, setAuthToken } from '../client';
+import type {
+  Envelope,
+  ForgotPasswordRequest,
+  LoginRequest,
+  OtpRequestRequest,
+  OtpVerifyRequest,
+  RegisterRequest,
+  ResetPasswordRequest,
+  User,
+} from '../types';
+
+export interface LoginSuccess {
+  status: string;
+  user: User;
+  token: string | null;
+}
+
+export interface Requires2fa {
+  status: 'requires_2fa';
+  challenge_token: string;
+  expires_in: string;
+}
+
+/**
+ * Per Task 2.2: admin/agent-role accounts without 2FA get blocked at login
+ * with this status. Not expected for consumer accounts, but the same login
+ * endpoint is shared, so we type + handle it defensively rather than crash.
+ */
+export interface Requires2faSetup {
+  status: 'requires_2fa_setup';
+  message?: string;
+}
+
+export type LoginResult = LoginSuccess | Requires2fa | Requires2faSetup;
+
+export function isRequires2fa(result: LoginResult): result is Requires2fa {
+  return result.status === 'requires_2fa';
+}
+
+export function isRequires2faSetup(result: LoginResult): result is Requires2faSetup {
+  return result.status === 'requires_2fa_setup';
+}
+
+export function useMe(options: { enabled?: boolean } = {}) {
+  return useQuery({
+    queryKey: ['auth', 'me'],
+    queryFn: ({ signal }) => api.get<Envelope<User>>('/auth/me', undefined, signal),
+    enabled: options.enabled ?? Boolean(getAuthToken()),
+    retry: false,
+    staleTime: 5 * 60_000,
+  });
+}
+
+function useAuthSuccess() {
+  const queryClient = useQueryClient();
+  return (user: User, token: string | null) => {
+    if (token) void setAuthToken(token);
+    queryClient.setQueryData(['auth', 'me'], { data: user });
+  };
+}
+
+export function useLogin() {
+  const onSuccess = useAuthSuccess();
+  return useMutation({
+    mutationFn: (body: LoginRequest) =>
+      // device_name marks this as a mobile/token client in addition to the
+      // X-Client header the base client already sends on every request.
+      api.post<Envelope<LoginResult>>('/auth/login', {
+        ...body,
+        device_name: body.device_name ?? 'Trustified Mobile',
+      }),
+    onSuccess: (res) => {
+      if (!isRequires2fa(res.data) && !isRequires2faSetup(res.data)) {
+        onSuccess(res.data.user, res.data.token);
+      }
+    },
+  });
+}
+
+export function useRegister() {
+  const onSuccess = useAuthSuccess();
+  const authStore = require('../../stores/auth').useAuthStore; // lazy import to avoid circular deps
+  return useMutation({
+    mutationFn: (body: RegisterRequest) =>
+      api.post<Envelope<{ user: User; token: string | null }>>('/auth/register', body),
+    onSuccess: (res) => {
+      onSuccess(res.data.user, res.data.token);
+      // Update Zustand auth store so the app knows the user is logged in immediately
+      authStore.getState().setUser(res.data.user);
+    },
+  });
+}
+
+
+export function useOtpRequest() {
+  return useMutation({
+    mutationFn: (body: OtpRequestRequest) =>
+      api.post<Envelope<{ message: string; expires_in: number }>>('/auth/otp/request', body),
+  });
+}
+
+export function useOtpVerify() {
+  const onSuccess = useAuthSuccess();
+  return useMutation({
+    mutationFn: (body: OtpVerifyRequest) =>
+      api.post<Envelope<{ user: User; token: string }>>('/auth/otp/verify', body),
+    onSuccess: (res) => onSuccess(res.data.user, res.data.token),
+  });
+}
+
+export function useTwoFactorVerify() {
+  const onSuccess = useAuthSuccess();
+  return useMutation({
+    mutationFn: (body: { challenge_token: string; code: string }) =>
+      api.post<Envelope<{ user: User; token: string }>>('/auth/2fa/verify', body),
+    onSuccess: (res) => onSuccess(res.data.user, res.data.token),
+  });
+}
+
+export function useForgotPassword() {
+  return useMutation({
+    mutationFn: (body: ForgotPasswordRequest) => api.post<Envelope<unknown>>('/auth/forgot-password', body),
+  });
+}
+
+export function useResetPassword() {
+  return useMutation({
+    mutationFn: (body: ResetPasswordRequest) => api.post<Envelope<unknown>>('/auth/reset-password', body),
+  });
+}
+
+export function useLogout() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => api.post<unknown>('/auth/logout').catch(() => undefined),
+    onSettled: () => {
+      void setAuthToken(null);
+      queryClient.removeQueries({ queryKey: ['auth'] });
+    },
+  });
+}

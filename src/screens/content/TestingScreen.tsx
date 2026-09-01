@@ -1,0 +1,81 @@
+import React from 'react';
+import { View, Text, ScrollView } from 'react-native';
+import { Check, Medal } from 'lucide-react-native';
+import { Badge } from '../../components/ui';
+import { FadeIn, StaggerChildren, StaggerItem } from '../../components/motion';
+import { colors } from '../../theme/tokens';
+
+/** RN port of `frontend/apps/web/src/pages/testing.tsx` (SixLevelPage + SevenLevelPage combined into one screen — web splits them into separate routes, condensed here since Testing is a single nav entry on mobile). */
+const sixLevels = [
+  { name: 'Macro Accuracy', detail: 'Claimed vs actual protein, carbs, fat — verified in the lab.' },
+  { name: 'Amino Spiking', detail: 'Detects cheap amino acids passed off as protein.' },
+  { name: 'Melamine', detail: 'Screens for the industrial adulterant behind fake protein counts.' },
+  { name: 'Non-Protein Nitrogen (NPN)', detail: 'Catches nitrogen-based inflation of protein numbers.' },
+  { name: 'Heavy Metals', detail: 'Lead, arsenic, cadmium and mercury within safe limits.' },
+  { name: 'Aflatoxins & Pesticides', detail: 'Fungal toxins and residue screening for everyday safety.' },
+];
+
+const wadaSubstances = [
+  'Anabolic steroids (multiple)', 'SARMs (Ostarine, LGD-4033…)', 'Stimulants', 'Diuretics & masking agents',
+  'Beta-2 agonists', 'Hormone modulators', 'Peptide hormones', 'Banned nutraceutical adulterants',
+];
+
+function LevelList({ levels }: { levels: { name: string; detail: string }[] }) {
+  return (
+    <StaggerChildren className="mt-6 gap-3">
+      {levels.map((level, i) => (
+        <StaggerItem key={level.name}>
+          <View className="flex-row items-start gap-4 rounded-2xl border border-ink-200 bg-white p-4">
+            <View className="size-9 shrink-0 items-center justify-center rounded-full bg-pass-soft">
+              <Text className="text-sm font-bold text-pass-strong">{i + 1}</Text>
+            </View>
+            <View className="flex-1">
+              <Text className="text-sm font-bold text-ink-900">{level.name}</Text>
+              <Text className="mt-1 text-sm leading-relaxed text-ink-600">{level.detail}</Text>
+            </View>
+          </View>
+        </StaggerItem>
+      ))}
+    </StaggerChildren>
+  );
+}
+
+export function TestingScreen() {
+  return (
+    <ScrollView className="flex-1 bg-white" contentContainerClassName="px-6 py-10 pb-16">
+      <FadeIn>
+        <Badge variant="pass">Standard certification</Badge>
+        <Text className="mt-4 text-2xl font-bold text-ink-900">6 Level Testing</Text>
+        <Text className="mt-3 text-sm leading-relaxed text-ink-600">
+          Six independent laboratory checks stand between a product and the Trustified seal. Fail any
+          one, and the product fails — publicly.
+        </Text>
+      </FadeIn>
+      <LevelList levels={sixLevels} />
+
+      <View className="mt-10 border-t border-ink-100 pt-10">
+        <View className="flex-row items-center gap-2 self-start rounded-full bg-gold-soft px-3 py-1.5">
+          <Medal size={14} color={colors.gold.strong} />
+          <Text className="text-xs font-bold uppercase tracking-widest text-gold-800">Gold certification</Text>
+        </View>
+        <Text className="mt-4 text-2xl font-bold text-ink-900">7 Level Testing — the Gold standard</Text>
+        <Text className="mt-3 text-sm leading-relaxed text-ink-600">
+          Everything in 6-level testing, plus a seventh level: screening against WADA-listed banned
+          substances. Built for athletes and anyone who can't afford a contaminated scoop.
+        </Text>
+
+        <View className="mt-6 rounded-2xl border border-gold-200 bg-gold-50 p-5">
+          <Text className="text-sm font-bold text-ink-900">The doping panel covers</Text>
+          <View className="mt-3 gap-2">
+            {wadaSubstances.map((substance) => (
+              <View key={substance} className="flex-row items-center gap-2">
+                <Check size={16} color={colors.gold.strong} />
+                <Text className="text-sm text-ink-700">{substance}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      </View>
+    </ScrollView>
+  );
+}
