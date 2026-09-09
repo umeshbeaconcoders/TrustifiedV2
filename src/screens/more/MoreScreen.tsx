@@ -75,7 +75,7 @@ export function MoreScreen() {
       onPress: () => navigation.navigate('About'),
     },
     {
-      label: 'Our Testing Process',
+      label: 'Gold Certification',
       icon: <TestTube2 size={20} color={colors.ink[600]} />,
       onPress: () => navigation.navigate('Testing'),
     },

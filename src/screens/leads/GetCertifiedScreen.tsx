@@ -170,7 +170,7 @@ export function GetCertifiedScreen() {
               </View>
               <Text className="text-base font-display font-extrabold text-ink-900 mt-4 text-center">Lab Testing</Text>
               <Text className="text-xs text-ink-500 text-center mt-2 leading-relaxed px-2">
-                The sealed unit goes straight to an accredited lab for 6- or 7-level analysis.
+                The sealed unit goes straight to an accredited lab for 8-level analysis.
               </Text>
             </View>
 

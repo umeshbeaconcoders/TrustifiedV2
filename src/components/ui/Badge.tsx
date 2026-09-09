@@ -37,8 +37,22 @@ export function StatusBadge({
   size?: 'sm' | 'md';
 }) {
   const normalized = status.toLowerCase();
-  const label = isGold && normalized === 'pass' ? 'GOLD CERTIFIED' : status.toUpperCase();
-  const variant: BadgeVariant = isGold && normalized === 'pass' ? 'gold' : normalized === 'pass' ? 'pass' : normalized === 'fail' ? 'fail' : 'neutral';
+  const label =
+    isGold && normalized === 'pass'
+      ? 'GOLD CERTIFIED'
+      : normalized === 'certified'
+        ? 'CERTIFIED'
+        : normalized === 'untested' || !normalized
+          ? 'NOT CERTIFIED'
+          : status.toUpperCase();
+  const variant: BadgeVariant =
+    isGold && normalized === 'pass'
+      ? 'gold'
+      : normalized === 'pass' || normalized === 'certified'
+        ? 'pass'
+        : normalized === 'fail'
+          ? 'fail'
+          : 'neutral';
   return (
     <Badge variant={variant} className={size === 'sm' ? 'px-2 py-0.5' : ''}>
       <Text className={`font-bold tracking-wide ${size === 'sm' ? 'text-[10px]' : 'text-xs'}`} style={{ color: badgeVariants[variant].fg }}>

@@ -3,11 +3,12 @@ import { View, Text, ScrollView, Linking, Pressable, Animated, Easing, Dimension
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { 
-  ShieldCheck, 
-  BadgeCheck, 
-  PlayCircle, 
-  ChevronRight, 
+import {
+  ShieldCheck,
+  BadgeCheck,
+  PlayCircle,
+  ChevronRight,
+  ChevronDown,
   Activity,
   FlaskConical,
   Eye,
@@ -21,8 +22,16 @@ import {
   Flame,
   Award,
   Target,
-  Users,
-  ThumbsUp,
+  Megaphone,
+  SearchCheck,
+  Share2,
+  PackageSearch,
+  ClipboardList,
+  ClipboardCheck,
+  Droplet,
+  ShieldAlert,
+  Microscope,
+  FileCheck2,
   Youtube,
   CheckCircle,
   Trophy,
@@ -68,7 +77,7 @@ const WHY_BETTER_ITEMS = [
   {
     iconName: 'FileText' as const,
     title: 'Full Disclosure',
-    body: "Unlike others, we don't hide failures. Pass or fail, every report is shared with you.",
+    body: "Unlike others, we don't hide failures. Pass or fail, every result is shared with you.",
     iconColor: '#dc2626',
     bgColor: '#fef2f2',
   },
@@ -76,67 +85,73 @@ const WHY_BETTER_ITEMS = [
 
 const SUPPORT_MISSION_ITEMS = [
   {
-    iconName: 'ShoppingBag' as const,
+    iconName: 'PackageSearch' as const,
     title: 'Shopping Smart',
-    body: 'Buy verified products through our affiliate links.',
+    body: 'Shop verified products on our app or at our shop.',
+    screen: true,
   },
   {
-    iconName: 'Store' as const,
-    title: 'Exploring Our Story',
-    body: 'Visit shop.trustified.in for tested and trusted products.',
+    iconName: 'Share2' as const,
+    title: 'Spread the Word',
+    body: 'Help more people make informed choices by sharing Trustified and our independent investigations with your community.',
+    screen: false,
   },
   {
     iconName: 'Smartphone' as const,
     title: 'Using Our App',
     body: 'Download Trustified on iOS & Android for easy access to reports and safe shopping.',
+    screen: false,
   },
 ];
 
 const WHAT_WE_TEST_ITEMS = [
   {
-    iconName: 'Activity' as const,
-    title: 'Protein Accuracy',
-    desc: 'Verifying claimed vs actual protein content',
+    iconName: 'ClipboardCheck' as const,
+    title: 'Label Accuracy',
+    desc: 'Verifying label claims against actual contents.',
+  },
+  {
+    iconName: 'Droplet' as const,
+    title: 'Product Purity',
+    desc: 'Checking for unwanted substances and adulteration.',
+  },
+  {
+    iconName: 'ShieldAlert' as const,
+    title: 'Contaminant Safety',
+    desc: 'Screening for harmful contaminants.',
   },
   {
     iconName: 'FlaskConical' as const,
-    title: 'Amino Spiking',
-    desc: 'Detecting cheap fillers used to boost protein numbers',
+    title: 'Hormones & Prohibited Substances',
+    desc: 'Assessing additional substances of concern.',
   },
   {
-    iconName: 'Skull' as const,
-    title: 'Heavy Metals',
-    desc: 'Testing for toxic lead, arsenic, cadmium, and mercury',
-  },
-  {
-    iconName: 'AlertTriangle' as const,
-    title: 'Aflatoxins',
-    desc: 'Screening for dangerous fungal toxins',
-  },
-  {
-    iconName: 'Atom' as const,
-    title: 'Melamine',
-    desc: 'Detecting industrial chemicals used to fake protein',
-  },
-  {
-    iconName: 'Flame' as const,
-    title: 'Pesticides',
-    desc: 'Checking for harmful agricultural residues',
+    iconName: 'Microscope' as const,
+    title: 'Product-Specific Analysis',
+    desc: 'Additional testing based on the product and potential risks.',
   },
 ];
 
 const TESTING_STEPS = [
   {
-    iconName: 'ShoppingBag' as const,
+    iconName: 'PackageSearch' as const,
     title: 'Blind Purchased',
+    body: 'We independently purchase products with our own money.',
   },
   {
-    iconName: 'FlaskConical' as const,
-    title: 'Lab Tested',
+    iconName: 'ClipboardList' as const,
+    title: 'Proof Recorded',
+    body: 'We record the complete ordering process and completely uncut unboxing, including batch details.',
   },
   {
-    iconName: 'BadgeCheck' as const,
-    title: 'Certified or Rejected',
+    iconName: 'Beaker' as const,
+    title: 'Sent to Lab',
+    body: 'A sealed unit from the products shown in our unboxing is sent to an independent laboratory for testing, with the tested batch clearly documented.',
+  },
+  {
+    iconName: 'FileCheck2' as const,
+    title: 'Results Published',
+    body: 'We publish the testing results for full transparency.',
   },
 ];
 
@@ -152,14 +167,14 @@ const YOUTUBE_MEMBERSHIP_BENEFITS = [
     body: 'Stand out with loyalty badges, custom emojis, and on-screen thank-yous that show your backing.',
   },
   {
-    icon: ThumbsUp,
-    title: 'Shape What Happens',
-    body: 'Vote on which supplements we test next and help guide the direction of future investigations.',
+    icon: Megaphone,
+    title: 'Join the Movement for Transparency',
+    body: 'Be part of a growing community working toward greater honesty, accountability, and transparency in the supplement industry.',
   },
   {
-    icon: Users,
-    title: 'Truth-First Community',
-    body: 'Be part of a movement that values evidence over hype and transparency over marketing.',
+    icon: SearchCheck,
+    title: 'Support Independent Investigation',
+    body: 'Join a community that values independent research and evidence-based information over marketing claims.',
   },
 ];
 
@@ -178,6 +193,14 @@ function getSectionIcon(name: string, size: number = 24, color: string = '#2ab84
     case 'Atom': return <Atom size={size} color={color} />;
     case 'Flame': return <Flame size={size} color={color} />;
     case 'BadgeCheck': return <BadgeCheck size={size} color={color} />;
+    case 'PackageSearch': return <PackageSearch size={size} color={color} />;
+    case 'ClipboardList': return <ClipboardList size={size} color={color} />;
+    case 'ClipboardCheck': return <ClipboardCheck size={size} color={color} />;
+    case 'Droplet': return <Droplet size={size} color={color} />;
+    case 'ShieldAlert': return <ShieldAlert size={size} color={color} />;
+    case 'Microscope': return <Microscope size={size} color={color} />;
+    case 'FileCheck2': return <FileCheck2 size={size} color={color} />;
+    case 'Share2': return <Share2 size={size} color={color} />;
     default: return null;
   }
 }
@@ -197,6 +220,7 @@ export function HomeScreen() {
   const { data: categoriesRes } = useCategories();
 
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [openStep, setOpenStep] = useState<number | null>(null);
   const slideAnim = useRef(new Animated.Value(SCREEN_WIDTH * 0.75)).current;
   const backdropOpacity = useRef(new Animated.Value(0)).current;
 
@@ -529,7 +553,7 @@ export function HomeScreen() {
       <View className="py-8 border-b border-ink-100/30">
         <SectionHeader
           title="What We Test"
-          subtitle="Rigorous 6-level scientific analysis"
+          subtitle="Independent analysis across quality, purity, safety, and authenticity."
           className="px-6"
         />
         <ScrollView
@@ -538,10 +562,9 @@ export function HomeScreen() {
           contentContainerClassName="gap-4 px-6 py-4"
         >
           {WHAT_WE_TEST_ITEMS.map((item) => (
-            <Pressable
+            <View
               key={item.title}
-              onPress={() => navigation.navigate('About')}
-              className="w-56 rounded-2xl bg-white border border-ink-100 p-4 shadow-sm flex-row items-center gap-3 active:border-brand-300"
+              className="w-56 rounded-2xl bg-white border border-ink-100 p-4 shadow-sm flex-row items-center gap-3"
             >
               <View className="w-10 h-10 rounded-xl bg-ink-50 items-center justify-center shrink-0">
                 {getSectionIcon(item.iconName, 20, '#2ab841')}
@@ -550,7 +573,7 @@ export function HomeScreen() {
                 <Text className="text-xs font-bold text-ink-900" numberOfLines={1}>{item.title}</Text>
                 <Text className="text-[10px] text-ink-500 font-medium mt-0.5" numberOfLines={2}>{item.desc}</Text>
               </View>
-            </Pressable>
+            </View>
           ))}
         </ScrollView>
       </View>
@@ -559,7 +582,7 @@ export function HomeScreen() {
       <View className="py-8 bg-ink-50/20 border-b border-ink-100/30">
         <SectionHeader
           title="Testing Process"
-          subtitle="Our 3-step independent certification process"
+          subtitle="Tap a step to see how it works"
           className="px-6"
         />
         <ScrollView
@@ -567,21 +590,33 @@ export function HomeScreen() {
           showsHorizontalScrollIndicator={false}
           contentContainerClassName="gap-4 px-6 py-4"
         >
-          {TESTING_STEPS.map((item, index) => (
-            <View
-              key={item.title}
-              className="w-44 items-center bg-white border border-ink-100 rounded-2xl p-4 shadow-sm relative overflow-visible mt-2"
-            >
-              {/* Step number badge */}
-              <View className="absolute -top-3 -right-3 w-7 h-7 rounded-full bg-brand-600 items-center justify-center shadow-md">
-                <Text className="text-white text-xs font-bold">{index + 1}</Text>
-              </View>
-              <View className="w-14 h-14 rounded-full bg-brand-50 items-center justify-center mb-3">
-                {getSectionIcon(item.iconName, 26, '#2ab841')}
-              </View>
-              <Text className="text-xs font-bold text-ink-900 text-center">{item.title}</Text>
-            </View>
-          ))}
+          {TESTING_STEPS.map((item, index) => {
+            const isOpen = openStep === index;
+            return (
+              <Pressable
+                key={item.title}
+                onPress={() => setOpenStep(isOpen ? null : index)}
+                accessibilityRole="button"
+                accessibilityState={{ expanded: isOpen }}
+                className={`w-48 items-center bg-white border rounded-2xl p-4 shadow-sm relative overflow-visible mt-2 ${isOpen ? 'border-brand-300' : 'border-ink-100'}`}
+              >
+                {/* Step number badge */}
+                <View className="absolute -top-3 -right-3 w-7 h-7 rounded-full bg-brand-600 items-center justify-center shadow-md">
+                  <Text className="text-white text-xs font-bold">{index + 1}</Text>
+                </View>
+                <View className="w-14 h-14 rounded-full bg-brand-50 items-center justify-center mb-3">
+                  {getSectionIcon(item.iconName, 26, '#2ab841')}
+                </View>
+                <View className="flex-row items-center gap-1">
+                  <Text className="text-xs font-bold text-ink-900 text-center">{item.title}</Text>
+                  <ChevronDown size={12} color={colors.ink[400]} style={{ transform: [{ rotate: isOpen ? '180deg' : '0deg' }] }} />
+                </View>
+                {isOpen ? (
+                  <Text className="mt-2 text-[10px] leading-relaxed text-ink-600 text-center">{item.body}</Text>
+                ) : null}
+              </Pressable>
+            );
+          })}
         </ScrollView>
       </View>
 
@@ -607,6 +642,16 @@ export function HomeScreen() {
               </View>
               <Text className="text-base font-bold text-ink-900 mb-2">{item.title}</Text>
               <Text className="text-xs leading-relaxed text-ink-600 font-medium">{item.body}</Text>
+              {item.screen ? (
+                <Pressable
+                  onPress={() => navigation.navigate('Tabs', { screen: 'Reports' })}
+                  accessibilityRole="button"
+                  className="mt-3 flex-row items-center gap-1 self-start"
+                >
+                  <Text className="text-xs font-bold text-brand-600">Browse products</Text>
+                  <ChevronRight size={14} color={colors.brand[600]} />
+                </Pressable>
+              ) : null}
             </View>
           ))}
         </ScrollView>
@@ -761,34 +806,6 @@ export function HomeScreen() {
         </View>
       ) : null}
 
-      <View className="mx-6 mt-8 mb-8 rounded-[2rem] bg-[#141515] p-8 border border-ink-850 relative overflow-hidden items-center text-center">
-  <View className="absolute top-[-30%] left-[-10%] w-[80%] h-[80%] rounded-full bg-brand-500/10 blur-[60px]" />
-  <Text className="text-xl font-display font-bold text-white text-center">
-    Is Your Supplement Certified?
-  </Text>
-  <Text className="text-xs text-ink-300 text-center mt-2 max-w-[280px]">
-    If it's not certified, it's not Certified. Choose safe. Be safe.
-  </Text>
-  <View className="mt-5 flex-row gap-3">
-    <Button
-      variant="primary"
-      onPress={() => navigation.navigate('Tabs', { screen: 'Reports' })}
-      className="rounded-xl px-5"
-      accessibilityLabel="Check Database"
-    >
-      <Text className="font-semibold text-white text-xs">Check Database</Text>
-    </Button>
-    <Button
-      variant="outline"
-      onPress={() => navigation.navigate('GetCertified')}
-      className="rounded-xl border-white/10 px-5 bg-white/5"
-      accessibilityLabel="Get Certified"
-    >
-      <Text className="font-semibold text-white text-xs">Get Certified</Text>
-    </Button>
-  </View>
-</View>
-
     </ScrollView>
 
     {/* Side Navigation Drawer Overlay */}
@@ -847,7 +864,7 @@ export function HomeScreen() {
             <DrawerLink label="Verify Certificate" onPress={() => { toggleDrawer(false); navigation.navigate('Verify'); }} />
             <DrawerLink label="Challenge a Result" onPress={() => { toggleDrawer(false); navigation.navigate('Challenge'); }} />
             <DrawerLink label="About Us" onPress={() => { toggleDrawer(false); navigation.navigate('About'); }} />
-            <DrawerLink label="Our Testing Process" onPress={() => { toggleDrawer(false); navigation.navigate('Testing'); }} />
+            <DrawerLink label="Gold Certification" onPress={() => { toggleDrawer(false); navigation.navigate('Testing'); }} />
             <DrawerLink label="What Gets Certified" onPress={() => { toggleDrawer(false); navigation.navigate('WhatGetsCertified'); }} />
           </ScrollView>
         </Animated.View>

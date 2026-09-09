@@ -1,19 +1,21 @@
 import React from 'react';
 import { View, Text, ScrollView, Linking, Pressable, Image } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { 
-  PlayCircle, 
-  FileText, 
-  ShieldCheck, 
-  FlaskConical, 
-  Eye, 
+import {
+  PlayCircle,
+  FileText,
+  ShieldCheck,
+  FlaskConical,
+  Eye,
   EyeOff,
   ChevronRight,
-  HelpCircle
+  HelpCircle,
+  ZoomIn
 } from 'lucide-react-native';
 import { useProduct, useReviews } from '../../api';
 import { Button, EmptyState, MediaFrame, Skeleton, StarRating, StatusBadge, Tabs, TabsList, TabsTrigger, TabsContent } from '../../components/ui';
 import { BuyLinks } from '../../components/BuyLinks';
+import { ImageLightbox } from '../../components/ImageLightbox';
 import { ReviewForm } from '../../components/ReviewForm';
 import { ReviewList } from '../../components/ReviewList';
 import { FadeIn } from '../../components/motion';
@@ -46,6 +48,7 @@ export function ProductDetailScreen({ route, navigation }: Props) {
   const { data: productRes, isLoading, isError } = useProduct(slug);
   const { data: reviewsRes, refetch: refetchReviews } = useReviews(slug, { sort: 'high_to_low', per_page: 20 });
   const [selectedImageIndex, setSelectedImageIndex] = React.useState(0);
+  const [lightboxOpen, setLightboxOpen] = React.useState(false);
 
   if (isLoading) {
     return (
@@ -78,8 +81,19 @@ export function ProductDetailScreen({ route, navigation }: Props) {
     <ScrollView className="flex-1 bg-white" contentContainerClassName="pb-16">
       <FadeIn>
         <View className="p-4">
-          {/* Main Product Image */}
-          <MediaFrame src={images[selectedImageIndex]} alt={product.name} aspect="square" rounded="2xl" />
+          {/* Main Product Image — tap to open the full-screen zoom/pan viewer */}
+          <Pressable
+            onPress={() => images[selectedImageIndex] && setLightboxOpen(true)}
+            accessibilityRole="button"
+            accessibilityLabel="View full-size image"
+          >
+            <MediaFrame src={images[selectedImageIndex]} alt={product.name} aspect="square" rounded="2xl" />
+            {images[selectedImageIndex] ? (
+              <View className="absolute bottom-3 right-3 size-9 rounded-full bg-ink-900/70 items-center justify-center">
+                <ZoomIn size={16} color="#fff" />
+              </View>
+            ) : null}
+          </Pressable>
 
           {/* Dynamic Image Gallery Slider (Circular Thumbnails) */}
           {images.length > 1 ? (
@@ -166,9 +180,9 @@ export function ProductDetailScreen({ route, navigation }: Props) {
                   const isLatest = index === 0;
                   const typeLabel = rep.type === 'gold' ? 'Gold' : rep.type === 'nmr' ? 'NMR' : 'Standard';
                   return (
-                    <Pressable 
-                      key={rep.id} 
-                      onPress={() => navigation.navigate('ReportDetail', { slug: product.slug })}
+                    <Pressable
+                      key={rep.id}
+                      onPress={() => navigation.navigate('ReportDetail', { slug: product.slug, reportId: rep.id })}
                       className="relative rounded-2xl border border-brand-200 bg-white p-5 mt-4 shadow-sm active:opacity-95 overflow-visible items-center"
                     >
                       {isLatest ? (
@@ -266,6 +280,13 @@ export function ProductDetailScreen({ route, navigation }: Props) {
           </Tabs>
         </View>
       </FadeIn>
+
+      <ImageLightbox
+        visible={lightboxOpen}
+        src={images[selectedImageIndex]}
+        alt={product.name}
+        onClose={() => setLightboxOpen(false)}
+      />
     </ScrollView>
   );
 }

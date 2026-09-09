@@ -8,7 +8,7 @@ import {
   Eye,
   EyeOff
 } from 'lucide-react-native';
-import { useProduct, useProductReport, mediaUrl } from '../../api';
+import { useProduct, useProductReport, useReport, mediaUrl } from '../../api';
 import { Button, EmptyState, MediaFrame, Spinner, StarRating } from '../../components/ui';
 import { BuyLinks } from '../../components/BuyLinks';
 import { ReportView } from '../../components/ReportView';
@@ -28,9 +28,13 @@ const TRUST_INDICATORS = [
 type Props = NativeStackScreenProps<RootStackParamList, 'ReportDetail'>;
 
 export function ReportDetailScreen({ route, navigation }: Props) {
-  const { slug } = route.params;
+  const { slug, reportId } = route.params;
   const { data: productRes, isLoading, isError } = useProduct(slug);
-  const { data: reportRes } = useProductReport(slug);
+  const { data: latestReportRes } = useProductReport(slug);
+  const { data: specificReportRes } = useReport(reportId);
+  // A specific reportId always wins over "latest" — including while it's
+  // still loading, so the screen doesn't flash the wrong (latest) report first.
+  const reportRes = reportId ? specificReportRes : latestReportRes;
 
   if (isLoading) return <Spinner className="flex-1" />;
 
@@ -47,12 +51,13 @@ export function ReportDetailScreen({ route, navigation }: Props) {
     );
   }
 
-  const report = reportRes?.data ?? product.latest_test_report ?? null;
+  const report = reportId ? (reportRes?.data ?? null) : (reportRes?.data ?? product.latest_test_report ?? null);
   const hasReport = Boolean(report && typeof report === 'object' && 'id' in report);
-  
+
   const isFail = product.status.toLowerCase() === 'fail';
+  const isExpired = product.status.toLowerCase() === 'expired';
   const isGold = report?.type === 'gold' || product.is_gold;
-  const bannerBg = isFail ? 'bg-fail' : isGold ? 'bg-[#b08c2f]' : 'bg-brand-600';
+  const bannerBg = isFail ? 'bg-fail' : isExpired ? 'bg-amber-500' : isGold ? 'bg-[#b08c2f]' : 'bg-brand-600';
 
   return (
     <ScrollView className="flex-1 bg-white" contentContainerClassName="pb-16">
@@ -174,39 +179,49 @@ export function ReportDetailScreen({ route, navigation }: Props) {
             </View>
 
             <BuyLinks links={product.buy_links} className="mt-5" />
-            
+
+            <Pressable onPress={() => navigation.navigate('ProductDetail', { slug: product.slug })} className="mt-5">
+              <Text className="text-sm font-bold text-brand-600">View community reviews →</Text>
+            </Pressable>
           </View>
 
           {/* Trustified Test Reports card (from web left column) */}
-          {product.test_reports && product.test_reports.length > 0 ? (
-            <View className="mb-6 rounded-2xl border border-ink-200 bg-white p-5 shadow-sm">
-              <View className="flex-row items-center gap-2 mb-4">
-                <TrustifiedStamp size={24} />
-                <Text className="font-display font-bold text-ink-900 text-base">
-                  Trustified Test Reports
-                </Text>
-              </View>
+          <View className="mb-6 rounded-2xl border border-ink-200 bg-white p-5 shadow-sm">
+            <View className="flex-row items-center gap-2 mb-4">
+              <TrustifiedStamp size={24} />
+              <Text className="font-display font-bold text-ink-900 text-base">
+                Trustified Test Reports
+              </Text>
+            </View>
+            {product.test_reports && product.test_reports.length > 0 ? (
               <View className="gap-3">
                 {product.test_reports.map((rep) => {
                   const isActiveReport = rep.id === report?.id;
                   return (
                     <Pressable
                       key={rep.id}
-                      onPress={() => navigation.navigate('ReportDetail', { slug: product.slug })}
-                      className={`rounded-xl border p-3 ${isActiveReport ? 'border-brand-300 bg-brand-50/30' : 'border-ink-100 bg-white active:bg-ink-50'}`}
+                      onPress={() => navigation.navigate('ReportDetail', { slug: product.slug, reportId: rep.id })}
+                      className={`flex-row items-center justify-between rounded-xl border p-3 ${isActiveReport ? 'border-brand-300 bg-brand-50/30' : 'border-ink-100 bg-white active:bg-ink-50'}`}
                     >
-                      <Text className={`text-xs font-bold ${isActiveReport ? 'text-brand-700' : 'text-ink-800'}`}>
-                        Trustified Report — {rep.batch_no || 'N/A'}
-                      </Text>
-                      <Text className="text-[10px] text-ink-400 font-bold mt-1">
-                        {rep.published_at ? formatDate(rep.published_at) : 'N/A'}
-                      </Text>
+                      <View>
+                        <Text className={`text-xs font-bold ${isActiveReport ? 'text-brand-700' : 'text-ink-800'}`}>
+                          Trustified Report — {rep.batch_no || 'N/A'}
+                        </Text>
+                        <Text className="text-[10px] text-ink-400 font-bold mt-1">
+                          {rep.published_at ? formatDate(rep.published_at) : 'N/A'}
+                        </Text>
+                      </View>
+                      {isActiveReport ? (
+                        <Text className="text-[9px] font-bold uppercase tracking-wider text-brand-600">Viewing</Text>
+                      ) : null}
                     </Pressable>
                   );
                 })}
               </View>
-            </View>
-          ) : null}
+            ) : (
+              <Text className="text-sm text-ink-500">No historical test reports available.</Text>
+            )}
+          </View>
 
           {/* SUMMARY OF TEST RESULTS Header */}
           <View className="flex-row items-center gap-3 mb-5 mt-2">
@@ -218,10 +233,15 @@ export function ReportDetailScreen({ route, navigation }: Props) {
 
           {hasReport && report ? (
             <ReportView report={report} hideMetaStrip />
+          ) : isExpired ? (
+            <EmptyState
+              title="This certification has expired"
+              description="The detailed parameter breakdown is no longer published for this expired report."
+            />
           ) : (
             <EmptyState
               title="Report details coming soon"
-              description="The verdict is in, but the detailed parameter breakdown hasn't been published yet."
+              description="The verdict is in, but the detailed parameter breakdown for this product hasn't been published yet."
             />
           )}
         </View>

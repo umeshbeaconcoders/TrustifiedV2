@@ -62,6 +62,16 @@ export function useProductReport(slug: string | undefined) {
   });
 }
 
+/** Fetch one specific report by id — used when a product has more than one
+ * (retests/history) and a particular one is selected from the reports list. */
+export function useReport(id: number | undefined) {
+  return useQuery({
+    queryKey: ['reports', 'detail', id],
+    queryFn: ({ signal }) => api.get<Envelope<TestReport>>(`/reports/${id}`, undefined, signal),
+    enabled: Boolean(id),
+  });
+}
+
 export type ReportCollection = 'pass-fail' | 'gold' | 'nmr';
 
 export function useReports(collection: ReportCollection, params: ListParams = {}) {

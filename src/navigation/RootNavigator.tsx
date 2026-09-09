@@ -41,6 +41,7 @@ export function RootNavigator() {
         headerShadowVisible: false,
         headerStyle: { backgroundColor: '#fff' },
         contentStyle: { backgroundColor: '#fff' },
+        freezeOnBlur: true,
       }}>
       <Stack.Screen name="Tabs" component={TabNavigator} options={{ headerShown: false }} />
 
@@ -54,7 +55,7 @@ export function RootNavigator() {
       <Stack.Screen name="GetCertified" component={GetCertifiedScreen} options={{ title: 'Get Certified' }} />
       <Stack.Screen name="Challenge" component={ChallengeScreen} options={{ title: 'Challenge a Result' }} />
       <Stack.Screen name="About" component={AboutScreen} options={{ title: 'About Us' }} />
-      <Stack.Screen name="Testing" component={TestingScreen} options={{ title: 'Our Testing Process' }} />
+      <Stack.Screen name="Testing" component={TestingScreen} options={{ title: 'Gold Certification' }} />
       <Stack.Screen name="WhatGetsCertified" component={WhatGetsCertifiedScreen} options={{ title: 'What Gets Certified' }} />
       <Stack.Screen name="Policy" component={PolicyScreen} options={{ title: 'Policy' }} />
       <Stack.Screen name="SettingsMenu" component={SettingsMenuScreen} options={{ title: 'Settings' }} />

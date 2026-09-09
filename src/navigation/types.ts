@@ -19,7 +19,7 @@ export type TabParamList = {
 export type RootStackParamList = {
   Tabs: NavigatorScreenParams<TabParamList>;
   ProductDetail: { slug: string };
-  ReportDetail: { slug: string };
+  ReportDetail: { slug: string; reportId?: number };
   BrandDetail: { slug: string };
   CertifiedBrands: undefined;
   RankingsIndex: undefined;

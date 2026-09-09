@@ -1,12 +1,11 @@
 import React from 'react';
 import { View, Text, ScrollView } from 'react-native';
 import { Check, Medal } from 'lucide-react-native';
-import { Badge } from '../../components/ui';
 import { FadeIn, StaggerChildren, StaggerItem } from '../../components/motion';
 import { colors } from '../../theme/tokens';
 
-/** RN port of `frontend/apps/web/src/pages/testing.tsx` (SixLevelPage + SevenLevelPage combined into one screen — web splits them into separate routes, condensed here since Testing is a single nav entry on mobile). */
-const sixLevels = [
+/** RN port of `frontend/apps/web/src/pages/testing.tsx` — web merged the old SixLevelPage/SevenLevelPage split into a single GoldPage (8-level testing incl. the WADA panel); mirrored here as one screen. */
+const testLevels = [
   { name: 'Macro Accuracy', detail: 'Claimed vs actual protein, carbs, fat — verified in the lab.' },
   { name: 'Amino Spiking', detail: 'Detects cheap amino acids passed off as protein.' },
   { name: 'Melamine', detail: 'Screens for the industrial adulterant behind fake protein counts.' },
@@ -44,27 +43,20 @@ export function TestingScreen() {
   return (
     <ScrollView className="flex-1 bg-white" contentContainerClassName="px-6 py-10 pb-16">
       <FadeIn>
-        <Badge variant="pass">Standard certification</Badge>
-        <Text className="mt-4 text-2xl font-bold text-ink-900">6 Level Testing</Text>
-        <Text className="mt-3 text-sm leading-relaxed text-ink-600">
-          Six independent laboratory checks stand between a product and the Trustified seal. Fail any
-          one, and the product fails — publicly.
-        </Text>
-      </FadeIn>
-      <LevelList levels={sixLevels} />
-
-      <View className="mt-10 border-t border-ink-100 pt-10">
         <View className="flex-row items-center gap-2 self-start rounded-full bg-gold-soft px-3 py-1.5">
           <Medal size={14} color={colors.gold.strong} />
           <Text className="text-xs font-bold uppercase tracking-widest text-gold-800">Gold certification</Text>
         </View>
-        <Text className="mt-4 text-2xl font-bold text-ink-900">7 Level Testing — the Gold standard</Text>
+        <Text className="mt-4 text-2xl font-bold text-ink-900">Gold Certification — 8 Level Testing</Text>
         <Text className="mt-3 text-sm leading-relaxed text-ink-600">
-          Everything in 6-level testing, plus a seventh level: screening against WADA-listed banned
-          substances. Built for athletes and anyone who can't afford a contaminated scoop.
+          Eight independent laboratory checks stand between a product and the Trustified Gold seal —
+          including a WADA-listed banned-substance panel. Fail any one, and the product fails — publicly.
         </Text>
+      </FadeIn>
+      <LevelList levels={testLevels} />
 
-        <View className="mt-6 rounded-2xl border border-gold-200 bg-gold-50 p-5">
+      <View className="mt-10 border-t border-ink-100 pt-10">
+        <View className="rounded-2xl border border-gold-200 bg-gold-50 p-5">
           <Text className="text-sm font-bold text-ink-900">The doping panel covers</Text>
           <View className="mt-3 gap-2">
             {wadaSubstances.map((substance) => (
