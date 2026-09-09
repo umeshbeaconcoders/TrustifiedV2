@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, ScrollView, Linking, Pressable, Image } from 'react-native';
+import { View, Text, ScrollView, Linking, Pressable, Image, RefreshControl } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   PlayCircle,
@@ -21,6 +21,7 @@ import { ReviewList } from '../../components/ReviewList';
 import { FadeIn } from '../../components/motion';
 import { colors } from '../../theme/tokens';
 import { extractYoutubeId, formatDate } from '../../lib/format';
+import { usePullToRefresh } from '../../lib/usePullToRefresh';
 import type { RootStackParamList } from '../../navigation/types';
 
 // Web trust indicators data
@@ -45,14 +46,15 @@ type Props = NativeStackScreenProps<RootStackParamList, 'ProductDetail'>;
 
 export function ProductDetailScreen({ route, navigation }: Props) {
   const { slug } = route.params;
-  const { data: productRes, isLoading, isError } = useProduct(slug);
+  const { data: productRes, isLoading, isError, refetch: refetchProduct } = useProduct(slug);
   const { data: reviewsRes, refetch: refetchReviews } = useReviews(slug, { sort: 'high_to_low', per_page: 20 });
   const [selectedImageIndex, setSelectedImageIndex] = React.useState(0);
   const [lightboxOpen, setLightboxOpen] = React.useState(false);
+  const { refreshing, onRefresh } = usePullToRefresh([refetchProduct, refetchReviews]);
 
   if (isLoading) {
     return (
-      <View className="flex-1 gap-4 bg-white p-4">
+      <View className="flex-1 gap-4 bg-white dark:bg-surface-1 p-4">
         <Skeleton className="aspect-square w-full" />
         <Skeleton height={16} className="w-1/3" />
         <Skeleton height={28} className="w-3/4" />
@@ -78,7 +80,11 @@ export function ProductDetailScreen({ route, navigation }: Props) {
   const testVideoId = extractYoutubeId(product.test_video_url);
 
   return (
-    <ScrollView className="flex-1 bg-white" contentContainerClassName="pb-16">
+    <ScrollView
+      className="flex-1 bg-white dark:bg-surface-1"
+      contentContainerClassName="pb-16"
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.brand[500]]} />}
+    >
       <FadeIn>
         <View className="p-4">
           {/* Main Product Image — tap to open the full-screen zoom/pan viewer */}
@@ -120,14 +126,14 @@ export function ProductDetailScreen({ route, navigation }: Props) {
               {product.brand.name}
             </Text>
           ) : null}
-          <Text className="mt-1.5 text-2xl font-display font-extrabold text-ink-900 leading-snug">{product.name}</Text>
+          <Text className="mt-1.5 text-2xl font-display font-extrabold text-ink-900 dark:text-white leading-snug">{product.name}</Text>
 
           <View className="mt-3 flex-row flex-wrap items-center gap-3">
             {product.status !== 'untested' ? <StatusBadge status={product.status} isGold={product.is_gold} /> : null}
             {product.reviews_count > 0 ? (
               <View className="flex-row items-center gap-1.5">
                 <StarRating value={product.rating_avg} size={14} />
-                <Text className="text-sm text-ink-600 font-bold">
+                <Text className="text-sm text-ink-600 dark:text-ink-300 font-bold">
                   {product.rating_avg.toFixed(1)} ({product.reviews_count} reviews)
                 </Text>
               </View>
@@ -141,18 +147,18 @@ export function ProductDetailScreen({ route, navigation }: Props) {
                 <View className="size-8 rounded-full bg-brand-100 items-center justify-center shrink-0">
                   {getIndicatorIcon(i.iconName)}
                 </View>
-                <Text className="text-[10px] font-bold leading-tight text-ink-800 flex-1">{i.label}</Text>
+                <Text className="text-[10px] font-bold leading-tight text-ink-800 dark:text-ink-100 flex-1">{i.label}</Text>
               </View>
             ))}
           </View>
 
           {/* Web Trust explanation statement */}
-          <Text className="mt-4 text-xs leading-relaxed text-ink-600 font-semibold bg-ink-50 p-4 rounded-xl border border-ink-100">
+          <Text className="mt-4 text-xs leading-relaxed text-ink-600 dark:text-ink-300 font-semibold bg-ink-50 dark:bg-surface-2 p-4 rounded-xl border border-ink-100 dark:border-ink-800">
             At Trustified, we buy products like you do, test them in accredited labs, and share the truth — no brand influence, no paid reviews.
           </Text>
 
           {product.description ? (
-            <Text className="mt-5 text-sm leading-relaxed text-ink-700 font-medium">{product.description}</Text>
+            <Text className="mt-5 text-sm leading-relaxed text-ink-700 dark:text-ink-200 font-medium">{product.description}</Text>
           ) : null}
 
           <BuyLinks links={product.buy_links} className="mt-6" />
@@ -163,14 +169,14 @@ export function ProductDetailScreen({ route, navigation }: Props) {
               <View className="w-10 h-10 rounded-full bg-brand-600 items-center justify-center shadow-md">
                 <FileText size={18} color="#fff" />
               </View>
-              <Text className="text-lg font-display font-bold text-ink-900">Trustified Lab Test Reports</Text>
+              <Text className="text-lg font-display font-bold text-ink-900 dark:text-white">Trustified Lab Test Reports</Text>
             </View>
 
             {/* Check if product is expired */}
             {product.status.toLowerCase() === 'expired' ? (
-              <View className="flex-row items-center gap-3 rounded-2xl border border-ink-200 bg-ink-50 p-4 mt-3">
+              <View className="flex-row items-center gap-3 rounded-2xl border border-ink-200 dark:border-ink-700 bg-ink-50 dark:bg-surface-2 p-4 mt-3">
                 <HelpCircle size={18} color={colors.ink[500]} />
-                <Text className="text-xs font-bold text-ink-600 flex-1 leading-relaxed">
+                <Text className="text-xs font-bold text-ink-600 dark:text-ink-300 flex-1 leading-relaxed">
                   This certification has expired — the detailed report is no longer published.
                 </Text>
               </View>
@@ -183,7 +189,7 @@ export function ProductDetailScreen({ route, navigation }: Props) {
                     <Pressable
                       key={rep.id}
                       onPress={() => navigation.navigate('ReportDetail', { slug: product.slug, reportId: rep.id })}
-                      className="relative rounded-2xl border border-brand-200 bg-white p-5 mt-4 shadow-sm active:opacity-95 overflow-visible items-center"
+                      className="relative rounded-2xl border border-brand-200 bg-white dark:bg-surface-1 p-5 mt-4 shadow-sm active:opacity-95 overflow-visible items-center"
                     >
                       {isLatest ? (
                         <View className="absolute -top-2.5 left-5 rounded-full bg-brand-600 px-2.5 py-0.5 shadow-sm">
@@ -203,32 +209,32 @@ export function ProductDetailScreen({ route, navigation }: Props) {
 
                       {/* Centered Metadata Details */}
                       <View className="mt-2.5 gap-1 items-center">
-                        <Text className="text-xs text-ink-500 font-bold text-center">
+                        <Text className="text-xs text-ink-500 dark:text-ink-400 font-bold text-center">
                           Type:{' '}
-                          <Text className="text-ink-800 font-extrabold">{typeLabel}</Text>
+                          <Text className="text-ink-800 dark:text-ink-100 font-extrabold">{typeLabel}</Text>
                           {'    '}Tested:{' '}
-                          <Text className="text-ink-800 font-extrabold">
+                          <Text className="text-ink-800 dark:text-ink-100 font-extrabold">
                             {rep.published_at ? formatDate(rep.published_at) : 'N/A'}
                           </Text>
                         </Text>
                         
                         {rep.exp_date ? (
-                          <Text className="text-xs text-ink-500 font-bold text-center">
+                          <Text className="text-xs text-ink-500 dark:text-ink-400 font-bold text-center">
                             Valid till:{' '}
-                            <Text className="text-ink-800 font-extrabold">{formatDate(rep.exp_date)}</Text>
+                            <Text className="text-ink-800 dark:text-ink-100 font-extrabold">{formatDate(rep.exp_date)}</Text>
                           </Text>
                         ) : null}
 
-                        <Text className="text-xs text-ink-500 font-bold text-center">
+                        <Text className="text-xs text-ink-500 dark:text-ink-400 font-bold text-center">
                           Lab:{' '}
-                          <Text className="text-ink-800 font-extrabold">
+                          <Text className="text-ink-800 dark:text-ink-100 font-extrabold">
                             {rep.tested_by || 'Accredited partner lab'}
                           </Text>
                         </Text>
                       </View>
 
                       {/* Stretched/Centered Status Action Row at the bottom */}
-                      <View className="mt-4 pt-3 border-t border-ink-100 w-full flex-row items-center justify-center gap-2">
+                      <View className="mt-4 pt-3 border-t border-ink-100 dark:border-ink-800 w-full flex-row items-center justify-center gap-2">
                         <StatusBadge 
                           status={rep.status} 
                           size="sm" 
@@ -248,7 +254,7 @@ export function ProductDetailScreen({ route, navigation }: Props) {
                 accessibilityLabel="See latest lab test report"
               >
                 <FileText size={16} color={colors.ink[800]} />
-                <Text className="ml-1 font-semibold text-ink-800">See latest lab test report</Text>
+                <Text className="ml-1 font-semibold text-ink-800 dark:text-ink-100">See latest lab test report</Text>
               </Button>
             )}
           </View>
@@ -256,7 +262,7 @@ export function ProductDetailScreen({ route, navigation }: Props) {
           {/* Videos segment */}
           {reviewVideoId || testVideoId ? (
             <View className="mt-8 gap-3">
-              <Text className="text-lg font-display font-bold text-ink-900">Videos</Text>
+              <Text className="text-lg font-display font-bold text-ink-900 dark:text-white">Videos</Text>
               {reviewVideoId ? (
                 <VideoThumb id={reviewVideoId} label="Review Video" />
               ) : null}
@@ -295,11 +301,11 @@ function VideoThumb({ id, label }: { id: string; label: string }) {
   return (
     <Button
       variant="outline"
-      className="h-auto justify-start py-3.5 rounded-2xl border-ink-200"
+      className="h-auto justify-start py-3.5 rounded-2xl border-ink-200 dark:border-ink-700"
       onPress={() => Linking.openURL(`https://www.youtube.com/watch?v=${id}`)}
       accessibilityLabel={label}>
       <PlayCircle size={20} color="#FF0000" />
-      <Text className="ml-2 font-semibold text-ink-800">{label}</Text>
+      <Text className="ml-2 font-semibold text-ink-800 dark:text-ink-100">{label}</Text>
     </Button>
   );
 }

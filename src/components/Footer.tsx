@@ -32,7 +32,7 @@ export function Footer() {
             <TrustifiedStamp size={32} />
             <Text className="text-xl font-display font-extrabold text-white">Trustified</Text>
           </View>
-          <Text className="mt-4 text-xs leading-relaxed text-ink-400 font-semibold">
+          <Text className="mt-4 text-xs leading-relaxed text-ink-400 dark:text-ink-500 font-semibold">
             India's independent blind-testing and certification platform. We buy products off the shelf, test them in accredited labs, and publish the true results — pass or fail.
           </Text>
         </View>
@@ -84,7 +84,7 @@ export function Footer() {
             <Mail size={14} color="#3b82f6" />
           </View>
           <View>
-            <Text className="text-[10px] text-ink-500 font-bold uppercase">Contact Email</Text>
+            <Text className="text-[10px] text-ink-500 dark:text-ink-400 font-bold uppercase">Contact Email</Text>
             <Text 
               className="text-xs font-bold text-white mt-0.5" 
               onPress={() => Linking.openURL('mailto:support@trustified.in')}
@@ -96,10 +96,10 @@ export function Footer() {
 
         {/* Copyright notice */}
         <View className="border-t border-white/10 pt-4 flex-row justify-between items-center">
-          <Text className="text-[10px] font-bold text-ink-500">
+          <Text className="text-[10px] font-bold text-ink-500 dark:text-ink-400">
             © {new Date().getFullYear()} Trustified platforms.
           </Text>
-          <Text className="text-[10px] font-bold text-ink-500">
+          <Text className="text-[10px] font-bold text-ink-500 dark:text-ink-400">
             All rights reserved.
           </Text>
         </View>
@@ -123,7 +123,7 @@ function FooterLink({ label, onPress }: { label: string; onPress: () => void }) 
   return (
     <Pressable onPress={onPress} className="flex-row items-center gap-1.5 active:opacity-75">
       <ArrowRight size={10} color="#6b7280" />
-      <Text className="text-ink-400 text-xs font-semibold">{label}</Text>
+      <Text className="text-ink-400 dark:text-ink-500 text-xs font-semibold">{label}</Text>
     </Pressable>
   );
 }

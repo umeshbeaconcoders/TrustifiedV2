@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, Pressable } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -7,6 +7,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ApiError, useOtpRequest, useOtpVerify } from '../../api';
 import { Button, Field, Input } from '../../components/ui';
 import { ControlledInput } from '../../components/form/ControlledInput';
+import { KeyboardAvoidingScreen } from '../../components/KeyboardAvoidingScreen';
 import { FadeIn } from '../../components/motion';
 import type { RootStackParamList } from '../../navigation/types';
 
@@ -60,9 +61,9 @@ export function OtpLoginScreen({ navigation }: Props) {
   }
 
   return (
-    <ScrollView className="flex-1 bg-white" contentContainerClassName="px-6 py-10" keyboardShouldPersistTaps="handled">
+    <KeyboardAvoidingScreen contentContainerClassName="px-6 py-10">
       <FadeIn>
-        <Text className="text-center text-2xl font-bold text-ink-900">Log in with mobile OTP</Text>
+        <Text className="text-center text-2xl font-bold text-ink-900 dark:text-white">Log in with mobile OTP</Text>
 
         {!phone ? (
           <View className="mt-6 gap-4">
@@ -82,7 +83,7 @@ export function OtpLoginScreen({ navigation }: Props) {
           </View>
         ) : (
           <View className="mt-6 gap-4">
-            <Text className="text-center text-sm text-ink-600">Enter the 6-digit code sent to {phone}.</Text>
+            <Text className="text-center text-sm text-ink-600 dark:text-ink-300">Enter the 6-digit code sent to {phone}.</Text>
             <Input
               keyboardType="number-pad"
               maxLength={6}
@@ -97,11 +98,11 @@ export function OtpLoginScreen({ navigation }: Props) {
               Verify & continue
             </Button>
             <Pressable onPress={() => setPhone(null)} className="items-center py-2" accessibilityRole="button">
-              <Text className="text-xs text-ink-500 underline">Use a different number</Text>
+              <Text className="text-xs text-ink-500 dark:text-ink-400 underline">Use a different number</Text>
             </Pressable>
           </View>
         )}
       </FadeIn>
-    </ScrollView>
+    </KeyboardAvoidingScreen>
   );
 }

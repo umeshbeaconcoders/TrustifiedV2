@@ -28,10 +28,10 @@ export function VerifyScreen({ route }: Props) {
   }
 
   return (
-    <ScrollView className="flex-1 bg-white" contentContainerClassName="px-6 py-10" keyboardShouldPersistTaps="handled">
+    <ScrollView className="flex-1 bg-white dark:bg-surface-1" contentContainerClassName="px-6 py-10" keyboardShouldPersistTaps="handled">
       <FadeIn>
-        <Text className="text-2xl font-bold text-ink-900">Verify a certificate</Text>
-        <Text className="mt-2 text-sm text-ink-600">
+        <Text className="text-2xl font-bold text-ink-900 dark:text-white">Verify a certificate</Text>
+        <Text className="mt-2 text-sm text-ink-600 dark:text-ink-300">
           Enter the certificate number printed on the product's Trustified seal to confirm it's genuine.
         </Text>
 
@@ -67,7 +67,7 @@ export function VerifyScreen({ route }: Props) {
               <ShieldX size={22} color={colors.fail.strong} />
               <Text className="text-base font-bold text-fail-strong">Not found</Text>
             </View>
-            <Text className="mt-2 text-sm text-ink-700">
+            <Text className="mt-2 text-sm text-ink-700 dark:text-ink-200">
               We couldn't find a certificate matching "{submitted}". Double-check the number and try again.
             </Text>
           </View>
@@ -83,8 +83,8 @@ export function VerifyScreen({ route }: Props) {
                 <MediaFrame src={certificate.product_image_url} alt={certificate.product_name} aspect="square" rounded="lg" className="size-16" />
               ) : null}
               <View className="flex-1">
-                <Text className="text-base font-bold text-ink-900">{certificate.product_name}</Text>
-                {certificate.brand?.name ? <Text className="text-sm text-ink-600">{certificate.brand.name}</Text> : null}
+                <Text className="text-base font-bold text-ink-900 dark:text-white">{certificate.product_name}</Text>
+                {certificate.brand?.name ? <Text className="text-sm text-ink-600 dark:text-ink-300">{certificate.brand.name}</Text> : null}
               </View>
             </View>
 
@@ -114,8 +114,8 @@ export function VerifyScreen({ route }: Props) {
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
     <View className="flex-row justify-between">
-      <Text className="text-xs font-semibold uppercase tracking-wide text-ink-500">{label}</Text>
-      <Text className="text-sm font-medium text-ink-900">{value}</Text>
+      <Text className="text-xs font-semibold uppercase tracking-wide text-ink-500 dark:text-ink-400">{label}</Text>
+      <Text className="text-sm font-medium text-ink-900 dark:text-white">{value}</Text>
     </View>
   );
 }

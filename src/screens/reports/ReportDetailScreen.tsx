@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, ScrollView, Linking, Pressable } from 'react-native';
+import { View, Text, ScrollView, Linking, Pressable, RefreshControl } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { 
   ExternalLink,
@@ -14,6 +14,7 @@ import { BuyLinks } from '../../components/BuyLinks';
 import { ReportView } from '../../components/ReportView';
 import { FadeIn } from '../../components/motion';
 import { formatDate } from '../../lib/format';
+import { usePullToRefresh } from '../../lib/usePullToRefresh';
 import { TrustifiedStamp } from '../../components/icons/TrustifiedStamp';
 import type { RootStackParamList } from '../../navigation/types';
 
@@ -29,12 +30,13 @@ type Props = NativeStackScreenProps<RootStackParamList, 'ReportDetail'>;
 
 export function ReportDetailScreen({ route, navigation }: Props) {
   const { slug, reportId } = route.params;
-  const { data: productRes, isLoading, isError } = useProduct(slug);
-  const { data: latestReportRes } = useProductReport(slug);
-  const { data: specificReportRes } = useReport(reportId);
+  const { data: productRes, isLoading, isError, refetch: refetchProduct } = useProduct(slug);
+  const { data: latestReportRes, refetch: refetchLatestReport } = useProductReport(slug);
+  const { data: specificReportRes, refetch: refetchSpecificReport } = useReport(reportId);
   // A specific reportId always wins over "latest" — including while it's
   // still loading, so the screen doesn't flash the wrong (latest) report first.
   const reportRes = reportId ? specificReportRes : latestReportRes;
+  const { refreshing, onRefresh } = usePullToRefresh([refetchProduct, refetchLatestReport, refetchSpecificReport]);
 
   if (isLoading) return <Spinner className="flex-1" />;
 
@@ -60,7 +62,11 @@ export function ReportDetailScreen({ route, navigation }: Props) {
   const bannerBg = isFail ? 'bg-fail' : isExpired ? 'bg-amber-500' : isGold ? 'bg-[#b08c2f]' : 'bg-brand-600';
 
   return (
-    <ScrollView className="flex-1 bg-white" contentContainerClassName="pb-16">
+    <ScrollView
+      className="flex-1 bg-white dark:bg-surface-1"
+      contentContainerClassName="pb-16"
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+    >
       <FadeIn>
         {/* Web aligned Verdict Banner Box */}
         <View className={`m-4 rounded-[24px] p-6 relative overflow-hidden ${bannerBg}`}>
@@ -134,7 +140,7 @@ export function ReportDetailScreen({ route, navigation }: Props) {
               {report.report_pdf_url ? (
                 <Button
                   onPress={() => Linking.openURL(mediaUrl(report.report_pdf_url) ?? '')}
-                  className="mt-2 bg-white rounded-xl py-3 justify-center items-center flex-row gap-2 active:opacity-90 shadow-sm"
+                  className="mt-2 bg-white dark:bg-surface-1 rounded-xl py-3 justify-center items-center flex-row gap-2 active:opacity-90 shadow-sm"
                   accessibilityLabel="View lab PDF"
                 >
                   <ExternalLink size={16} color={isFail ? '#dc2626' : isGold ? '#b08c2f' : '#1c7a2d'} />
@@ -154,23 +160,23 @@ export function ReportDetailScreen({ route, navigation }: Props) {
           <MediaFrame src={product.image_url} alt={product.name} aspect="square" rounded="2xl" className="mb-4" />
 
           {/* Product info details card */}
-          <View className="mb-6 rounded-2xl border border-ink-200 bg-white p-5 shadow-sm">
-            <Text className="mb-4 font-display font-bold text-ink-900 text-base">Product Info</Text>
+          <View className="mb-6 rounded-2xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-surface-1 p-5 shadow-sm">
+            <Text className="mb-4 font-display font-bold text-ink-900 dark:text-white text-base">Product Info</Text>
             
             <View className="gap-3">
               {product.category ? (
                 <View>
-                  <Text className="text-xs text-ink-500 font-bold">Category</Text>
-                  <Text className="text-sm font-semibold text-ink-900 mt-0.5">{product.category.name}</Text>
+                  <Text className="text-xs text-ink-500 dark:text-ink-400 font-bold">Category</Text>
+                  <Text className="text-sm font-semibold text-ink-900 dark:text-white mt-0.5">{product.category.name}</Text>
                 </View>
               ) : null}
 
               {product.reviews_count > 0 ? (
                 <View>
-                  <Text className="text-xs text-ink-500 font-bold">Community rating</Text>
+                  <Text className="text-xs text-ink-500 dark:text-ink-400 font-bold">Community rating</Text>
                   <View className="flex-row items-center gap-1.5 mt-1">
                     <StarRating value={product.rating_avg} size={14} />
-                    <Text className="text-sm text-ink-900 font-bold">
+                    <Text className="text-sm text-ink-900 dark:text-white font-bold">
                       {product.rating_avg.toFixed(1)} ({product.reviews_count} reviews)
                     </Text>
                   </View>
@@ -186,10 +192,10 @@ export function ReportDetailScreen({ route, navigation }: Props) {
           </View>
 
           {/* Trustified Test Reports card (from web left column) */}
-          <View className="mb-6 rounded-2xl border border-ink-200 bg-white p-5 shadow-sm">
+          <View className="mb-6 rounded-2xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-surface-1 p-5 shadow-sm">
             <View className="flex-row items-center gap-2 mb-4">
               <TrustifiedStamp size={24} />
-              <Text className="font-display font-bold text-ink-900 text-base">
+              <Text className="font-display font-bold text-ink-900 dark:text-white text-base">
                 Trustified Test Reports
               </Text>
             </View>
@@ -207,7 +213,7 @@ export function ReportDetailScreen({ route, navigation }: Props) {
                         <Text className={`text-xs font-bold ${isActiveReport ? 'text-brand-700' : 'text-ink-800'}`}>
                           Trustified Report — {rep.batch_no || 'N/A'}
                         </Text>
-                        <Text className="text-[10px] text-ink-400 font-bold mt-1">
+                        <Text className="text-[10px] text-ink-400 dark:text-ink-500 font-bold mt-1">
                           {rep.published_at ? formatDate(rep.published_at) : 'N/A'}
                         </Text>
                       </View>
@@ -219,14 +225,14 @@ export function ReportDetailScreen({ route, navigation }: Props) {
                 })}
               </View>
             ) : (
-              <Text className="text-sm text-ink-500">No historical test reports available.</Text>
+              <Text className="text-sm text-ink-500 dark:text-ink-400">No historical test reports available.</Text>
             )}
           </View>
 
           {/* SUMMARY OF TEST RESULTS Header */}
           <View className="flex-row items-center gap-3 mb-5 mt-2">
             <TrustifiedStamp size={32} />
-            <Text className="text-lg font-display font-bold text-ink-900 tracking-tight">
+            <Text className="text-lg font-display font-bold text-ink-900 dark:text-white tracking-tight">
               SUMMARY OF TEST RESULTS
             </Text>
           </View>

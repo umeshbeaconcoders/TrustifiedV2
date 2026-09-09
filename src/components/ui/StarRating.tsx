@@ -31,8 +31,8 @@ export function StarInput({
   onChange: (value: number) => void;
 }) {
   return (
-    <View className="flex-row items-center justify-between border-b border-ink-100 py-3">
-      <Text className="flex-1 pr-3 text-sm text-ink-700">{label}</Text>
+    <View className="flex-row items-center justify-between border-b border-ink-100 dark:border-ink-800 py-3">
+      <Text className="flex-1 pr-3 text-sm text-ink-700 dark:text-ink-200">{label}</Text>
       <View className="flex-row gap-1">
         {Array.from({ length: 5 }, (_, i) => {
           const starValue = i + 1;

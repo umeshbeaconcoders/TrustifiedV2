@@ -22,7 +22,7 @@ export function ProductCard({
       onPress={() => navigation.navigate(to, { slug: product.slug })}
       accessibilityRole="button"
       accessibilityLabel={product.name}
-      className="w-full overflow-hidden rounded-2xl border border-ink-100 bg-white active:opacity-90">
+      className="w-full overflow-hidden rounded-2xl border border-ink-100 dark:border-ink-800 bg-white dark:bg-surface-1 active:opacity-90">
       <MediaFrame src={product.image_url} alt={product.name} aspect="square" rounded="lg" className="m-2" />
       <View className="gap-1 px-3 pb-3">
         {product.brand ? (
@@ -30,7 +30,7 @@ export function ProductCard({
             {product.brand.name}
           </Text>
         ) : null}
-        <Text className="text-sm font-bold text-ink-900" numberOfLines={2}>
+        <Text className="text-sm font-bold text-ink-900 dark:text-white" numberOfLines={2}>
           {product.name}
         </Text>
         <View className="mt-1 flex-row items-center gap-2">
@@ -38,7 +38,7 @@ export function ProductCard({
           {showRating && product.reviews_count > 0 ? (
             <View className="flex-row items-center gap-1">
               <StarRating value={product.rating_avg} size={11} />
-              <Text className="text-[11px] text-ink-500">({product.reviews_count})</Text>
+              <Text className="text-[11px] text-ink-500 dark:text-ink-400">({product.reviews_count})</Text>
             </View>
           ) : null}
         </View>

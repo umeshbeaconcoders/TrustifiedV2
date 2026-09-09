@@ -12,20 +12,20 @@ export function ReviewList({ reviews }: { reviews: Review[] }) {
   return (
     <View className="gap-4">
       {reviews.map((review) => (
-        <View key={review.id} className="rounded-2xl border border-ink-100 p-4">
+        <View key={review.id} className="rounded-2xl border border-ink-100 dark:border-ink-800 p-4">
           <View className="flex-row items-center justify-between">
-            <Text className="font-semibold text-ink-900">{review.user.name ?? 'Trustified user'}</Text>
+            <Text className="font-semibold text-ink-900 dark:text-white">{review.user.name ?? 'Trustified user'}</Text>
             {review.is_verified_purchase ? <Badge variant="pass">Verified</Badge> : null}
           </View>
           <View className="mt-1 flex-row items-center gap-2">
             <StarRating value={review.average_rating} size={13} />
-            <Text className="text-xs text-ink-400">{formatDate(review.created_at)}</Text>
+            <Text className="text-xs text-ink-400 dark:text-ink-500">{formatDate(review.created_at)}</Text>
           </View>
-          {review.review_text ? <Text className="mt-2 text-sm text-ink-700">{review.review_text}</Text> : null}
+          {review.review_text ? <Text className="mt-2 text-sm text-ink-700 dark:text-ink-200">{review.review_text}</Text> : null}
           {review.brand_reply ? (
-            <View className="mt-3 rounded-xl bg-ink-50 p-3">
-              <Text className="text-xs font-bold uppercase tracking-wide text-ink-500">Brand reply</Text>
-              <Text className="mt-1 text-sm text-ink-700">{review.brand_reply}</Text>
+            <View className="mt-3 rounded-xl bg-ink-50 dark:bg-surface-2 p-3">
+              <Text className="text-xs font-bold uppercase tracking-wide text-ink-500 dark:text-ink-400">Brand reply</Text>
+              <Text className="mt-1 text-sm text-ink-700 dark:text-ink-200">{review.brand_reply}</Text>
             </View>
           ) : null}
         </View>

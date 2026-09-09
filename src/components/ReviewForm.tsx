@@ -53,8 +53,8 @@ export function ReviewForm({ slug, onSubmitted }: { slug: string; onSubmitted?: 
 
   if (!isAuthenticated) {
     return (
-      <View className="items-center rounded-2xl border border-dashed border-ink-300 bg-ink-50 p-8">
-        <Text className="text-center text-sm text-ink-600">Sign in to write a review for this product.</Text>
+      <View className="items-center rounded-2xl border border-dashed border-ink-300 bg-ink-50 dark:bg-surface-2 p-8">
+        <Text className="text-center text-sm text-ink-600 dark:text-ink-300">Sign in to write a review for this product.</Text>
         <Button
           variant="outline"
           className="mt-4"
@@ -105,8 +105,8 @@ export function ReviewForm({ slug, onSubmitted }: { slug: string; onSubmitted?: 
   }
 
   return (
-    <View className="rounded-2xl border border-ink-200 bg-white p-4">
-      <Text className="text-lg font-semibold text-ink-900">Write a review</Text>
+    <View className="rounded-2xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-surface-1 p-4">
+      <Text className="text-lg font-semibold text-ink-900 dark:text-white">Write a review</Text>
       <View className="mt-2">
         {requiredAxes.map(([key, label]) => (
           <StarInput key={key} label={label} value={ratings[key]} onChange={(v) => setRating(key, v)} />

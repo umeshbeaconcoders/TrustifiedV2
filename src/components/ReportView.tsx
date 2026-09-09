@@ -16,15 +16,15 @@ export function ReportView({ report, hideMetaStrip = false }: { report: TestRepo
   return (
     <View className="gap-6">
       {!hideMetaStrip ? (
-        <View className="flex-row flex-wrap gap-4 rounded-2xl border border-ink-200 bg-white p-5">
+        <View className="flex-row flex-wrap gap-4 rounded-2xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-surface-1 p-5">
           <MetaItem label="Batch no." value={report.batch_no ?? '—'} />
           <MetaItem label="Mfg date" value={formatDate(report.mfg_date)} />
           <MetaItem label="Exp date" value={formatDate(report.exp_date)} />
           <MetaItem label="Published" value={formatDate(report.published_at)} />
           {report.tested_by || report.lab_accreditation ? (
-            <View className="w-full border-t border-ink-100 pt-3">
-              <Text className="text-xs font-semibold uppercase tracking-wide text-ink-500">Laboratory</Text>
-              <Text className="mt-1 text-sm text-ink-700">
+            <View className="w-full border-t border-ink-100 dark:border-ink-800 pt-3">
+              <Text className="text-xs font-semibold uppercase tracking-wide text-ink-500 dark:text-ink-400">Laboratory</Text>
+              <Text className="mt-1 text-sm text-ink-700 dark:text-ink-200">
                 {report.tested_by ?? 'Accredited partner lab'}
                 {report.lab_accreditation ? `  ·  ${report.lab_accreditation}` : ''}
               </Text>
@@ -47,7 +47,7 @@ export function ReportView({ report, hideMetaStrip = false }: { report: TestRepo
             return (
               <View 
                 key={idx} 
-                className="flex-1 min-w-[140px] flex-row items-center gap-2.5 rounded-2xl border border-ink-200 bg-white p-3.5 shadow-sm"
+                className="flex-1 min-w-[140px] flex-row items-center gap-2.5 rounded-2xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-surface-1 p-3.5 shadow-sm"
               >
                 <View className="size-10 rounded-full items-center justify-center bg-pass-soft">
                   {group.group_type === 'amino_acid' ? (
@@ -58,7 +58,7 @@ export function ReportView({ report, hideMetaStrip = false }: { report: TestRepo
                 </View>
                 <View className="flex-1">
                   <View className="flex-row items-center gap-1.5 justify-between">
-                    <Text className="text-xs font-bold text-ink-900 flex-1 truncate" numberOfLines={1}>
+                    <Text className="text-xs font-bold text-ink-900 dark:text-white flex-1 truncate" numberOfLines={1}>
                       {title}
                     </Text>
                     {group.status && (
@@ -67,7 +67,7 @@ export function ReportView({ report, hideMetaStrip = false }: { report: TestRepo
                       </Badge>
                     )}
                   </View>
-                  <Text className="text-[10px] text-ink-500 font-semibold mt-0.5">
+                  <Text className="text-[10px] text-ink-500 dark:text-ink-400 font-semibold mt-0.5">
                     {rows.length} parameter{rows.length === 1 ? '' : 's'} tested
                   </Text>
                 </View>
@@ -96,7 +96,7 @@ export function ReportView({ report, hideMetaStrip = false }: { report: TestRepo
               if (images.length === 0) return null;
               return (
                 <ScrollReveal key={`${block.title}-${i}`}>
-                  <Text className="mb-3 text-base font-semibold text-ink-900">{block.title}</Text>
+                  <Text className="mb-3 text-base font-semibold text-ink-900 dark:text-white">{block.title}</Text>
                   <View className="gap-3">
                     {images.map((src) => (
                       <MediaFrame key={src} src={src} alt={`${block.title} test chart`} aspect="video" rounded="xl" />
@@ -109,23 +109,23 @@ export function ReportView({ report, hideMetaStrip = false }: { report: TestRepo
             if (!text || text.length <= 1) return null;
             return (
               <ScrollReveal key={`${block.title}-${i}`}>
-                <Text className="mb-2 text-base font-semibold text-ink-900">{block.title}</Text>
-                <Text className="text-sm leading-relaxed text-ink-700">{text}</Text>
+                <Text className="mb-2 text-base font-semibold text-ink-900 dark:text-white">{block.title}</Text>
+                <Text className="text-sm leading-relaxed text-ink-700 dark:text-ink-200">{text}</Text>
               </ScrollReveal>
             );
           })}
         </View>
       ) : report.summary && report.summary.trim() ? (
         <ScrollReveal>
-          <Text className="mb-2 text-base font-semibold text-ink-900">Summary / Notes</Text>
-          <Text className="text-sm leading-relaxed text-ink-700">{report.summary.trim()}</Text>
+          <Text className="mb-2 text-base font-semibold text-ink-900 dark:text-white">Summary / Notes</Text>
+          <Text className="text-sm leading-relaxed text-ink-700 dark:text-ink-200">{report.summary.trim()}</Text>
         </ScrollReveal>
       ) : null}
 
       {!hideMetaStrip && pdfUrl ? (
         <Button variant="outline" onPress={() => Linking.openURL(pdfUrl)} accessibilityLabel="View full lab report PDF">
           <FileText size={16} color={colors.ink[800]} />
-          <Text className="ml-1 font-semibold text-ink-800">View full lab report (PDF)</Text>
+          <Text className="ml-1 font-semibold text-ink-800 dark:text-ink-100">View full lab report (PDF)</Text>
         </Button>
       ) : null}
     </View>
@@ -135,8 +135,8 @@ export function ReportView({ report, hideMetaStrip = false }: { report: TestRepo
 function MetaItem({ label, value }: { label: string; value: string }) {
   return (
     <View className="w-[47%]">
-      <Text className="text-xs font-semibold uppercase tracking-wide text-ink-500">{label}</Text>
-      <Text className="mt-1 text-sm font-semibold text-ink-900">{value}</Text>
+      <Text className="text-xs font-semibold uppercase tracking-wide text-ink-500 dark:text-ink-400">{label}</Text>
+      <Text className="mt-1 text-sm font-semibold text-ink-900 dark:text-white">{value}</Text>
     </View>
   );
 }
@@ -151,10 +151,10 @@ function ParameterGroupView({ group }: { group: ReportParameterGroup }) {
   const isMacroAccuracy = title.toLowerCase().includes('macro') || group.group_type === 'parameter';
 
   return (
-    <View className="overflow-hidden rounded-2xl border border-ink-200 bg-white">
+    <View className="overflow-hidden rounded-2xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-surface-1">
       {/* Header */}
-      <View className="border-b border-ink-100 bg-ink-50 px-4 py-3 flex-row justify-between items-center">
-        <Text className="text-base font-display font-bold text-ink-900">{title}</Text>
+      <View className="border-b border-ink-100 dark:border-ink-800 bg-ink-50 dark:bg-surface-2 px-4 py-3 flex-row justify-between items-center">
+        <Text className="text-base font-display font-bold text-ink-900 dark:text-white">{title}</Text>
         {group.status && (
           <Badge variant={group.status.toLowerCase() === 'pass' ? 'pass' : group.status.toLowerCase() === 'fail' ? 'fail' : 'neutral'}>
             {group.status.toUpperCase()}
@@ -181,7 +181,7 @@ function ParameterGroupView({ group }: { group: ReportParameterGroup }) {
             const testedPct = (testedNum / maxVal) * 100;
 
             return (
-              <View key={i} className="rounded-xl border border-ink-200 bg-white p-4 shadow-sm">
+              <View key={i} className="rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-surface-1 p-4 shadow-sm">
                 {/* Card Title & Values */}
                 <View className="flex-row items-center justify-between">
                   <View className="flex-row items-center gap-2">
@@ -190,25 +190,25 @@ function ParameterGroupView({ group }: { group: ReportParameterGroup }) {
                     ) : (
                       <XCircle size={32} fill="#dc2626" color="#fff" />
                     )}
-                    <Text className="text-sm font-display font-bold text-ink-900">{paramName}</Text>
+                    <Text className="text-sm font-display font-bold text-ink-900 dark:text-white">{paramName}</Text>
                   </View>
                   <View className="flex-row items-baseline gap-1">
-                    <Text className="text-base font-extrabold text-ink-900">{testedVal} {unit}</Text>
-                    <Text className="text-[10px] font-bold text-ink-400">claimed {claimedVal}{unit}</Text>
+                    <Text className="text-base font-extrabold text-ink-900 dark:text-white">{testedVal} {unit}</Text>
+                    <Text className="text-[10px] font-bold text-ink-400 dark:text-ink-500">claimed {claimedVal}{unit}</Text>
                   </View>
                 </View>
 
                 {/* Progress bars layout claimed vs tested */}
                 <View className="mt-4 gap-2 pt-2 border-t border-ink-100/50">
                   <View className="flex-row items-center">
-                    <Text className="w-14 text-[10px] font-bold text-ink-500">Claimed</Text>
-                    <View className="flex-1 h-2.5 bg-ink-100 rounded-full overflow-hidden">
+                    <Text className="w-14 text-[10px] font-bold text-ink-500 dark:text-ink-400">Claimed</Text>
+                    <View className="flex-1 h-2.5 bg-ink-100 dark:bg-surface-2 rounded-full overflow-hidden">
                       <View className="h-full bg-ink-400" style={{ width: `${claimedPct}%` }} />
                     </View>
                   </View>
                   <View className="flex-row items-center">
-                    <Text className="w-14 text-[10px] font-bold text-ink-500">Tested</Text>
-                    <View className="flex-1 h-2.5 bg-ink-100 rounded-full overflow-hidden">
+                    <Text className="w-14 text-[10px] font-bold text-ink-500 dark:text-ink-400">Tested</Text>
+                    <View className="flex-1 h-2.5 bg-ink-100 dark:bg-surface-2 rounded-full overflow-hidden">
                       <View 
                         className={`h-full ${isPass ? 'bg-brand-500' : 'bg-fail'}`} 
                         style={{ width: `${testedPct}%` }} 
@@ -238,12 +238,12 @@ function ParameterGroupView({ group }: { group: ReportParameterGroup }) {
               const isFail = result === 'fail' || result === 'failed';
 
               return (
-                <View key={i} className="flex-row items-center px-4 py-3 bg-white">
+                <View key={i} className="flex-row items-center px-4 py-3 bg-white dark:bg-surface-1">
                   <View style={{ flex: 2 }} className="pr-4">
-                    <Text className="text-sm font-semibold text-ink-900">{paramName}</Text>
-                    {row.loq_note ? <Text className="mt-0.5 text-[10px] font-medium text-ink-400">{row.loq_note}</Text> : null}
+                    <Text className="text-sm font-semibold text-ink-900 dark:text-white">{paramName}</Text>
+                    {row.loq_note ? <Text className="mt-0.5 text-[10px] font-medium text-ink-400 dark:text-ink-500">{row.loq_note}</Text> : null}
                   </View>
-                  <Text style={{ flex: 1.5 }} className="text-sm font-semibold text-ink-800">
+                  <Text style={{ flex: 1.5 }} className="text-sm font-semibold text-ink-800 dark:text-ink-100">
                     {testedVal !== '—' ? `${testedVal}${unit}` : '—'}
                   </Text>
                   <View style={{ flex: 1 }}>
@@ -252,7 +252,7 @@ function ParameterGroupView({ group }: { group: ReportParameterGroup }) {
                         {isPass ? 'Pass' : isFail ? 'Fail' : result}
                       </Badge>
                     ) : (
-                      <Text className="text-ink-400">—</Text>
+                      <Text className="text-ink-400 dark:text-ink-500">—</Text>
                     )}
                   </View>
                 </View>

@@ -1,16 +1,17 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, RefreshControl } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useCertifiedBrands } from '../../api';
 import { Card, CardGridSkeleton, EmptyState, MediaFrame } from '../../components/ui';
+import { colors } from '../../theme/tokens';
 import type { RootStackParamList } from '../../navigation/types';
 
 /** RN port of `frontend/apps/web/src/pages/certified-brands.tsx`. */
 export function CertifiedBrandsScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const { data, isLoading } = useCertifiedBrands();
+  const { data, isLoading, isRefetching, refetch } = useCertifiedBrands();
   const brands = (data?.data ?? [])
     .slice()
     .sort((a, b) => {
@@ -22,7 +23,7 @@ export function CertifiedBrandsScreen() {
     });
 
   return (
-    <View className="flex-1 bg-white p-4">
+    <View className="flex-1 bg-white dark:bg-surface-1 p-4">
       {isLoading ? (
         <CardGridSkeleton count={8} />
       ) : brands.length === 0 ? (
@@ -33,16 +34,19 @@ export function CertifiedBrandsScreen() {
           keyExtractor={(item) => String(item.id)}
           numColumns={2}
           estimatedItemSize={160}
+          refreshControl={
+            <RefreshControl refreshing={isRefetching} onRefresh={() => void refetch()} colors={[colors.brand[500]]} />
+          }
           ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
           renderItem={({ item: brand }) => (
             <View style={{ flex: 1, paddingHorizontal: 6 }}>
               <Card pressable onPress={() => navigation.navigate('BrandDetail', { slug: brand.slug })} className="items-center gap-2 p-4">
                 <MediaFrame src={brand.logo_url} alt={brand.name} aspect="square" rounded="lg" className="w-full" />
-                <Text className="text-center text-sm font-semibold text-ink-900" numberOfLines={1}>
+                <Text className="text-center text-sm font-semibold text-ink-900 dark:text-white" numberOfLines={1}>
                   {brand.name}
                 </Text>
                 {typeof brand.products_count === 'number' && brand.products_count > 0 ? (
-                  <Text className="text-xs text-ink-500">
+                  <Text className="text-xs text-ink-500 dark:text-ink-400">
                     {brand.products_count} tested product{brand.products_count === 1 ? '' : 's'}
                   </Text>
                 ) : null}

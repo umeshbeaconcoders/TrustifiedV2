@@ -105,16 +105,16 @@ export function SettingsMenuScreen() {
   }
 
   return (
-    <ScrollView className="flex-1 bg-white" contentContainerClassName="px-4 py-6 pb-12">
+    <ScrollView className="flex-1 bg-white dark:bg-surface-1" contentContainerClassName="px-4 py-6 pb-12">
       {settings?.contact_email || settings?.contact_phone ? (
         <Card className="gap-2 p-4">
-          <Text className="text-xs font-bold uppercase tracking-wide text-ink-500">Contact us</Text>
+          <Text className="text-xs font-bold uppercase tracking-wide text-ink-500 dark:text-ink-400">Contact us</Text>
           {settings.contact_email ? (
             <Pressable
               onPress={() => Linking.openURL(`mailto:${settings.contact_email}`)}
               className="flex-row items-center gap-2">
               <Mail size={14} color={colors.ink[400]} />
-              <Text className="text-sm text-ink-700">{settings.contact_email}</Text>
+              <Text className="text-sm text-ink-700 dark:text-ink-200">{settings.contact_email}</Text>
             </Pressable>
           ) : null}
           {settings.contact_phone ? (
@@ -122,7 +122,7 @@ export function SettingsMenuScreen() {
               onPress={() => Linking.openURL(`tel:${settings.contact_phone}`)}
               className="flex-row items-center gap-2">
               <Phone size={14} color={colors.ink[400]} />
-              <Text className="text-sm text-ink-700">{settings.contact_phone}</Text>
+              <Text className="text-sm text-ink-700 dark:text-ink-200">{settings.contact_phone}</Text>
             </Pressable>
           ) : null}
           {settings.socials && Object.keys(settings.socials).length > 0 ? (
@@ -137,7 +137,7 @@ export function SettingsMenuScreen() {
                     onPress={() => Linking.openURL(url)}
                     accessibilityRole="link"
                     accessibilityLabel={key}
-                    className="size-9 items-center justify-center rounded-full bg-ink-50">
+                    className="size-9 items-center justify-center rounded-full bg-ink-50 dark:bg-surface-2">
                     <Icon size={16} color={colors.ink[600]} />
                   </Pressable>
                 );
@@ -151,7 +151,7 @@ export function SettingsMenuScreen() {
       <Card className="p-1">
         <View className="flex-row items-center gap-3 px-3 py-3">
           <Bell size={18} color={colors.ink[500]} />
-          <Text className="flex-1 text-sm font-medium text-ink-800">Manage push notifications</Text>
+          <Text className="flex-1 text-sm font-medium text-ink-800 dark:text-ink-100">Manage push notifications</Text>
           <Switch
             value={pushEnabled}
             onValueChange={handleTogglePush}
@@ -197,11 +197,11 @@ export function SettingsMenuScreen() {
         onPress={handleLogout}
         accessibilityLabel="Log out">
         <LogOut size={16} color={colors.ink[800]} />
-        <Text className="ml-1 font-semibold text-ink-800">Log out</Text>
+        <Text className="ml-1 font-semibold text-ink-800 dark:text-ink-100">Log out</Text>
       </Button>
 
       {settings?.app_version?.ios || settings?.app_version?.android ? (
-        <Text className="mt-6 text-center text-xs text-ink-400">
+        <Text className="mt-6 text-center text-xs text-ink-400 dark:text-ink-500">
           Trustified {settings.app_version.ios ?? settings.app_version.android}
         </Text>
       ) : null}
@@ -210,7 +210,7 @@ export function SettingsMenuScreen() {
 }
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
-  return <Text className="mb-2 mt-6 px-1 text-xs font-bold uppercase tracking-wide text-ink-500">{children}</Text>;
+  return <Text className="mb-2 mt-6 px-1 text-xs font-bold uppercase tracking-wide text-ink-500 dark:text-ink-400">{children}</Text>;
 }
 
 function MenuRow({

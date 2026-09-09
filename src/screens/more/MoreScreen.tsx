@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, ScrollView, Pressable } from 'react-native';
+import { View, Text, ScrollView, Pressable, RefreshControl } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
@@ -35,7 +35,7 @@ type MenuItem = {
 
 export function MoreScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const { data: settingsRes } = useSettings();
+  const { data: settingsRes, isRefetching, refetch } = useSettings();
   const settings = settingsRes?.data;
 
   const items: MenuItem[] = [
@@ -92,22 +92,26 @@ export function MoreScreen() {
   ];
 
   return (
-    <ScrollView className="flex-1 bg-white" contentContainerClassName="px-4 py-6 pb-12">
-      <Text className="px-1 text-2xl font-bold text-ink-900">More</Text>
+    <ScrollView
+      className="flex-1 bg-white dark:bg-surface-1"
+      contentContainerClassName="px-4 py-6 pb-12"
+      refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={() => void refetch()} colors={[colors.brand[500]]} />}
+    >
+      <Text className="px-1 text-2xl font-bold text-ink-900 dark:text-white">More</Text>
 
       {settings?.contact_email || settings?.contact_phone ? (
         <Card className="mt-4 gap-2 p-4">
-          <Text className="text-xs font-bold uppercase tracking-wide text-ink-500">Need help?</Text>
+          <Text className="text-xs font-bold uppercase tracking-wide text-ink-500 dark:text-ink-400">Need help?</Text>
           {settings.contact_email ? (
             <View className="flex-row items-center gap-2">
               <Mail size={14} color={colors.ink[400]} />
-              <Text className="text-sm text-ink-700">{settings.contact_email}</Text>
+              <Text className="text-sm text-ink-700 dark:text-ink-200">{settings.contact_email}</Text>
             </View>
           ) : null}
           {settings.contact_phone ? (
             <View className="flex-row items-center gap-2">
               <Phone size={14} color={colors.ink[400]} />
-              <Text className="text-sm text-ink-700">{settings.contact_phone}</Text>
+              <Text className="text-sm text-ink-700 dark:text-ink-200">{settings.contact_phone}</Text>
             </View>
           ) : null}
         </Card>
@@ -120,11 +124,11 @@ export function MoreScreen() {
             onPress={item.onPress}
             accessibilityRole="button"
             accessibilityLabel={item.label}
-            className="flex-row items-center gap-3 rounded-2xl border border-ink-100 bg-white px-4 py-3.5 active:bg-ink-50">
-            <View className="size-10 items-center justify-center rounded-full bg-ink-50">{item.icon}</View>
+            className="flex-row items-center gap-3 rounded-2xl border border-ink-100 dark:border-ink-800 bg-white dark:bg-surface-1 px-4 py-3.5 active:bg-ink-50">
+            <View className="size-10 items-center justify-center rounded-full bg-ink-50 dark:bg-surface-2">{item.icon}</View>
             <View className="flex-1">
-              <Text className="text-sm font-semibold text-ink-900">{item.label}</Text>
-              {item.description ? <Text className="mt-0.5 text-xs text-ink-500">{item.description}</Text> : null}
+              <Text className="text-sm font-semibold text-ink-900 dark:text-white">{item.label}</Text>
+              {item.description ? <Text className="mt-0.5 text-xs text-ink-500 dark:text-ink-400">{item.description}</Text> : null}
             </View>
             <ChevronRight size={18} color={colors.ink[300]} />
           </Pressable>

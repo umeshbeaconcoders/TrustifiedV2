@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, Pressable, ScrollView } from 'react-native';
+import { View, Text, Pressable, ScrollView, RefreshControl } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { SlidersHorizontal, Search } from 'lucide-react-native';
 import { useInfiniteQuery } from '@tanstack/react-query';
@@ -38,7 +38,7 @@ export function ShopScreen() {
     [debouncedSearch, category, brand, tier, status],
   );
 
-  const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
+  const { data, isLoading, isError, isRefetching, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
     queryKey: ['products', 'shop-infinite', params],
     queryFn: ({ pageParam, signal }) => api.get<Paginated<Product>>('/products', { ...params, page: pageParam }, signal),
     initialPageParam: 1,
@@ -58,11 +58,11 @@ export function ShopScreen() {
   }
 
   return (
-    <View className="flex-1 bg-white">
-      <View className="border-b border-ink-100 px-4 pb-3 pt-4">
-        <Text className="text-2xl font-bold text-ink-900">Shop tested products</Text>
+    <View className="flex-1 bg-white dark:bg-surface-1">
+      <View className="border-b border-ink-100 dark:border-ink-800 px-4 pb-3 pt-4">
+        <Text className="text-2xl font-bold text-ink-900 dark:text-white">Shop tested products</Text>
         <View className="mt-3 flex-row items-center gap-2">
-          <View className="flex-1 flex-row items-center rounded-xl border border-ink-200 px-3">
+          <View className="flex-1 flex-row items-center rounded-xl border border-ink-200 dark:border-ink-700 px-3">
             <Search size={16} color={colors.ink[400]} />
             <Input
               value={search}
@@ -76,7 +76,7 @@ export function ShopScreen() {
             onPress={() => setFiltersOpen((v) => !v)}
             accessibilityRole="button"
             accessibilityLabel="Toggle filters"
-            className="size-11 items-center justify-center rounded-xl border border-ink-200">
+            className="size-11 items-center justify-center rounded-xl border border-ink-200 dark:border-ink-700">
             <SlidersHorizontal size={18} color={colors.ink[700]} />
           </Pressable>
         </View>
@@ -120,7 +120,7 @@ export function ShopScreen() {
           </View>
         ) : null}
 
-        {data ? <Text className="mt-2 text-xs font-medium text-ink-500">{total} products</Text> : null}
+        {data ? <Text className="mt-2 text-xs font-medium text-ink-500 dark:text-ink-400">{total} products</Text> : null}
       </View>
 
       <View className="flex-1 px-4 pt-4">
@@ -141,6 +141,9 @@ export function ShopScreen() {
             numColumns={2}
             estimatedItemSize={220}
             contentContainerStyle={{ paddingBottom: 24 }}
+            refreshControl={
+              <RefreshControl refreshing={isRefetching} onRefresh={() => void refetch()} colors={[colors.brand[500]]} />
+            }
             ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
             renderItem={({ item }) => (
               <View style={{ flex: 1, paddingHorizontal: 6 }}>
@@ -172,7 +175,7 @@ function ChipRow({
 }) {
   return (
     <View>
-      <Text className="mb-1.5 text-xs font-bold uppercase tracking-wide text-ink-500">{label}</Text>
+      <Text className="mb-1.5 text-xs font-bold uppercase tracking-wide text-ink-500 dark:text-ink-400">{label}</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-2">
         {options.map((opt) => {
           const active = value === opt.value;

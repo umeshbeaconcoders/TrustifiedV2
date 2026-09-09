@@ -21,6 +21,7 @@ import {
   type StoreLeadRequest,
   type TestReport,
   type Video,
+  type YoutubeVideo,
 } from '../types';
 
 export interface ListParams {
@@ -213,6 +214,15 @@ export function useVideos() {
   return useQuery({
     queryKey: ['videos'],
     queryFn: ({ signal }) => api.get<Envelope<Video[]>>('/videos', undefined, signal),
+    staleTime: 5 * 60_000,
+  });
+}
+
+/** Latest videos pulled live from the Trustified YouTube channel's RSS feed — not admin-managed. */
+export function useYoutubeVideos() {
+  return useQuery({
+    queryKey: ['youtube-videos'],
+    queryFn: ({ signal }) => api.get<Envelope<YoutubeVideo[]>>('/youtube-videos', undefined, signal),
     staleTime: 5 * 60_000,
   });
 }

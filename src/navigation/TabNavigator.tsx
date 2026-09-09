@@ -2,7 +2,7 @@ import React from 'react';
 import { Pressable, View, Text } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Home, ShieldCheck, Search, BadgeCheck, UserRound } from 'lucide-react-native';
-import { colors } from '../theme/tokens';
+import { colors, useNavColors } from '../theme/tokens';
 import type { TabParamList } from './types';
 import { HomeScreen } from '../screens/home/HomeScreen';
 import { ReportsScreen } from '../screens/reports/ReportsScreen';
@@ -14,6 +14,7 @@ const Tab = createBottomTabNavigator<TabParamList>();
 
 function SearchTabBarButton({ onPress, accessibilityState }: any) {
   const focused = accessibilityState?.selected;
+  const nav = useNavColors();
   return (
     <Pressable
       onPress={onPress}
@@ -30,7 +31,7 @@ function SearchTabBarButton({ onPress, accessibilityState }: any) {
           borderRadius: 23,
           backgroundColor: colors.brand[600],
           borderWidth: 4,
-          borderColor: '#ffffff',
+          borderColor: nav.screenBackground,
           alignItems: 'center',
           justifyContent: 'center',
           marginTop: -22,
@@ -47,7 +48,7 @@ function SearchTabBarButton({ onPress, accessibilityState }: any) {
         style={{
           fontSize: 10,
           fontWeight: '700',
-          color: focused ? colors.brand[600] : colors.ink[400],
+          color: focused ? nav.tabActive : nav.tabInactive,
           marginTop: 2,
         }}
       >
@@ -59,21 +60,22 @@ function SearchTabBarButton({ onPress, accessibilityState }: any) {
 
 /** Bottom-tab navigator for the app's top-level sections matching the responsive website. */
 export function TabNavigator() {
+  const nav = useNavColors();
   return (
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.brand[600],
-        tabBarInactiveTintColor: colors.ink[400],
+        tabBarActiveTintColor: nav.tabActive,
+        tabBarInactiveTintColor: nav.tabInactive,
         tabBarLabelStyle: { fontSize: 10, fontWeight: '700', marginTop: -2 },
         tabBarStyle: {
-          borderTopColor: colors.ink[100],
-          backgroundColor: '#ffffff',
+          borderTopColor: nav.border,
+          backgroundColor: nav.screenBackground,
           height: 60,
           paddingBottom: 6,
           shadowColor: '#000',
           shadowOffset: { width: 0, height: -4 },
-          shadowOpacity: 0.06,
+          shadowOpacity: nav.dark ? 0.3 : 0.06,
           shadowRadius: 10,
           elevation: 8,
         },

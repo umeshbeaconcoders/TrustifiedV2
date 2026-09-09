@@ -7,6 +7,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useForgotPassword } from '../../api';
 import { Button, Field } from '../../components/ui';
 import { ControlledInput } from '../../components/form/ControlledInput';
+import { KeyboardAvoidingScreen } from '../../components/KeyboardAvoidingScreen';
 import { FadeIn } from '../../components/motion';
 import type { RootStackParamList } from '../../navigation/types';
 
@@ -35,10 +36,10 @@ export function ForgotPasswordScreen({ navigation }: Props) {
 
   if (sent) {
     return (
-      <ScrollView className="flex-1 bg-white" contentContainerClassName="px-6 py-16">
+      <ScrollView className="flex-1 bg-white dark:bg-surface-1" contentContainerClassName="px-6 py-16">
         <FadeIn>
-          <Text className="text-center text-2xl font-bold text-ink-900">Check your email</Text>
-          <Text className="mt-3 text-center text-sm text-ink-600">
+          <Text className="text-center text-2xl font-bold text-ink-900 dark:text-white">Check your email</Text>
+          <Text className="mt-3 text-center text-sm text-ink-600 dark:text-ink-300">
             If that email exists, a reset link is on its way. Open it on this device to continue in your browser,
             or come back here once you have a reset token.
           </Text>
@@ -51,10 +52,10 @@ export function ForgotPasswordScreen({ navigation }: Props) {
   }
 
   return (
-    <ScrollView className="flex-1 bg-white" contentContainerClassName="px-6 py-16" keyboardShouldPersistTaps="handled">
+    <KeyboardAvoidingScreen contentContainerClassName="px-6 py-16">
       <FadeIn>
-        <Text className="text-center text-2xl font-bold text-ink-900">Forgot password</Text>
-        <Text className="mt-2 text-center text-sm text-ink-600">
+        <Text className="text-center text-2xl font-bold text-ink-900 dark:text-white">Forgot password</Text>
+        <Text className="mt-2 text-center text-sm text-ink-600 dark:text-ink-300">
           Enter your email and we'll send you a reset link.
         </Text>
         <View className="mt-6 gap-4">
@@ -72,6 +73,6 @@ export function ForgotPasswordScreen({ navigation }: Props) {
           </Button>
         </View>
       </FadeIn>
-    </ScrollView>
+    </KeyboardAvoidingScreen>
   );
 }

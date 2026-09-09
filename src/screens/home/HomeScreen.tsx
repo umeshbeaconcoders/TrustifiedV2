@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, ScrollView, Linking, Pressable, Animated, Easing, Dimensions } from 'react-native';
+import { View, Text, ScrollView, Linking, Pressable, Animated, Easing, Dimensions, RefreshControl } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -40,7 +40,7 @@ import {
   X,
   Search
 } from 'lucide-react-native';
-import { useReports, useCertifiedBrands, useOffers, useVideos, useBanners, useSettings, useCategories } from '../../api';
+import { useReports, useCertifiedBrands, useOffers, useYoutubeVideos, useBanners, useSettings, useCategories } from '../../api';
 import { Button, Spinner, MediaFrame } from '../../components/ui';
 import { ProductCard } from '../../components/ProductCard';
 import { FadeIn, StaggerChildren } from '../../components/motion';
@@ -49,6 +49,8 @@ import { TrustifiedStamp } from '../../components/icons/TrustifiedStamp';
 import { CategoryIcon } from '../../components/CategoryIcon';
 
 import { InfiniteMarquee } from '../../components/InfiniteMarquee';
+import { usePullToRefresh } from '../../lib/usePullToRefresh';
+import { useNavColors } from '../../theme/tokens';
 import type { RootStackParamList } from '../../navigation/types';
 
 // Static Data definitions mirroring web page content
@@ -208,16 +210,20 @@ function getSectionIcon(name: string, size: number = 24, color: string = '#2ab84
 export function HomeScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const insets = useSafeAreaInsets();
+  const nav = useNavColors();
   const { width: SCREEN_WIDTH } = Dimensions.get('window');
   const DRAWER_WIDTH = SCREEN_WIDTH * 0.75;
 
-  const { data: passFail, isLoading: reportsLoading } = useReports('pass-fail', { per_page: 6 });
-  const { data: brandsRes } = useCertifiedBrands();
-  const { data: offersRes } = useOffers();
-  const { data: videosRes } = useVideos();
-  const { data: bannersRes } = useBanners();
-  const { data: settingsRes } = useSettings();
-  const { data: categoriesRes } = useCategories();
+  const { data: passFail, isLoading: reportsLoading, refetch: refetchPassFail } = useReports('pass-fail', { per_page: 6 });
+  const { data: brandsRes, refetch: refetchBrands } = useCertifiedBrands();
+  const { data: offersRes, refetch: refetchOffers } = useOffers();
+  const { data: videosRes, refetch: refetchVideos } = useYoutubeVideos();
+  const { data: bannersRes, refetch: refetchBanners } = useBanners();
+  const { data: settingsRes, refetch: refetchSettings } = useSettings();
+  const { data: categoriesRes, refetch: refetchCategories } = useCategories();
+  const { refreshing, onRefresh } = usePullToRefresh([
+    refetchPassFail, refetchBrands, refetchOffers, refetchVideos, refetchBanners, refetchSettings, refetchCategories,
+  ]);
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [openStep, setOpenStep] = useState<number | null>(null);
@@ -330,7 +336,7 @@ export function HomeScreen() {
   };
 
   return (
-    <View className="flex-1 bg-white">
+    <View className="flex-1 bg-white dark:bg-surface-1">
       {/* Floating Transparent Header */}
       <View
         style={{
@@ -373,7 +379,19 @@ export function HomeScreen() {
         </View>
       </View>
 
-      <ScrollView className="flex-1 bg-white" contentContainerClassName="pb-16">
+      <ScrollView
+        className="flex-1 bg-white dark:bg-surface-1"
+        contentContainerClassName="pb-16"
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#ffffff"
+            colors={[colors.brand[500]]}
+            progressBackgroundColor="#ffffff"
+          />
+        }
+      >
         {/* Hero Section */}
         <View 
           className="bg-[#141515] px-6 pb-12 relative overflow-hidden"
@@ -458,7 +476,7 @@ export function HomeScreen() {
                 alt={banner.title ?? 'Banner'}
                 aspect="video"
                 rounded="2xl"
-                className="w-80 shadow-md border border-ink-100"
+                className="w-80 shadow-md border border-ink-100 dark:border-ink-800"
               />
             );
             if (hasLink) {
@@ -493,7 +511,7 @@ export function HomeScreen() {
           {WHY_BETTER_ITEMS.map((item) => (
             <View
               key={item.title}
-              className="w-64 rounded-[2rem] bg-white border border-ink-100 p-6 shadow-sm"
+              className="w-64 rounded-[2rem] bg-white dark:bg-surface-1 border border-ink-100 dark:border-ink-800 p-6 shadow-sm"
             >
               <View 
                 className="w-14 h-14 rounded-full items-center justify-center mb-5"
@@ -501,8 +519,8 @@ export function HomeScreen() {
               >
                 {getSectionIcon(item.iconName, 26, item.iconColor)}
               </View>
-              <Text className="text-lg font-display font-bold text-ink-900 mb-2">{item.title}</Text>
-              <Text className="text-xs leading-relaxed text-ink-600 font-medium">{item.body}</Text>
+              <Text className="text-lg font-display font-bold text-ink-900 dark:text-white mb-2">{item.title}</Text>
+              <Text className="text-xs leading-relaxed text-ink-600 dark:text-ink-300 font-medium">{item.body}</Text>
             </View>
           ))}
         </ScrollView>
@@ -541,7 +559,7 @@ export function HomeScreen() {
                 </View>
                 <View className="flex-1">
                   <Text className="text-sm font-bold text-white mb-0.5">{benefit.title}</Text>
-                  <Text className="text-xs text-ink-400 leading-relaxed font-medium">{benefit.body}</Text>
+                  <Text className="text-xs text-ink-400 dark:text-ink-500 leading-relaxed font-medium">{benefit.body}</Text>
                 </View>
               </View>
             );
@@ -564,14 +582,14 @@ export function HomeScreen() {
           {WHAT_WE_TEST_ITEMS.map((item) => (
             <View
               key={item.title}
-              className="w-56 rounded-2xl bg-white border border-ink-100 p-4 shadow-sm flex-row items-center gap-3"
+              className="w-56 rounded-2xl bg-white dark:bg-surface-1 border border-ink-100 dark:border-ink-800 p-4 shadow-sm flex-row items-center gap-3"
             >
-              <View className="w-10 h-10 rounded-xl bg-ink-50 items-center justify-center shrink-0">
+              <View className="w-10 h-10 rounded-xl bg-ink-50 dark:bg-surface-2 items-center justify-center shrink-0">
                 {getSectionIcon(item.iconName, 20, '#2ab841')}
               </View>
               <View className="flex-1">
-                <Text className="text-xs font-bold text-ink-900" numberOfLines={1}>{item.title}</Text>
-                <Text className="text-[10px] text-ink-500 font-medium mt-0.5" numberOfLines={2}>{item.desc}</Text>
+                <Text className="text-xs font-bold text-ink-900 dark:text-white" numberOfLines={1}>{item.title}</Text>
+                <Text className="text-[10px] text-ink-500 dark:text-ink-400 font-medium mt-0.5" numberOfLines={2}>{item.desc}</Text>
               </View>
             </View>
           ))}
@@ -608,11 +626,11 @@ export function HomeScreen() {
                   {getSectionIcon(item.iconName, 26, '#2ab841')}
                 </View>
                 <View className="flex-row items-center gap-1">
-                  <Text className="text-xs font-bold text-ink-900 text-center">{item.title}</Text>
+                  <Text className="text-xs font-bold text-ink-900 dark:text-white text-center">{item.title}</Text>
                   <ChevronDown size={12} color={colors.ink[400]} style={{ transform: [{ rotate: isOpen ? '180deg' : '0deg' }] }} />
                 </View>
                 {isOpen ? (
-                  <Text className="mt-2 text-[10px] leading-relaxed text-ink-600 text-center">{item.body}</Text>
+                  <Text className="mt-2 text-[10px] leading-relaxed text-ink-600 dark:text-ink-300 text-center">{item.body}</Text>
                 ) : null}
               </Pressable>
             );
@@ -635,13 +653,13 @@ export function HomeScreen() {
           {SUPPORT_MISSION_ITEMS.map((item) => (
             <View
               key={item.title}
-              className="w-60 rounded-2xl bg-white border border-ink-100 p-6 shadow-sm"
+              className="w-60 rounded-2xl bg-white dark:bg-surface-1 border border-ink-100 dark:border-ink-800 p-6 shadow-sm"
             >
               <View className="w-12 h-12 rounded-xl bg-brand-50 items-center justify-center mb-4">
                 {getSectionIcon(item.iconName, 22, '#2ab841')}
               </View>
-              <Text className="text-base font-bold text-ink-900 mb-2">{item.title}</Text>
-              <Text className="text-xs leading-relaxed text-ink-600 font-medium">{item.body}</Text>
+              <Text className="text-base font-bold text-ink-900 dark:text-white mb-2">{item.title}</Text>
+              <Text className="text-xs leading-relaxed text-ink-600 dark:text-ink-300 font-medium">{item.body}</Text>
               {item.screen ? (
                 <Pressable
                   onPress={() => navigation.navigate('Tabs', { screen: 'Reports' })}
@@ -691,9 +709,9 @@ export function HomeScreen() {
                 <Pressable
                   key={cat.id}
                   onPress={() => handleCategoryPress(cat.slug)}
-                  className="group items-center w-full rounded-2xl bg-white border border-ink-100 p-4 shadow-sm active:bg-brand-50/10 active:border-brand-300"
+                  className="group items-center w-full rounded-2xl bg-white dark:bg-surface-1 border border-ink-100 dark:border-ink-800 p-4 shadow-sm active:bg-brand-50/10 active:border-brand-300"
                 >
-                  <View className="size-14 rounded-full overflow-hidden bg-ink-50 border border-ink-100 items-center justify-center mb-2">
+                  <View className="size-14 rounded-full overflow-hidden bg-ink-50 dark:bg-surface-2 border border-ink-100 dark:border-ink-800 items-center justify-center mb-2">
                     {cat.image_url ? (
                       <MediaFrame src={cat.image_url} alt={cat.name} aspect="square" rounded="full" className="w-full h-full" />
                     ) : (
@@ -702,7 +720,7 @@ export function HomeScreen() {
                       </Text>
                     )}
                   </View>
-                  <Text className="text-center text-xs font-bold text-ink-900 leading-snug line-clamp-2" numberOfLines={2}>
+                  <Text className="text-center text-xs font-bold text-ink-900 dark:text-white leading-snug line-clamp-2" numberOfLines={2}>
                     {cat.name}
                   </Text>
                 </Pressable>
@@ -729,8 +747,8 @@ export function HomeScreen() {
                   onPress={() => brand.slug && navigation.navigate('BrandDetail', { slug: brand.slug })}
                   className="w-full items-center"
                 >
-                  <MediaFrame src={brand.logo_url} alt={brand.name} aspect="square" rounded="xl" className="w-20 shadow-sm border border-ink-100" />
-                  <Text className="mt-1 text-center text-xs font-semibold text-ink-700" numberOfLines={1}>
+                  <MediaFrame src={brand.logo_url} alt={brand.name} aspect="square" rounded="xl" className="w-20 shadow-sm border border-ink-100 dark:border-ink-800" />
+                  <Text className="mt-1 text-center text-xs font-semibold text-ink-700 dark:text-ink-200" numberOfLines={1}>
                     {brand.name}
                   </Text>
                 </Pressable>
@@ -758,7 +776,7 @@ export function HomeScreen() {
                     {offer.title}
                   </Text>
                   {offer.description ? (
-                    <Text className="mt-1 text-xs text-ink-400 font-medium" numberOfLines={2}>
+                    <Text className="mt-1 text-xs text-ink-400 dark:text-ink-500 font-medium" numberOfLines={2}>
                       {offer.description}
                     </Text>
                   ) : null}
@@ -777,31 +795,28 @@ export function HomeScreen() {
             subtitle="Watch our recent independent reviews"
           />
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-4 py-4">
-            {videos.map((video) => {
-              const thumbnailUrl = getYoutubeThumbnail(video.youtube_url);
-              return (
-                <Pressable
-                  key={video.id}
-                  onPress={() => video.youtube_url && Linking.openURL(video.youtube_url)}
-                  accessibilityRole="button"
-                  accessibilityLabel={video.title ?? 'Watch video'}
-                  className="w-64 overflow-hidden rounded-2xl border border-ink-100 bg-white active:opacity-95 shadow-sm">
-                  <View className="relative">
-                    <MediaFrame src={thumbnailUrl} alt={video.title ?? ''} aspect="video" rounded="lg" />
-                    <View className="absolute inset-0 items-center justify-center bg-black/20">
-                      <View className="size-12 items-center justify-center rounded-full bg-white/90 shadow-md">
-                        <PlayCircle size={24} color="#FF0000" />
-                      </View>
+            {videos.map((video) => (
+              <Pressable
+                key={video.id}
+                onPress={() => video.url && Linking.openURL(video.url)}
+                accessibilityRole="button"
+                accessibilityLabel={video.title ?? 'Watch video'}
+                className="w-64 overflow-hidden rounded-2xl border border-ink-100 dark:border-ink-800 bg-white dark:bg-surface-1 active:opacity-95 shadow-sm">
+                <View className="relative">
+                  <MediaFrame src={video.thumbnail_url} alt={video.title ?? ''} aspect="video" rounded="lg" />
+                  <View className="absolute inset-0 items-center justify-center bg-black/20">
+                    <View className="size-12 items-center justify-center rounded-full bg-white/90 shadow-md">
+                      <PlayCircle size={24} color="#FF0000" />
                     </View>
                   </View>
-                  <View className="p-3">
-                    <Text className="text-sm font-bold text-ink-900" numberOfLines={2}>
-                      {video.title}
-                    </Text>
-                  </View>
-                </Pressable>
-              );
-            })}
+                </View>
+                <View className="p-3">
+                  <Text className="text-sm font-bold text-ink-900 dark:text-white" numberOfLines={2}>
+                    {video.title}
+                  </Text>
+                </View>
+              </Pressable>
+            ))}
           </ScrollView>
         </View>
       ) : null}
@@ -833,7 +848,7 @@ export function HomeScreen() {
             bottom: 0,
             right: 0,
             width: DRAWER_WIDTH,
-            backgroundColor: '#ffffff',
+            backgroundColor: nav.screenBackground,
             shadowColor: '#000000',
             shadowOffset: { width: -4, height: 0 },
             shadowOpacity: 0.1,
@@ -845,10 +860,10 @@ export function HomeScreen() {
           }}
         >
           {/* Drawer Header */}
-          <View className="flex-row items-center justify-between pb-6 border-b border-ink-100">
+          <View className="flex-row items-center justify-between pb-6 border-b border-ink-100 dark:border-ink-800">
             <View className="flex-row items-center gap-2">
               <TrustifiedStamp size={28} />
-              <Text className="text-lg font-display font-extrabold text-ink-900">Trustified</Text>
+              <Text className="text-lg font-display font-extrabold text-ink-900 dark:text-white">Trustified</Text>
             </View>
             <Pressable onPress={() => toggleDrawer(false)} className="p-1 rounded-full active:bg-ink-50">
               <X size={20} color={colors.ink[600]} />
@@ -880,7 +895,7 @@ function DrawerLink({ label, onPress }: { label: string; onPress: () => void }) 
       onPress={onPress}
       className="flex-row items-center justify-between py-3.5 px-3 rounded-2xl active:bg-ink-50"
     >
-      <Text className="text-sm font-semibold text-ink-800">{label}</Text>
+      <Text className="text-sm font-semibold text-ink-800 dark:text-ink-100">{label}</Text>
       <ChevronRight size={14} color={colors.ink[400]} />
     </Pressable>
   );
@@ -891,7 +906,7 @@ function Stat({ label, value, icon }: { label: string; value: string | number; i
     <View className="flex-1">
       {icon ? <View className="mb-1">{icon}</View> : null}
       <Text className="text-xl font-display font-extrabold text-white">{value}</Text>
-      <Text className="mt-1 text-[11px] font-semibold text-ink-400" numberOfLines={2}>{label}</Text>
+      <Text className="mt-1 text-[11px] font-semibold text-ink-400 dark:text-ink-500" numberOfLines={2}>{label}</Text>
     </View>
   );
 }
@@ -925,14 +940,4 @@ function SectionHeader({
       ) : null}
     </View>
   );
-}
-
-function getYoutubeThumbnail(url: string | null | undefined): string | null {
-  if (!url) return null;
-  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-  const match = url.match(regExp);
-  if (match && match[2]?.length === 11) {
-    return `https://img.youtube.com/vi/${match[2]}/hqdefault.jpg`;
-  }
-  return null;
 }

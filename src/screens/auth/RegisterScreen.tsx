@@ -1,22 +1,27 @@
-import React from 'react';
-import { View, Text, ScrollView, Pressable } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, Pressable } from 'react-native';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { ApiError, useRegister } from '../../api';
-import { Button, Field } from '../../components/ui';
+import { ApiError, useOtpRequest, useOtpVerifyRegistration, useRegister } from '../../api';
+import { Button, Field, Input } from '../../components/ui';
 import { ControlledInput } from '../../components/form/ControlledInput';
+import { KeyboardAvoidingScreen } from '../../components/KeyboardAvoidingScreen';
 import { FadeIn } from '../../components/motion';
 import type { RootStackParamList } from '../../navigation/types';
 import { toast } from '../../stores/toast';
 
-/** Mirrors `RegisterRequest` validation (backend/app/Http/Requests/Auth/RegisterRequest.php) and web's register.tsx schema (Task 2.1). */
+/**
+ * Mirrors `RegisterRequest` validation (backend/app/Http/Requests/Auth/RegisterRequest.php)
+ * and web's register page — phone is mandatory and must pass
+ * `POST /auth/otp/verify-registration` before `/auth/register` will accept it.
+ */
 const registerSchema = z
   .object({
     name: z.string().min(2, 'Enter your name').max(255),
     email: z.string().email('Enter a valid email'),
-    phone: z.string().max(20).optional().or(z.literal('')),
+    phone: z.string().min(10, 'Enter a valid mobile number').max(20),
     password: z.string().min(8, 'At least 8 characters'),
     password_confirmation: z.string().min(8, 'At least 8 characters'),
   })
@@ -29,7 +34,12 @@ type RegisterForm = z.infer<typeof registerSchema>;
 type Props = NativeStackScreenProps<RootStackParamList, 'Register'>;
 
 export function RegisterScreen({ navigation }: Props) {
+  const otpRequest = useOtpRequest();
+  const otpVerifyRegistration = useOtpVerifyRegistration();
   const register = useRegister();
+  const [details, setDetails] = useState<RegisterForm | null>(null);
+  const [code, setCode] = useState('');
+  const [verifyError, setVerifyError] = useState<string | undefined>();
   const {
     control,
     handleSubmit,
@@ -37,78 +47,150 @@ export function RegisterScreen({ navigation }: Props) {
     formState: { errors },
   } = useForm<RegisterForm>({ resolver: zodResolver(registerSchema) });
 
-  const onSubmit = handleSubmit((values) => {
-    const { phone, ...rest } = values;
-    register.mutate(
-      { ...rest, phone: phone || null },
+  const onSubmitDetails = handleSubmit((values) => {
+    otpRequest.mutate(
+      { phone: values.phone },
       {
-        onSuccess: () => navigation.reset({ index: 0, routes: [{ name: 'Tabs' }] }),
+        onSuccess: () => {
+          setDetails(values);
+          toast.success(`OTP sent to ${values.phone}`);
+        },
         onError: (err) => {
-          if (err instanceof ApiError && Object.keys(err.errors).length > 0) {
-            for (const [field, messages] of Object.entries(err.errors)) {
-              const message = messages[0];
-              if (message) setError(field as keyof RegisterForm, { message });
-            }
-          } else {
-            toast.error(err instanceof ApiError ? (err.firstError() ?? err.message) : 'Could not create your account. Please try again.');
+          if (err instanceof ApiError) {
+            const message =
+              err.status === 429
+                ? 'Too many attempts — please wait a minute and try again.'
+                : (err.firstError() ?? err.message);
+            setError('phone', { message });
           }
         },
       },
     );
   });
 
+  function onVerifyAndCreate() {
+    if (!details || code.length !== 6) return;
+    setVerifyError(undefined);
+    otpVerifyRegistration.mutate(
+      { phone: details.phone, otp: code },
+      {
+        onSuccess: () => {
+          register.mutate(details, {
+            onSuccess: () => navigation.reset({ index: 0, routes: [{ name: 'Tabs' }] }),
+            onError: (err) => {
+              toast.error(
+                err instanceof ApiError ? (err.firstError() ?? err.message) : 'Could not create your account. Please try again.',
+              );
+              setDetails(null);
+            },
+          });
+        },
+        onError: (err) => setVerifyError(err instanceof ApiError ? (err.firstError() ?? err.message) : 'Invalid OTP'),
+      },
+    );
+  }
+
   return (
-    <ScrollView className="flex-1 bg-white" contentContainerClassName="px-6 py-10" keyboardShouldPersistTaps="handled">
+    <KeyboardAvoidingScreen contentContainerClassName="px-6 py-10">
       <FadeIn>
-        <Text className="text-center text-2xl font-bold text-ink-900">Create your account</Text>
+        <Text className="text-center text-2xl font-bold text-ink-900 dark:text-white">Create your account</Text>
 
-        <View className="mt-6 gap-4">
-          <Field label="Name" required error={errors.name?.message}>
-            <ControlledInput control={control} name="name" autoComplete="name" accessibilityLabel="Name" />
-          </Field>
-          <Field label="Email" required error={errors.email?.message}>
-            <ControlledInput
-              control={control}
-              name="email"
-              keyboardType="email-address"
-              autoComplete="email"
-              accessibilityLabel="Email"
+        {details ? (
+          <View className="mt-6 gap-4">
+            <Text className="text-center text-sm text-ink-600 dark:text-ink-300">Enter the 6-digit code sent to {details.phone}.</Text>
+            <Input
+              keyboardType="number-pad"
+              maxLength={6}
+              value={code}
+              onChangeText={(t) => setCode(t.replace(/\D/g, ''))}
+              placeholder="000000"
+              className="text-center text-lg tracking-[8px]"
+              accessibilityLabel="One-time code"
             />
-          </Field>
-          <Field label="Phone (optional)" error={errors.phone?.message}>
-            <ControlledInput control={control} name="phone" keyboardType="phone-pad" accessibilityLabel="Phone" />
-          </Field>
-          <Field label="Password" required error={errors.password?.message}>
-            <ControlledInput
-              control={control}
-              name="password"
-              secureTextEntry
-              autoComplete="new-password"
-              accessibilityLabel="Password"
-            />
-          </Field>
-          <Field label="Confirm password" required error={errors.password_confirmation?.message}>
-            <ControlledInput
-              control={control}
-              name="password_confirmation"
-              secureTextEntry
-              autoComplete="new-password"
-              accessibilityLabel="Confirm password"
-            />
-          </Field>
+            {verifyError ? <Text className="text-center text-xs font-medium text-fail-strong">{verifyError}</Text> : null}
+            <Button
+              onPress={onVerifyAndCreate}
+              loading={otpVerifyRegistration.isPending || register.isPending}
+              accessibilityLabel="Verify and create account"
+            >
+              Verify & create account
+            </Button>
+            <Pressable
+              onPress={() => { setDetails(null); setCode(''); }}
+              className="items-center py-2"
+              accessibilityRole="button"
+            >
+              <Text className="text-xs text-ink-500 dark:text-ink-400 underline">Edit details / use a different number</Text>
+            </Pressable>
+          </View>
+        ) : (
+          <View className="mt-6 gap-4">
+            <Field label="Name" required error={errors.name?.message}>
+              <ControlledInput control={control} name="name" autoComplete="name" accessibilityLabel="Name" />
+            </Field>
+            <Field label="Email" required error={errors.email?.message}>
+              <ControlledInput
+                control={control}
+                name="email"
+                keyboardType="email-address"
+                autoComplete="email"
+                accessibilityLabel="Email"
+              />
+            </Field>
+            <Field label="Mobile number" required hint="We'll text you a one-time code to verify it." error={errors.phone?.message}>
+              <ControlledInput
+                control={control}
+                name="phone"
+                keyboardType="phone-pad"
+                autoComplete="tel"
+                placeholder="+91 98765 43210"
+                accessibilityLabel="Mobile number"
+              />
+            </Field>
+            <Field label="Password" required error={errors.password?.message}>
+              <ControlledInput
+                control={control}
+                name="password"
+                secureTextEntry
+                autoComplete="new-password"
+                accessibilityLabel="Password"
+              />
+            </Field>
+            <Field label="Confirm password" required error={errors.password_confirmation?.message}>
+              <ControlledInput
+                control={control}
+                name="password_confirmation"
+                secureTextEntry
+                autoComplete="new-password"
+                accessibilityLabel="Confirm password"
+              />
+            </Field>
 
-          <Button onPress={onSubmit} loading={register.isPending} accessibilityLabel="Create account">
-            Create account
-          </Button>
-        </View>
+            <Button onPress={onSubmitDetails} loading={otpRequest.isPending} accessibilityLabel="Send verification code">
+              Send verification code
+            </Button>
+          </View>
+        )}
 
-        <View className="mt-8 flex-row justify-center gap-1">
-          <Text className="text-sm text-ink-500">Already have an account?</Text>
+        <Text className="mt-6 text-center text-xs text-ink-500 dark:text-ink-400">
+          By creating an account, you agree to our{' '}
+          <Text className="font-semibold text-brand-700" onPress={() => navigation.navigate('Policy', { slug: 'terms', title: 'Terms of Service' })}>
+            Terms of Service
+          </Text>{' '}
+          and{' '}
+          <Text className="font-semibold text-brand-700" onPress={() => navigation.navigate('Policy', { slug: 'privacy', title: 'Privacy Policy' })}>
+            Privacy Policy
+          </Text>
+          .
+        </Text>
+
+        <View className="mt-6 flex-row justify-center gap-1">
+          <Text className="text-sm text-ink-500 dark:text-ink-400">Already have an account?</Text>
           <Pressable onPress={() => navigation.navigate('Login')} accessibilityRole="button">
             <Text className="text-sm font-semibold text-brand-700">Log in</Text>
           </Pressable>
         </View>
       </FadeIn>
-    </ScrollView>
+    </KeyboardAvoidingScreen>
   );
 }

@@ -62,8 +62,8 @@ export function MediaFrame({ src, alt, aspect = 'square', rounded = 'xl', classN
           accessibilityLabel={alt}
         />
       ) : alt ? (
-        <View className="w-full h-full bg-ink-100 items-center justify-center">
-          <Text className="text-base font-bold text-ink-600 uppercase">
+        <View className="w-full h-full bg-ink-100 dark:bg-surface-2 items-center justify-center">
+          <Text className="text-base font-bold text-ink-600 dark:text-ink-300 uppercase">
             {getInitials(alt)}
           </Text>
         </View>

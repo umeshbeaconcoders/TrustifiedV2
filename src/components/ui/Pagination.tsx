@@ -26,7 +26,7 @@ export function Pagination({
         className={`size-10 items-center justify-center rounded-full border border-ink-200 ${page <= 1 ? 'opacity-40' : ''}`}>
         <ChevronLeft size={18} color={colors.ink[700]} />
       </Pressable>
-      <Text className="text-sm font-semibold text-ink-700">
+      <Text className="text-sm font-semibold text-ink-700 dark:text-ink-200">
         Page {page} of {lastPage}
       </Text>
       <Pressable

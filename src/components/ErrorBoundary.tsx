@@ -30,9 +30,9 @@ export class ErrorBoundary extends React.Component<Props, State> {
   render() {
     if (this.state.error) {
       return (
-        <View className="flex-1 items-center justify-center gap-4 bg-white px-8">
-          <Text className="text-center text-lg font-bold text-ink-900">Something went wrong</Text>
-          <Text className="text-center text-sm text-ink-500">
+        <View className="flex-1 items-center justify-center gap-4 bg-white dark:bg-surface-1 px-8">
+          <Text className="text-center text-lg font-bold text-ink-900 dark:text-white">Something went wrong</Text>
+          <Text className="text-center text-sm text-ink-500 dark:text-ink-400">
             {this.props.label ? `${this.props.label} ` : ''}hit an unexpected error. Try again.
           </Text>
           <Button onPress={() => this.setState({ error: null })}>Try again</Button>

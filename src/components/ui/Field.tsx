@@ -20,12 +20,12 @@ export interface FieldProps {
 export function Field({ label, required, error, hint, children, className = '' }: FieldProps) {
   return (
     <View className={className}>
-      <Text className="mb-1.5 text-sm font-semibold text-ink-800">
+      <Text className="mb-1.5 text-sm font-semibold text-ink-800 dark:text-ink-100">
         {label}
         {required ? <Text className="text-fail"> *</Text> : null}
       </Text>
       {children}
-      {hint && !error ? <Text className="mt-1.5 text-xs text-ink-500">{hint}</Text> : null}
+      {hint && !error ? <Text className="mt-1.5 text-xs text-ink-500 dark:text-ink-400">{hint}</Text> : null}
       {error ? (
         <Text accessibilityRole="alert" className="mt-1.5 text-xs font-medium text-fail-strong">
           {error}

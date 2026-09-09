@@ -55,18 +55,18 @@ export function SearchScreen() {
   const isLoading = (hasSearch && productsLoading) || (!hasSearch && (categoriesLoading || brandsLoading));
 
   return (
-    <View className="flex-1 bg-white pt-4">
+    <View className="flex-1 bg-white dark:bg-surface-1 pt-4">
       {/* Search Header */}
-      <View className="px-4 pb-3 border-b border-ink-100">
-        <Text className="text-2xl font-display font-bold text-ink-900 mb-3">Search</Text>
-        <View className="flex-row items-center rounded-xl border border-ink-200 px-3 bg-ink-50/50">
+      <View className="px-4 pb-3 border-b border-ink-100 dark:border-ink-800">
+        <Text className="text-2xl font-display font-bold text-ink-900 dark:text-white mb-3">Search</Text>
+        <View className="flex-row items-center rounded-xl border border-ink-200 dark:border-ink-700 px-3 bg-ink-50/50">
           <Search size={18} color={colors.ink[400]} />
           <TextInput
             value={search}
             onChangeText={setSearch}
             placeholder="Search products or brands..."
             placeholderTextColor={colors.ink[400]}
-            className="h-12 flex-1 text-sm text-ink-900 font-semibold px-2"
+            className="h-12 flex-1 text-sm text-ink-900 dark:text-white font-semibold px-2"
             accessibilityLabel="Search products or brands"
           />
           {search.length > 0 ? (
@@ -83,11 +83,11 @@ export function SearchScreen() {
         </View>
       ) : hasSearch ? (
         /* Search Results View */
-        <ScrollView className="flex-1 bg-white" contentContainerClassName="py-4 px-4 pb-8">
+        <ScrollView className="flex-1 bg-white dark:bg-surface-1" contentContainerClassName="py-4 px-4 pb-8">
           {/* Brands Matching */}
           {matchingBrands.length > 0 ? (
             <View className="mb-6">
-              <Text className="text-xs font-bold uppercase tracking-wider text-ink-500 mb-3">
+              <Text className="text-xs font-bold uppercase tracking-wider text-ink-500 dark:text-ink-400 mb-3">
                 Matching Brands ({matchingBrands.length})
               </Text>
               <View className="gap-2">
@@ -95,11 +95,11 @@ export function SearchScreen() {
                   <Pressable
                     key={brand.id}
                     onPress={() => brand.slug && handleBrandPress(brand.slug)}
-                    className="flex-row items-center gap-3 bg-ink-50/40 border border-ink-100 p-3 rounded-2xl active:bg-ink-100/50"
+                    className="flex-row items-center gap-3 bg-ink-50/40 border border-ink-100 dark:border-ink-800 p-3 rounded-2xl active:bg-ink-100/50"
                   >
-                    <MediaFrame src={brand.logo_url} alt={brand.name} aspect="square" rounded="xl" className="w-10 h-10 border border-ink-100 bg-white" />
+                    <MediaFrame src={brand.logo_url} alt={brand.name} aspect="square" rounded="xl" className="w-10 h-10 border border-ink-100 dark:border-ink-800 bg-white dark:bg-surface-1" />
                     <View className="flex-1">
-                      <Text className="text-sm font-bold text-ink-900">{brand.name}</Text>
+                      <Text className="text-sm font-bold text-ink-900 dark:text-white">{brand.name}</Text>
                       <Text className="text-[10px] font-semibold text-brand-700 uppercase">Certified Brand</Text>
                     </View>
                     <ChevronRight size={16} color={colors.ink[300]} />
@@ -111,7 +111,7 @@ export function SearchScreen() {
 
           {/* Products Matching */}
           <View>
-            <Text className="text-xs font-bold uppercase tracking-wider text-ink-500 mb-3">
+            <Text className="text-xs font-bold uppercase tracking-wider text-ink-500 dark:text-ink-400 mb-3">
               Matching Products ({products.length})
             </Text>
             {products.length === 0 && matchingBrands.length === 0 ? (
@@ -130,16 +130,16 @@ export function SearchScreen() {
                   <Pressable
                     key={product.id}
                     onPress={() => navigation.navigate('ProductDetail', { slug: product.slug })}
-                    className="flex-row items-center gap-3 bg-white border border-ink-100 p-3 rounded-2xl active:bg-ink-50"
+                    className="flex-row items-center gap-3 bg-white dark:bg-surface-1 border border-ink-100 dark:border-ink-800 p-3 rounded-2xl active:bg-ink-50"
                   >
-                    <MediaFrame src={product.image_url} alt={product.name} aspect="square" rounded="xl" className="w-16 h-16 border border-ink-100 bg-white" />
+                    <MediaFrame src={product.image_url} alt={product.name} aspect="square" rounded="xl" className="w-16 h-16 border border-ink-100 dark:border-ink-800 bg-white dark:bg-surface-1" />
                     <View className="flex-1 gap-0.5">
                       {product.brand ? (
                         <Text className="text-[10px] font-bold uppercase tracking-wider text-brand-700">
                           {product.brand.name}
                         </Text>
                       ) : null}
-                      <Text className="text-xs font-bold text-ink-900" numberOfLines={2}>
+                      <Text className="text-xs font-bold text-ink-900 dark:text-white" numberOfLines={2}>
                         {product.name}
                       </Text>
                       <View className="mt-1 flex-row items-center gap-2">
@@ -157,18 +157,18 @@ export function SearchScreen() {
         </ScrollView>
       ) : (
         /* Empty State Suggestions & Browse categories/brands */
-        <ScrollView className="flex-1 bg-white" contentContainerClassName="py-4 pb-8">
+        <ScrollView className="flex-1 bg-white dark:bg-surface-1" contentContainerClassName="py-4 pb-8">
           {/* Quick suggestions */}
           <View className="px-4 mb-6">
-            <Text className="text-xs font-bold uppercase tracking-wider text-ink-500 mb-3">Popular Searches</Text>
+            <Text className="text-xs font-bold uppercase tracking-wider text-ink-500 dark:text-ink-400 mb-3">Popular Searches</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-2">
               {SUGGESTIONS.map((term) => (
                 <Pressable
                   key={term}
                   onPress={() => setSearch(term)}
-                  className="bg-ink-50 border border-ink-150 px-3.5 py-2 rounded-full active:bg-brand-50 active:border-brand-200"
+                  className="bg-ink-50 dark:bg-surface-2 border border-ink-150 px-3.5 py-2 rounded-full active:bg-brand-50 active:border-brand-200"
                 >
-                  <Text className="text-xs font-bold text-ink-700">{term}</Text>
+                  <Text className="text-xs font-bold text-ink-700 dark:text-ink-200">{term}</Text>
                 </Pressable>
               ))}
             </ScrollView>
@@ -177,15 +177,15 @@ export function SearchScreen() {
           {/* Browse by Category */}
           {categories.length > 0 ? (
             <View className="px-4 mb-6">
-              <Text className="text-xs font-bold uppercase tracking-wider text-ink-500 mb-3">Browse Categories</Text>
+              <Text className="text-xs font-bold uppercase tracking-wider text-ink-500 dark:text-ink-400 mb-3">Browse Categories</Text>
               <View className="flex-row flex-wrap justify-between gap-y-3">
                 {categories.map((cat) => (
                   <Pressable
                     key={cat.id}
                     onPress={() => handleCategoryPress(cat.slug)}
-                    className="w-[48%] flex-row items-center gap-2.5 bg-ink-50/30 border border-ink-100 p-3 rounded-2xl active:bg-ink-100/50"
+                    className="w-[48%] flex-row items-center gap-2.5 bg-ink-50/30 border border-ink-100 dark:border-ink-800 p-3 rounded-2xl active:bg-ink-100/50"
                   >
-                    <View className="w-8 h-8 rounded-full overflow-hidden bg-white border border-ink-100 items-center justify-center">
+                    <View className="w-8 h-8 rounded-full overflow-hidden bg-white dark:bg-surface-1 border border-ink-100 dark:border-ink-800 items-center justify-center">
                       {cat.image_url ? (
                         <Image source={{ uri: cat.image_url }} className="w-full h-full object-cover" />
                       ) : (
@@ -194,7 +194,7 @@ export function SearchScreen() {
                         </Text>
                       )}
                     </View>
-                    <Text className="flex-1 text-xs font-bold text-ink-800" numberOfLines={1}>
+                    <Text className="flex-1 text-xs font-bold text-ink-800 dark:text-ink-100" numberOfLines={1}>
                       {cat.name}
                     </Text>
                   </Pressable>
@@ -206,16 +206,16 @@ export function SearchScreen() {
           {/* Browse by Brand */}
           {brands.length > 0 ? (
             <View className="mb-4">
-              <Text className="px-4 text-xs font-bold uppercase tracking-wider text-ink-500 mb-3">Certified Brands</Text>
+              <Text className="px-4 text-xs font-bold uppercase tracking-wider text-ink-500 dark:text-ink-400 mb-3">Certified Brands</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-3 px-4">
                 {brands.map((brand) => (
                   <Pressable
                     key={brand.id}
                     onPress={() => brand.slug && handleBrandPress(brand.slug)}
-                    className="w-24 items-center gap-1 bg-white border border-ink-100 p-2.5 rounded-2xl shadow-sm active:border-brand-300"
+                    className="w-24 items-center gap-1 bg-white dark:bg-surface-1 border border-ink-100 dark:border-ink-800 p-2.5 rounded-2xl shadow-sm active:border-brand-300"
                   >
                     <MediaFrame src={brand.logo_url} alt={brand.name} aspect="square" rounded="lg" className="w-16 h-16 border border-ink-50" />
-                    <Text className="text-center text-[10px] font-bold text-ink-700 w-full" numberOfLines={1}>
+                    <Text className="text-center text-[10px] font-bold text-ink-700 dark:text-ink-200 w-full" numberOfLines={1}>
                       {brand.name}
                     </Text>
                   </Pressable>

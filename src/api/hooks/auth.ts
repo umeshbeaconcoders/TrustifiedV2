@@ -116,6 +116,16 @@ export function useOtpVerify() {
   });
 }
 
+/** Verifies a phone's OTP as a standalone step before full registration —
+ * unlike `useOtpVerify`, this never creates/logs in a user; it just marks
+ * the phone verified so `POST /auth/register` will accept it. */
+export function useOtpVerifyRegistration() {
+  return useMutation({
+    mutationFn: (body: { phone: string; otp: string }) =>
+      api.post<Envelope<{ message: string; verified: boolean }>>('/auth/otp/verify-registration', body),
+  });
+}
+
 export function useTwoFactorVerify() {
   const onSuccess = useAuthSuccess();
   return useMutation({

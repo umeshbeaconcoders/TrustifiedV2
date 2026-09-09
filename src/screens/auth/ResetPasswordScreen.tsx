@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, ScrollView } from 'react-native';
+import { View, Text } from 'react-native';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -7,6 +7,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ApiError, useResetPassword } from '../../api';
 import { Button, Field } from '../../components/ui';
 import { ControlledInput } from '../../components/form/ControlledInput';
+import { KeyboardAvoidingScreen } from '../../components/KeyboardAvoidingScreen';
 import { FadeIn } from '../../components/motion';
 import type { RootStackParamList } from '../../navigation/types';
 import { toast } from '../../stores/toast';
@@ -61,9 +62,9 @@ export function ResetPasswordScreen({ route, navigation }: Props) {
   });
 
   return (
-    <ScrollView className="flex-1 bg-white" contentContainerClassName="px-6 py-16" keyboardShouldPersistTaps="handled">
+    <KeyboardAvoidingScreen contentContainerClassName="px-6 py-16">
       <FadeIn>
-        <Text className="text-center text-2xl font-bold text-ink-900">Reset password</Text>
+        <Text className="text-center text-2xl font-bold text-ink-900 dark:text-white">Reset password</Text>
         <View className="mt-6 gap-4">
           <Field label="Reset token" required error={errors.token?.message} hint="From the link in your email">
             <ControlledInput control={control} name="token" accessibilityLabel="Reset token" />
@@ -100,6 +101,6 @@ export function ResetPasswordScreen({ route, navigation }: Props) {
           </Button>
         </View>
       </FadeIn>
-    </ScrollView>
+    </KeyboardAvoidingScreen>
   );
 }

@@ -1,3 +1,5 @@
+import { useColorScheme } from 'react-native';
+
 /**
  * Plain-JS mirror of tailwind.config.js's color ramp, for contexts that
  * cannot take a NativeWind className (icon `color` props, StatusBar,
@@ -92,3 +94,22 @@ export const badgeVariants = {
 } as const;
 
 export type BadgeVariant = keyof typeof badgeVariants;
+
+/**
+ * Dark-mode-aware colors for navigation chrome (tab bar, native stack
+ * header, status bar) — these are plain `style`/prop values on
+ * @react-navigation components, not classNames, so they can't pick up
+ * NativeWind's `dark:` variant on their own and need this instead.
+ */
+export function useNavColors() {
+  const dark = useColorScheme() === 'dark';
+  return {
+    dark,
+    screenBackground: dark ? colors.surface[1] : colors.white,
+    headerBackground: dark ? colors.surface[0] : colors.white,
+    headerTint: dark ? colors.white : colors.ink[900],
+    border: dark ? colors.ink[800] : colors.ink[100],
+    tabActive: colors.brand[dark ? 400 : 600],
+    tabInactive: dark ? colors.ink[500] : colors.ink[400],
+  };
+}

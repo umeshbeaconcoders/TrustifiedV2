@@ -265,6 +265,15 @@ export interface Video {
   [key: string]: unknown;
 }
 
+export interface YoutubeVideo {
+  id: string;
+  title?: string | null;
+  url?: string | null;
+  thumbnail_url?: string | null;
+  published_at?: string | null;
+  [key: string]: unknown;
+}
+
 export interface Policy {
   id: number;
   title?: string;
@@ -294,9 +303,11 @@ export interface LoginRequest {
 export interface RegisterRequest {
   name: string;
   email: string;
-  phone?: string | null;
+  /** OTP-verified via POST /auth/otp/verify-registration before register will accept it. */
+  phone: string;
   password: string;
   password_confirmation: string;
+  device_name?: string | null;
 }
 
 export interface ForgotPasswordRequest {

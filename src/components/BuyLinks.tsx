@@ -27,7 +27,7 @@ export function BuyLinks({ links, className = '' }: { links: BuyLink[]; classNam
       {/* Trustified Buy Guarantee statement under the buy buttons */}
       <View className="flex-row items-start gap-1.5 mt-2 px-1">
         <ShieldCheck size={14} color="#2ab841" style={{ marginTop: 2 }} />
-        <Text className="text-[10px] text-ink-500 font-medium leading-normal flex-1">
+        <Text className="text-[10px] text-ink-500 dark:text-ink-400 font-medium leading-normal flex-1">
           Buy confidently — these are verified, authentic sources for this product.
         </Text>
       </View>

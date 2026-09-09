@@ -47,9 +47,9 @@ export function PolicyScreen({ route }: Props) {
   const plainText = useMemo(() => stripHtml(rawHtml), [rawHtml]);
 
   return (
-    <ScrollView className="flex-1 bg-white" contentContainerClassName="px-6 py-10">
+    <ScrollView className="flex-1 bg-white dark:bg-surface-1" contentContainerClassName="px-6 py-10">
       <FadeIn>
-        <Text className="text-2xl font-bold text-ink-900">{title}</Text>
+        <Text className="text-2xl font-bold text-ink-900 dark:text-white">{title}</Text>
 
         {isLoading ? (
           <View className="mt-8 gap-3">
@@ -63,7 +63,7 @@ export function PolicyScreen({ route }: Props) {
             description="This policy hasn't been published yet."
           />
         ) : (
-          <Text className="mt-6 text-sm leading-relaxed text-ink-700">{plainText}</Text>
+          <Text className="mt-6 text-sm leading-relaxed text-ink-700 dark:text-ink-200">{plainText}</Text>
         )}
       </FadeIn>
     </ScrollView>

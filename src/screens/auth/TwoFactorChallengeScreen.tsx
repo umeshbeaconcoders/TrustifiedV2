@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView } from 'react-native';
+import { View, Text } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ApiError, useTwoFactorVerify } from '../../api';
 import { Button, Input } from '../../components/ui';
+import { KeyboardAvoidingScreen } from '../../components/KeyboardAvoidingScreen';
 import { FadeIn } from '../../components/motion';
 import type { RootStackParamList } from '../../navigation/types';
 
@@ -28,10 +29,10 @@ export function TwoFactorChallengeScreen({ route, navigation }: Props) {
   }
 
   return (
-    <ScrollView className="flex-1 bg-white" contentContainerClassName="px-6 py-10" keyboardShouldPersistTaps="handled">
+    <KeyboardAvoidingScreen contentContainerClassName="px-6 py-10">
       <FadeIn>
-        <Text className="text-center text-2xl font-bold text-ink-900">Two-factor verification</Text>
-        <Text className="mt-2 text-center text-sm text-ink-600">
+        <Text className="text-center text-2xl font-bold text-ink-900 dark:text-white">Two-factor verification</Text>
+        <Text className="mt-2 text-center text-sm text-ink-600 dark:text-ink-300">
           Enter the 6-digit code from your authenticator app.
         </Text>
         <View className="mt-6 gap-4">
@@ -50,6 +51,6 @@ export function TwoFactorChallengeScreen({ route, navigation }: Props) {
           </Button>
         </View>
       </FadeIn>
-    </ScrollView>
+    </KeyboardAvoidingScreen>
   );
 }

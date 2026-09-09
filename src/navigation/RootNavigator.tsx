@@ -1,6 +1,6 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { colors } from '../theme/tokens';
+import { useNavColors } from '../theme/tokens';
 import type { RootStackParamList } from './types';
 import { TabNavigator } from './TabNavigator';
 
@@ -33,15 +33,22 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 /** Root stack — bottom tabs as the base screen, every drill-down/auth screen pushed on top. See src/navigation/types.ts for the full route map. */
 export function RootNavigator() {
+  const nav = useNavColors();
   return (
     <Stack.Navigator
       screenOptions={{
-        headerTintColor: colors.ink[900],
-        headerTitleStyle: { fontWeight: '700' },
+        headerTintColor: nav.headerTint,
+        headerTitleStyle: { fontWeight: '700', color: nav.headerTint },
         headerShadowVisible: false,
-        headerStyle: { backgroundColor: '#fff' },
-        contentStyle: { backgroundColor: '#fff' },
+        headerStyle: { backgroundColor: nav.headerBackground },
+        contentStyle: { backgroundColor: nav.screenBackground },
         freezeOnBlur: true,
+        // Swipe-to-go-back on every pushed screen, both platforms — full-width
+        // edge swipe on iOS (not just the left-edge sliver), Android gets the
+        // matching gesture via react-native-screens.
+        gestureEnabled: true,
+        fullScreenGestureEnabled: true,
+        animation: 'slide_from_right',
       }}>
       <Stack.Screen name="Tabs" component={TabNavigator} options={{ headerShown: false }} />
 

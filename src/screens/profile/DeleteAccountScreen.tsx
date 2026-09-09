@@ -32,19 +32,19 @@ export function DeleteAccountScreen() {
   if (isChecking) return null;
 
   return (
-    <ScrollView className="flex-1 bg-white" contentContainerClassName="px-6 py-10">
+    <ScrollView className="flex-1 bg-white dark:bg-surface-1" contentContainerClassName="px-6 py-10">
       <View className="items-center">
         <View className="size-14 items-center justify-center rounded-2xl bg-fail-soft">
           <ShieldAlert size={28} color={colors.fail.strong} />
         </View>
-        <Text className="mt-4 text-center text-xl font-bold text-ink-900">Delete your account</Text>
-        <Text className="mt-2 text-center text-sm text-ink-600">
+        <Text className="mt-4 text-center text-xl font-bold text-ink-900 dark:text-white">Delete your account</Text>
+        <Text className="mt-2 text-center text-sm text-ink-600 dark:text-ink-300">
           This is permanent. Your profile and reviews will be scheduled for deletion. This cannot be undone.
         </Text>
       </View>
 
       <View className="mt-8 gap-3">
-        <Text className="text-sm font-semibold text-ink-800">Type DELETE to confirm</Text>
+        <Text className="text-sm font-semibold text-ink-800 dark:text-ink-100">Type DELETE to confirm</Text>
         <Input value={confirmText} onChangeText={setConfirmText} autoCapitalize="characters" accessibilityLabel="Type DELETE to confirm" />
         <Button
           variant="danger"

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, ScrollView, Pressable } from 'react-native';
+import { View, Text, ScrollView, Pressable, RefreshControl } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LogOut, Mail, Phone, ShieldCheck, UserRound, Download, Trash2, Bell, FileText, Trophy, ScanSearch, Swords, Info, TestTube2, ListChecks } from 'lucide-react-native';
@@ -16,7 +16,7 @@ export function ProfileScreen() {
   const hydrated = useAuthStore((s) => s.hydrated);
   const user = useAuthStore((s) => s.user);
   const clearAuth = useAuthStore((s) => s.clear);
-  const { isLoading } = useMe();
+  const { isLoading, isRefetching, refetch } = useMe();
   const logout = useLogout();
   const removeDeviceToken = useRemoveDeviceToken();
 
@@ -46,14 +46,18 @@ export function ProfileScreen() {
   }
 
   return (
-    <ScrollView className="flex-1 bg-white" contentContainerClassName="px-6 py-10">
+    <ScrollView
+      className="flex-1 bg-white dark:bg-surface-1"
+      contentContainerClassName="px-6 py-10"
+      refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={() => void refetch()} colors={[colors.brand[500]]} />}
+    >
       <FadeIn>
         <View className="flex-row items-center gap-4">
           <View className="size-16 items-center justify-center rounded-full bg-brand-50">
             <UserRound size={32} color={colors.brand[700]} />
           </View>
           <View>
-            <Text className="text-2xl font-bold text-ink-900">{user.name}</Text>
+            <Text className="text-2xl font-bold text-ink-900 dark:text-white">{user.name}</Text>
             {user.two_factor_enabled ? (
               <Badge variant="pass" className="mt-1">
                 <ShieldCheck size={14} color={colors.brand[700]} />
@@ -65,11 +69,11 @@ export function ProfileScreen() {
           </View>
         </View>
 
-        <View className="mt-7 gap-3 border-t border-ink-100 pt-6">
+        <View className="mt-7 gap-3 border-t border-ink-100 dark:border-ink-800 pt-6">
           {user.email ? (
             <View className="flex-row items-center gap-3">
               <Mail size={16} color={colors.ink[400]} />
-              <Text className="flex-1 text-sm text-ink-700">{user.email}</Text>
+              <Text className="flex-1 text-sm text-ink-700 dark:text-ink-200">{user.email}</Text>
               <Badge variant={user.email_verified_at ? 'pass' : 'warning'}>
                 {user.email_verified_at ? 'Verified' : 'Unverified'}
               </Badge>
@@ -78,7 +82,7 @@ export function ProfileScreen() {
           {user.phone ? (
             <View className="flex-row items-center gap-3">
               <Phone size={16} color={colors.ink[400]} />
-              <Text className="flex-1 text-sm text-ink-700">{user.phone}</Text>
+              <Text className="flex-1 text-sm text-ink-700 dark:text-ink-200">{user.phone}</Text>
               <Badge variant={user.phone_verified_at ? 'pass' : 'warning'}>
                 {user.phone_verified_at ? 'Verified' : 'Unverified'}
               </Badge>
@@ -87,8 +91,8 @@ export function ProfileScreen() {
         </View>
 
         {/* Commented out Explore Section (uncomment if needed in the future)
-        <View className="mt-8 border-t border-ink-100 pt-6">
-          <Text className="text-xs font-bold uppercase tracking-wider text-ink-500 mb-3 px-1">Explore</Text>
+        <View className="mt-8 border-t border-ink-100 dark:border-ink-800 pt-6">
+          <Text className="text-xs font-bold uppercase tracking-wider text-ink-500 dark:text-ink-400 mb-3 px-1">Explore</Text>
           <View className="gap-1">
             <ProfileLink
               icon={<ShieldCheck size={18} color={colors.brand[600]} />}
@@ -129,7 +133,7 @@ export function ProfileScreen() {
         </View>
         */}
 
-        <View className="mt-8 gap-1 border-t border-ink-100 pt-6">
+        <View className="mt-8 gap-1 border-t border-ink-100 dark:border-ink-800 pt-6">
           <ProfileLink
             icon={<Bell size={18} color={colors.ink[500]} />}
             label="Push notification settings"
@@ -160,7 +164,7 @@ export function ProfileScreen() {
           onPress={handleLogout}
           accessibilityLabel="Log out">
           <LogOut size={16} color={colors.ink[800]} />
-          <Text className="ml-1 font-semibold text-ink-800">Log out</Text>
+          <Text className="ml-1 font-semibold text-ink-800 dark:text-ink-100">Log out</Text>
         </Button>
       </FadeIn>
     </ScrollView>

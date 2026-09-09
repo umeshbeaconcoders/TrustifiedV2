@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { View, Text, Pressable, ScrollView, Image, Modal, FlatList } from 'react-native';
+import { View, Text, Pressable, ScrollView, Image, Modal, FlatList, RefreshControl } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { FlashList } from '@shopify/flash-list';
 import { X, RefreshCw, ChevronDown, ShieldCheck, Trophy, FlaskConical } from 'lucide-react-native';
@@ -35,11 +35,11 @@ function TabHeaderLabel({ value, label, icon: Icon }: { value: string; label: st
 
 export function ReportsScreen() {
   return (
-    <View className="flex-1 bg-white pt-4">
-      <Text className="px-4 text-2xl font-display font-bold text-ink-900">Trustified</Text>
+    <View className="flex-1 bg-white dark:bg-surface-1 pt-4">
+      <Text className="px-4 text-2xl font-display font-bold text-ink-900 dark:text-white">Trustified</Text>
       <Tabs defaultValue="pass-fail" className="mt-2 flex-1">
         <View className="px-4">
-          <TabsList className="bg-ink-50 border border-ink-100">
+          <TabsList className="bg-ink-50 dark:bg-surface-2 border border-ink-100 dark:border-ink-800">
             <TabsTrigger
               value="pass-fail"
               activeClassName="bg-brand-50 border border-brand-500/50 shadow-sm"
@@ -132,7 +132,7 @@ function ReportsCollectionList({ collection, showStatusFilter }: { collection: R
     [category, brand, status, sort],
   );
 
-  const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } = useInfiniteQuery({
+  const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage, isRefetching, refetch } = useInfiniteQuery({
     queryKey: ['reports', collection, 'infinite', params],
     queryFn: ({ pageParam, signal }) =>
       api.get<Paginated<Product>>(`/reports/${collection}`, { ...params, page: pageParam }, signal),
@@ -203,18 +203,18 @@ function ReportsCollectionList({ collection, showStatusFilter }: { collection: R
       <View className="flex-row gap-3 px-4 mb-4">
         <Pressable
           onPress={() => setBrandModalVisible(true)}
-          className="flex-1 flex-row items-center justify-between border border-ink-200 bg-white px-3 py-2.5 rounded-xl active:bg-ink-50"
+          className="flex-1 flex-row items-center justify-between border border-ink-200 dark:border-ink-700 bg-white dark:bg-surface-1 px-3 py-2.5 rounded-xl active:bg-ink-50"
         >
-          <Text className="text-xs font-bold text-ink-700 flex-1 mr-1" numberOfLines={1}>
+          <Text className="text-xs font-bold text-ink-700 dark:text-ink-200 flex-1 mr-1" numberOfLines={1}>
             {selectedBrandName}
           </Text>
           <ChevronDown size={14} color={colors.ink[500]} />
         </Pressable>
         <Pressable
           onPress={() => setSortModalVisible(true)}
-          className="flex-1 flex-row items-center justify-between border border-ink-200 bg-white px-3 py-2.5 rounded-xl active:bg-ink-50"
+          className="flex-1 flex-row items-center justify-between border border-ink-200 dark:border-ink-700 bg-white dark:bg-surface-1 px-3 py-2.5 rounded-xl active:bg-ink-50"
         >
-          <Text className="text-xs font-bold text-ink-700 flex-1 mr-1" numberOfLines={1}>
+          <Text className="text-xs font-bold text-ink-700 dark:text-ink-200 flex-1 mr-1" numberOfLines={1}>
             {selectedSortLabel}
           </Text>
           <ChevronDown size={14} color={colors.ink[500]} />
@@ -224,7 +224,7 @@ function ReportsCollectionList({ collection, showStatusFilter }: { collection: R
       {/* Active Filters Row (Web style) */}
       {activeFilters.length > 0 ? (
         <View className="px-4 mb-3 flex-row items-center flex-wrap gap-2">
-          <Text className="text-xs font-bold text-ink-500">Active filters:</Text>
+          <Text className="text-xs font-bold text-ink-500 dark:text-ink-400">Active filters:</Text>
           {activeFilters.map((filt) => (
             <View key={filt.key} className="flex-row items-center gap-1 bg-[#eefcf2] px-3 py-1 rounded-full border border-brand-200">
               <Text className="text-[11px] font-bold text-brand-700">{filt.label}</Text>
@@ -242,7 +242,7 @@ function ReportsCollectionList({ collection, showStatusFilter }: { collection: R
       {/* Results Counter */}
       <View className="px-4 mb-2">
         {data ? (
-          <Text className="text-xs font-bold text-ink-500">
+          <Text className="text-xs font-bold text-ink-500 dark:text-ink-400">
             {new Intl.NumberFormat().format(total)} products found
           </Text>
         ) : <View />}
@@ -250,7 +250,7 @@ function ReportsCollectionList({ collection, showStatusFilter }: { collection: R
 
       {/* Categories Horizontal circular bar (from web) */}
       {categories.length > 0 ? (
-        <View className="mb-4 border-b border-ink-100 pb-3">
+        <View className="mb-4 border-b border-ink-100 dark:border-ink-800 pb-3">
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 12 }}>
             {/* "All" Category circular item */}
             <Pressable
@@ -305,7 +305,7 @@ function ReportsCollectionList({ collection, showStatusFilter }: { collection: R
               action={
                 <Button variant="outline" onPress={() => void refetch()} className="flex-row gap-2">
                   <RefreshCw size={14} color={colors.ink[700]} />
-                  <Text className="font-semibold text-ink-700">Retry</Text>
+                  <Text className="font-semibold text-ink-700 dark:text-ink-200">Retry</Text>
                 </Button>
               }
             />
@@ -330,6 +330,9 @@ function ReportsCollectionList({ collection, showStatusFilter }: { collection: R
             keyExtractor={(item) => String(item.id)}
             numColumns={2}
             estimatedItemSize={240}
+            refreshControl={
+              <RefreshControl refreshing={isRefetching} onRefresh={() => void refetch()} colors={[colors.brand[500]]} />
+            }
             ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
             renderItem={({ item }) => (
               <View style={{ flex: 1, paddingHorizontal: 6 }}>
@@ -349,9 +352,9 @@ function ReportsCollectionList({ collection, showStatusFilter }: { collection: R
       <Modal visible={brandModalVisible} transparent animationType="fade" onRequestClose={() => setBrandModalVisible(false)}>
         <View className="flex-1 bg-black/50 justify-center items-center p-6">
           <Pressable className="absolute inset-0" onPress={() => setBrandModalVisible(false)} />
-          <View className="bg-white rounded-3xl w-full max-h-[75%] p-6 shadow-2xl overflow-hidden">
-            <View className="flex-row items-center justify-between border-b border-ink-100 pb-3 mb-4">
-              <Text className="text-base font-bold text-ink-900">Select Brand</Text>
+          <View className="bg-white dark:bg-surface-1 rounded-3xl w-full max-h-[75%] p-6 shadow-2xl overflow-hidden">
+            <View className="flex-row items-center justify-between border-b border-ink-100 dark:border-ink-800 pb-3 mb-4">
+              <Text className="text-base font-bold text-ink-900 dark:text-white">Select Brand</Text>
               <Pressable onPress={() => setBrandModalVisible(false)} className="p-1 rounded-full active:bg-ink-50">
                 <X size={18} color={colors.ink[600]} />
               </Pressable>
@@ -383,9 +386,9 @@ function ReportsCollectionList({ collection, showStatusFilter }: { collection: R
       <Modal visible={sortModalVisible} transparent animationType="fade" onRequestClose={() => setSortModalVisible(false)}>
         <View className="flex-1 bg-black/50 justify-center items-center p-6">
           <Pressable className="absolute inset-0" onPress={() => setSortModalVisible(false)} />
-          <View className="bg-white rounded-3xl w-full max-h-[75%] p-6 shadow-2xl overflow-hidden">
-            <View className="flex-row items-center justify-between border-b border-ink-100 pb-3 mb-4">
-              <Text className="text-base font-bold text-ink-900">Sort By</Text>
+          <View className="bg-white dark:bg-surface-1 rounded-3xl w-full max-h-[75%] p-6 shadow-2xl overflow-hidden">
+            <View className="flex-row items-center justify-between border-b border-ink-100 dark:border-ink-800 pb-3 mb-4">
+              <Text className="text-base font-bold text-ink-900 dark:text-white">Sort By</Text>
               <Pressable onPress={() => setSortModalVisible(false)} className="p-1 rounded-full active:bg-ink-50">
                 <X size={18} color={colors.ink[600]} />
               </Pressable>

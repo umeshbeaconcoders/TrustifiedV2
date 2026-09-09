@@ -7,6 +7,7 @@ import { PartyPopper, ShoppingBag, TestTube, Globe, ShieldCheck, FileText, Check
 import { ApiError, useSubmitLead } from '../../api';
 import { Button, Field } from '../../components/ui';
 import { ControlledInput, ControlledTextarea } from '../../components/form/ControlledInput';
+import { KeyboardAvoidingScreen } from '../../components/KeyboardAvoidingScreen';
 import { FadeIn } from '../../components/motion';
 import { colors } from '../../theme/tokens';
 import { toast } from '../../stores/toast';
@@ -66,13 +67,13 @@ export function GetCertifiedScreen() {
 
   if (success) {
     return (
-      <ScrollView className="flex-1 bg-white" contentContainerClassName="items-center px-6 py-24">
+      <ScrollView className="flex-1 bg-white dark:bg-surface-1" contentContainerClassName="items-center px-6 py-24">
         <FadeIn className="items-center">
           <View className="size-16 items-center justify-center rounded-full bg-pass-soft">
             <PartyPopper size={32} color={colors.pass.strong} />
           </View>
-          <Text className="mt-6 text-center text-2xl font-bold text-ink-900">Request received!</Text>
-          <Text className="mt-3 text-center text-sm leading-relaxed text-ink-600">
+          <Text className="mt-6 text-center text-2xl font-bold text-ink-900 dark:text-white">Request received!</Text>
+          <Text className="mt-3 text-center text-sm leading-relaxed text-ink-600 dark:text-ink-300">
             Our certification team will get back to you within 2 business days. Meanwhile, read how our
             blind-testing process works from the Testing section.
           </Text>
@@ -82,18 +83,18 @@ export function GetCertifiedScreen() {
   }
 
   return (
-    <ScrollView className="flex-1 bg-ink-50" contentContainerClassName="px-5 py-8" keyboardShouldPersistTaps="handled">
+    <KeyboardAvoidingScreen className="flex-1 bg-ink-50 dark:bg-surface-2" contentContainerClassName="px-5 py-8">
       <FadeIn>
-        <Text className="text-2xl font-display font-extrabold text-ink-900">Get certified</Text>
-        <Text className="mt-2 text-sm leading-relaxed text-ink-600">
+        <Text className="text-2xl font-display font-extrabold text-ink-900 dark:text-white">Get certified</Text>
+        <Text className="mt-2 text-sm leading-relaxed text-ink-600 dark:text-ink-300">
           Certification is earned, not bought. We buy your product blind from the market, test it at
           accredited labs, and publish the result — whichever way it goes.
         </Text>
 
         {/* Lead Request Form Card */}
-        <View className="mt-6 bg-white border border-ink-100 rounded-3xl p-5 shadow-[0_4px_16px_rgba(0,0,0,0.015)] gap-4">
+        <View className="mt-6 bg-white dark:bg-surface-1 border border-ink-100 dark:border-ink-800 rounded-3xl p-5 shadow-[0_4px_16px_rgba(0,0,0,0.015)] gap-4">
           <View className="border-l-4 border-brand-500 pl-4 mb-1">
-            <Text className="text-xs italic text-ink-700 leading-relaxed">
+            <Text className="text-xs italic text-ink-700 dark:text-ink-200 leading-relaxed">
               "The seal means one thing: this batch was tested by someone the brand couldn't influence."
             </Text>
           </View>
@@ -129,7 +130,7 @@ export function GetCertifiedScreen() {
               }`}>
               {termsAccepted ? <Text className="text-xs font-bold text-white">✓</Text> : null}
             </View>
-            <Text className="flex-1 text-xs text-ink-600 leading-relaxed">
+            <Text className="flex-1 text-xs text-ink-600 dark:text-ink-300 leading-relaxed">
               I agree that testing is independent and results will be published regardless of outcome.
             </Text>
           </Pressable>
@@ -142,62 +143,62 @@ export function GetCertifiedScreen() {
 
         {/* Section: How Certification Works */}
         <View className="mt-12 mb-4">
-          <Text className="text-2xl font-display font-extrabold text-ink-900 text-center">How Certification Works</Text>
-          <Text className="mt-1 text-sm font-semibold text-ink-500 text-center">Four steps, all of them public</Text>
+          <Text className="text-2xl font-display font-extrabold text-ink-900 dark:text-white text-center">How Certification Works</Text>
+          <Text className="mt-1 text-sm font-semibold text-ink-500 dark:text-ink-400 text-center">Four steps, all of them public</Text>
 
           <View className="gap-6 mt-8">
             {/* Step 1 */}
-            <View className="bg-white border border-ink-100 rounded-3xl p-6 items-center shadow-[0_4px_16px_rgba(0,0,0,0.015)]">
-              <View className="w-20 h-20 bg-white border border-ink-100 rounded-[28px] items-center justify-center shadow-sm relative">
+            <View className="bg-white dark:bg-surface-1 border border-ink-100 dark:border-ink-800 rounded-3xl p-6 items-center shadow-[0_4px_16px_rgba(0,0,0,0.015)]">
+              <View className="w-20 h-20 bg-white dark:bg-surface-1 border border-ink-100 dark:border-ink-800 rounded-[28px] items-center justify-center shadow-sm relative">
                 <View className="absolute -top-2 -right-2 bg-brand-500 w-6 h-6 rounded-full items-center justify-center border-2 border-white shadow-sm">
                   <Text className="text-white text-xs font-display font-extrabold">1</Text>
                 </View>
                 <ShoppingBag size={28} color={colors.brand[600]} />
               </View>
-              <Text className="text-base font-display font-extrabold text-ink-900 mt-4 text-center">Blind Purchase</Text>
-              <Text className="text-xs text-ink-500 text-center mt-2 leading-relaxed px-2">
+              <Text className="text-base font-display font-extrabold text-ink-900 dark:text-white mt-4 text-center">Blind Purchase</Text>
+              <Text className="text-xs text-ink-500 dark:text-ink-400 text-center mt-2 leading-relaxed px-2">
                 We buy your product off the shelf like any customer — no samples, no advance notice.
               </Text>
             </View>
 
             {/* Step 2 */}
-            <View className="bg-white border border-ink-100 rounded-3xl p-6 items-center shadow-[0_4px_16px_rgba(0,0,0,0.015)]">
-              <View className="w-20 h-20 bg-white border border-ink-100 rounded-[28px] items-center justify-center shadow-sm relative">
+            <View className="bg-white dark:bg-surface-1 border border-ink-100 dark:border-ink-800 rounded-3xl p-6 items-center shadow-[0_4px_16px_rgba(0,0,0,0.015)]">
+              <View className="w-20 h-20 bg-white dark:bg-surface-1 border border-ink-100 dark:border-ink-800 rounded-[28px] items-center justify-center shadow-sm relative">
                 <View className="absolute -top-2 -right-2 bg-brand-500 w-6 h-6 rounded-full items-center justify-center border-2 border-white shadow-sm">
                   <Text className="text-white text-xs font-display font-extrabold">2</Text>
                 </View>
                 <ShieldCheck size={28} color={colors.brand[600]} />
               </View>
-              <Text className="text-base font-display font-extrabold text-ink-900 mt-4 text-center">Lab Testing</Text>
-              <Text className="text-xs text-ink-500 text-center mt-2 leading-relaxed px-2">
+              <Text className="text-base font-display font-extrabold text-ink-900 dark:text-white mt-4 text-center">Lab Testing</Text>
+              <Text className="text-xs text-ink-500 dark:text-ink-400 text-center mt-2 leading-relaxed px-2">
                 The sealed unit goes straight to an accredited lab for 8-level analysis.
               </Text>
             </View>
 
             {/* Step 3 */}
-            <View className="bg-white border border-ink-100 rounded-3xl p-6 items-center shadow-[0_4px_16px_rgba(0,0,0,0.015)]">
-              <View className="w-20 h-20 bg-white border border-ink-100 rounded-[28px] items-center justify-center shadow-sm relative">
+            <View className="bg-white dark:bg-surface-1 border border-ink-100 dark:border-ink-800 rounded-3xl p-6 items-center shadow-[0_4px_16px_rgba(0,0,0,0.015)]">
+              <View className="w-20 h-20 bg-white dark:bg-surface-1 border border-ink-100 dark:border-ink-800 rounded-[28px] items-center justify-center shadow-sm relative">
                 <View className="absolute -top-2 -right-2 bg-brand-500 w-6 h-6 rounded-full items-center justify-center border-2 border-white shadow-sm">
                   <Text className="text-white text-xs font-display font-extrabold">3</Text>
                 </View>
                 <FileText size={28} color={colors.brand[600]} />
               </View>
-              <Text className="text-base font-display font-extrabold text-ink-900 mt-4 text-center">Result Published</Text>
-              <Text className="text-xs text-ink-500 text-center mt-2 leading-relaxed px-2">
+              <Text className="text-base font-display font-extrabold text-ink-900 dark:text-white mt-4 text-center">Result Published</Text>
+              <Text className="text-xs text-ink-500 dark:text-ink-400 text-center mt-2 leading-relaxed px-2">
                 Pass or fail, the report goes live on Trustified — full transparency, no exceptions.
               </Text>
             </View>
 
             {/* Step 4 */}
-            <View className="bg-white border border-ink-100 rounded-3xl p-6 items-center shadow-[0_4px_16px_rgba(0,0,0,0.015)]">
-              <View className="w-20 h-20 bg-white border border-ink-100 rounded-[28px] items-center justify-center shadow-sm relative">
+            <View className="bg-white dark:bg-surface-1 border border-ink-100 dark:border-ink-800 rounded-3xl p-6 items-center shadow-[0_4px_16px_rgba(0,0,0,0.015)]">
+              <View className="w-20 h-20 bg-white dark:bg-surface-1 border border-ink-100 dark:border-ink-800 rounded-[28px] items-center justify-center shadow-sm relative">
                 <View className="absolute -top-2 -right-2 bg-brand-500 w-6 h-6 rounded-full items-center justify-center border-2 border-white shadow-sm">
                   <Text className="text-white text-xs font-display font-extrabold">4</Text>
                 </View>
                 <Award size={28} color={colors.brand[600]} />
               </View>
-              <Text className="text-base font-display font-extrabold text-ink-900 mt-4 text-center">Certified & Listed</Text>
-              <Text className="text-xs text-ink-500 text-center mt-2 leading-relaxed px-2">
+              <Text className="text-base font-display font-extrabold text-ink-900 dark:text-white mt-4 text-center">Certified & Listed</Text>
+              <Text className="text-xs text-ink-500 dark:text-ink-400 text-center mt-2 leading-relaxed px-2">
                 Products that pass get the Trustified seal and a spot in our certified database.
               </Text>
             </View>
@@ -206,56 +207,56 @@ export function GetCertifiedScreen() {
 
         {/* Section: What It Does For Your Brand */}
         <View className="mt-8 mb-6">
-          <Text className="text-2xl font-display font-extrabold text-ink-900 text-center">What It Does For Your Brand</Text>
-          <Text className="mt-1 text-sm font-semibold text-ink-500 text-center">Certification isn't just a badge — it's leverage</Text>
+          <Text className="text-2xl font-display font-extrabold text-ink-900 dark:text-white text-center">What It Does For Your Brand</Text>
+          <Text className="mt-1 text-sm font-semibold text-ink-500 dark:text-ink-400 text-center">Certification isn't just a badge — it's leverage</Text>
 
           <View className="gap-5 mt-8">
             {/* Benefit 1 */}
-            <View className="bg-white border border-ink-100 rounded-3xl p-6 items-center shadow-[0_4px_16px_rgba(0,0,0,0.015)]">
+            <View className="bg-white dark:bg-surface-1 border border-ink-100 dark:border-ink-800 rounded-3xl p-6 items-center shadow-[0_4px_16px_rgba(0,0,0,0.015)]">
               <View className="w-14 h-14 bg-brand-50 border border-brand-100 rounded-2xl items-center justify-center">
                 <ShieldCheck size={24} color={colors.brand[600]} />
               </View>
-              <Text className="text-base font-display font-extrabold text-ink-900 mt-4 text-center">Earned Consumer Trust</Text>
-              <Text className="text-xs text-ink-500 text-center mt-2 leading-relaxed px-2">
+              <Text className="text-base font-display font-extrabold text-ink-900 dark:text-white mt-4 text-center">Earned Consumer Trust</Text>
+              <Text className="text-xs text-ink-500 dark:text-ink-400 text-center mt-2 leading-relaxed px-2">
                 The seal signals your product was tested by someone you couldn't influence — trust customers can verify.
               </Text>
             </View>
 
             {/* Benefit 2 */}
-            <View className="bg-white border border-ink-100 rounded-3xl p-6 items-center shadow-[0_4px_16px_rgba(0,0,0,0.015)]">
+            <View className="bg-white dark:bg-surface-1 border border-ink-100 dark:border-ink-800 rounded-3xl p-6 items-center shadow-[0_4px_16px_rgba(0,0,0,0.015)]">
               <View className="w-14 h-14 bg-brand-50 border border-brand-100 rounded-2xl items-center justify-center">
                 <CheckCircle2 size={24} color={colors.brand[600]} />
               </View>
-              <Text className="text-base font-display font-extrabold text-ink-900 mt-4 text-center">Stand Out From Claims</Text>
-              <Text className="text-xs text-ink-500 text-center mt-2 leading-relaxed px-2">
+              <Text className="text-base font-display font-extrabold text-ink-900 dark:text-white mt-4 text-center">Stand Out From Claims</Text>
+              <Text className="text-xs text-ink-500 dark:text-ink-400 text-center mt-2 leading-relaxed px-2">
                 Most labels just claim quality. Certification proves it with a published, independent report.
               </Text>
             </View>
 
             {/* Benefit 3 */}
-            <View className="bg-white border border-ink-100 rounded-3xl p-6 items-center shadow-[0_4px_16px_rgba(0,0,0,0.015)]">
+            <View className="bg-white dark:bg-surface-1 border border-ink-100 dark:border-ink-800 rounded-3xl p-6 items-center shadow-[0_4px_16px_rgba(0,0,0,0.015)]">
               <View className="w-14 h-14 bg-brand-50 border border-brand-100 rounded-2xl items-center justify-center">
                 <Users size={24} color={colors.brand[600]} />
               </View>
-              <Text className="text-base font-display font-extrabold text-ink-900 mt-4 text-center">Access Our Audience</Text>
-              <Text className="text-xs text-ink-500 text-center mt-2 leading-relaxed px-2">
+              <Text className="text-base font-display font-extrabold text-ink-900 dark:text-white mt-4 text-center">Access Our Audience</Text>
+              <Text className="text-xs text-ink-500 dark:text-ink-400 text-center mt-2 leading-relaxed px-2">
                 Get discovered by health-conscious buyers actively browsing the Standard and Certified Brands database.
               </Text>
             </View>
 
             {/* Benefit 4 */}
-            <View className="bg-white border border-ink-100 rounded-3xl p-6 items-center shadow-[0_4px_16px_rgba(0,0,0,0.015)]">
+            <View className="bg-white dark:bg-surface-1 border border-ink-100 dark:border-ink-800 rounded-3xl p-6 items-center shadow-[0_4px_16px_rgba(0,0,0,0.015)]">
               <View className="w-14 h-14 bg-brand-50 border border-brand-100 rounded-2xl items-center justify-center">
                 <Megaphone size={24} color={colors.brand[600]} />
               </View>
-              <Text className="text-base font-display font-extrabold text-ink-900 mt-4 text-center">Marketing You Can Use</Text>
-              <Text className="text-xs text-ink-500 text-center mt-2 leading-relaxed px-2">
+              <Text className="text-base font-display font-extrabold text-ink-900 dark:text-white mt-4 text-center">Marketing You Can Use</Text>
+              <Text className="text-xs text-ink-500 dark:text-ink-400 text-center mt-2 leading-relaxed px-2">
                 Use the Trustified seal and your published report in your own marketing, backed by real data.
               </Text>
             </View>
           </View>
         </View>
       </FadeIn>
-    </ScrollView>
+    </KeyboardAvoidingScreen>
   );
 }
