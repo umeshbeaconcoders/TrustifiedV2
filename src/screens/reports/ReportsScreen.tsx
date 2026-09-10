@@ -1,16 +1,17 @@
-import React, { useMemo, useState, useEffect } from 'react';
-import { View, Text, Pressable, ScrollView, Image, Modal, FlatList, RefreshControl } from 'react-native';
-import { useRoute, useNavigation } from '@react-navigation/native';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
+import { View, Text, Pressable, ScrollView, Image, Modal, FlatList, RefreshControl, BackHandler } from 'react-native';
+import { useRoute, useNavigation, useFocusEffect, type RouteProp } from '@react-navigation/native';
 import { FlashList } from '@shopify/flash-list';
-import { X, RefreshCw, ChevronDown, ShieldCheck, Trophy, FlaskConical } from 'lucide-react-native';
+import { X, RefreshCw, ChevronDown, ShieldCheck, Trophy, FlaskConical, ArrowLeft } from 'lucide-react-native';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { api, useBrands, useCategories } from '../../api';
 import type { Paginated, Product } from '../../api/types';
 import type { ReportCollection } from '../../api/hooks/public';
 import { Button, CardGridSkeleton, EmptyState, ListFooterLoader, Tabs, TabsList, TabsTrigger, TabsContent, TabsContext } from '../../components/ui';
 import { ProductCard } from '../../components/ProductCard';
-import { colors } from '../../theme/tokens';
+import { colors, useNavColors } from '../../theme/tokens';
 import { CategoryIcon } from '../../components/CategoryIcon';
+import type { TabParamList } from '../../navigation/types';
 
 function getCategoryInitials(name: string): string {
   const clean = name.trim();
@@ -34,9 +35,39 @@ function TabHeaderLabel({ value, label, icon: Icon }: { value: string; label: st
 }
 
 export function ReportsScreen() {
+  const navigation = useNavigation<any>();
+  const route = useRoute<RouteProp<TabParamList, 'Reports'>>();
+  const nav = useNavColors();
+  const fromDrawer = route.params?.fromDrawer;
+
+  useFocusEffect(
+    useCallback(() => {
+      if (fromDrawer) {
+        const onBackPress = () => {
+          navigation.navigate('Tabs', { screen: 'Home', params: { openDrawer: true } });
+          return true;
+        };
+        BackHandler.addEventListener('hardwareBackPress', onBackPress);
+        return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+      }
+    }, [fromDrawer, navigation])
+  );
+
   return (
     <View className="flex-1 bg-white dark:bg-surface-1 pt-4">
-      <Text className="px-4 text-2xl font-display font-bold text-ink-900 dark:text-white">Trustified</Text>
+      <View className="flex-row items-center px-4 mb-2">
+        {fromDrawer && (
+          <Pressable
+            onPress={() => navigation.navigate('Tabs', { screen: 'Home', params: { openDrawer: true } })}
+            className="p-2 -ml-2 mr-2 active:bg-ink-50 dark:active:bg-ink-800 rounded-full"
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+          >
+            <ArrowLeft size={24} color={nav.headerTint} />
+          </Pressable>
+        )}
+        <Text className="text-2xl font-display font-bold text-ink-900 dark:text-white">Trustified</Text>
+      </View>
       <Tabs defaultValue="pass-fail" className="mt-2 flex-1">
         <View className="px-4">
           <TabsList className="bg-ink-50 dark:bg-surface-2 border border-ink-100 dark:border-ink-800">

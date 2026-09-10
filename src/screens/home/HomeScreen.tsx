@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, ScrollView, Linking, Pressable, Animated, Easing, Dimensions, RefreshControl } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
@@ -203,12 +203,14 @@ function getSectionIcon(name: string, size: number = 24, color: string = '#2ab84
     case 'Microscope': return <Microscope size={size} color={color} />;
     case 'FileCheck2': return <FileCheck2 size={size} color={color} />;
     case 'Share2': return <Share2 size={size} color={color} />;
+    case 'Beaker': return <Beaker size={size} color={color} />;
     default: return null;
   }
 }
 
 export function HomeScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const route = useRoute<RouteProp<TabParamList, 'Home'>>();
   const insets = useSafeAreaInsets();
   const nav = useNavColors();
   const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -260,6 +262,13 @@ export function HomeScreen() {
       ]).start(() => setDrawerOpen(false));
     }
   };
+
+  useEffect(() => {
+    if (route.params?.openDrawer) {
+      toggleDrawer(true);
+      navigation.setParams({ openDrawer: undefined });
+    }
+  }, [route.params?.openDrawer, navigation]);
 
   // Setup loop animation using native Animated driver
   const rotateAnim = useRef(new Animated.Value(0)).current;
@@ -873,8 +882,8 @@ export function HomeScreen() {
           {/* Drawer Links list */}
           <ScrollView contentContainerClassName="py-4 gap-1" showsVerticalScrollIndicator={false}>
             <DrawerLink label="Home" onPress={() => { toggleDrawer(false); navigation.navigate('Tabs', { screen: 'Home' }); }} />
-            <DrawerLink label="Products" onPress={() => { toggleDrawer(false); navigation.navigate('Tabs', { screen: 'Reports' }); }} />
-            <DrawerLink label="Certified Brands" onPress={() => { toggleDrawer(false); navigation.navigate('CertifiedBrands'); }} />
+            <DrawerLink label="Products" onPress={() => { toggleDrawer(false); navigation.navigate('Tabs', { screen: 'Reports', params: { fromDrawer: true } }); }} />
+            <DrawerLink label="Certified Brands" onPress={() => { toggleDrawer(false); navigation.navigate('Tabs', { screen: 'BrandsTab', params: { fromDrawer: true } }); }} />
             <DrawerLink label="Rankings" onPress={() => { toggleDrawer(false); navigation.navigate('RankingsIndex'); }} />
             <DrawerLink label="Verify Certificate" onPress={() => { toggleDrawer(false); navigation.navigate('Verify'); }} />
             <DrawerLink label="Challenge a Result" onPress={() => { toggleDrawer(false); navigation.navigate('Challenge'); }} />

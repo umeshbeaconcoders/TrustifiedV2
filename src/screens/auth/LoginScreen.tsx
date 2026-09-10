@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useLayoutEffect, useCallback } from 'react';
 import {
-  View, Text, ScrollView, Pressable, KeyboardAvoidingView, Platform,
+  View, Text, ScrollView, Pressable, KeyboardAvoidingView, Platform, BackHandler,
 } from 'react-native';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -9,9 +9,12 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ApiError, isRequires2fa, isRequires2faSetup, useLogin } from '../../api';
 import { Button, Field } from '../../components/ui';
 import { ControlledInput } from '../../components/form/ControlledInput';
+import { useFocusEffect } from '@react-navigation/native';
 import { FadeIn } from '../../components/motion';
 import type { RootStackParamList } from '../../navigation/types';
 import { toast } from '../../stores/toast';
+import { Eye, EyeOff, ArrowLeft } from 'lucide-react-native';
+import { colors, useNavColors } from '../../theme/tokens';
 
 const passwordSchema = z.object({
   email: z.string().email('Enter a valid email'),
@@ -24,7 +27,35 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 export function LoginScreen({ navigation, route }: Props) {
   const redirectTo = route.params?.redirectTo ?? 'Tabs';
   const [activeTab, setActiveTab] = useState<'email' | 'otp'>('email');
+  const [showPassword, setShowPassword] = useState(false);
   const login = useLogin();
+  const nav = useNavColors();
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerLeft: () => (
+        <Pressable
+          onPress={() => navigation.navigate('Tabs', { screen: 'Home' })}
+          className="p-2 -ml-2 mr-2 active:bg-ink-50 dark:active:bg-ink-800 rounded-full"
+          accessibilityRole="button"
+          accessibilityLabel="Go to Home"
+        >
+          <ArrowLeft size={24} color={nav.headerTint} />
+        </Pressable>
+      ),
+    });
+  }, [navigation, nav]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        navigation.navigate('Tabs', { screen: 'Home' });
+        return true;
+      };
+      BackHandler.addEventListener('hardwareBackPress', onBackPress);
+      return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+    }, [navigation])
+  );
 
   const {
     control,
@@ -136,13 +167,24 @@ export function LoginScreen({ navigation, route }: Props) {
               </Field>
 
               <Field label="Password" required error={errors.password?.message}>
-                <ControlledInput
-                  control={control}
-                  name="password"
-                  secureTextEntry
-                  autoComplete="current-password"
-                  accessibilityLabel="Password"
-                />
+                <View className="relative justify-center">
+                  <ControlledInput
+                    control={control}
+                    name="password"
+                    secureTextEntry={!showPassword}
+                    autoComplete="current-password"
+                    accessibilityLabel="Password"
+                    className="pr-12"
+                  />
+                  <Pressable
+                    onPress={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 p-1"
+                    accessibilityRole="button"
+                    accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? <EyeOff size={20} color={colors.ink[400]} /> : <Eye size={20} color={colors.ink[400]} />}
+                  </Pressable>
+                </View>
               </Field>
 
               <Pressable

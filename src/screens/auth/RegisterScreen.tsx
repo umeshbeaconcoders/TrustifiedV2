@@ -11,6 +11,8 @@ import { KeyboardAvoidingScreen } from '../../components/KeyboardAvoidingScreen'
 import { FadeIn } from '../../components/motion';
 import type { RootStackParamList } from '../../navigation/types';
 import { toast } from '../../stores/toast';
+import { Eye, EyeOff } from 'lucide-react-native';
+import { colors } from '../../theme/tokens';
 
 /**
  * Mirrors `RegisterRequest` validation (backend/app/Http/Requests/Auth/RegisterRequest.php)
@@ -40,6 +42,7 @@ export function RegisterScreen({ navigation }: Props) {
   const [details, setDetails] = useState<RegisterForm | null>(null);
   const [code, setCode] = useState('');
   const [verifyError, setVerifyError] = useState<string | undefined>();
+  const [showPassword, setShowPassword] = useState(false);
   const {
     control,
     handleSubmit,
@@ -148,22 +151,44 @@ export function RegisterScreen({ navigation }: Props) {
               />
             </Field>
             <Field label="Password" required error={errors.password?.message}>
-              <ControlledInput
-                control={control}
-                name="password"
-                secureTextEntry
-                autoComplete="new-password"
-                accessibilityLabel="Password"
-              />
+              <View className="relative justify-center">
+                <ControlledInput
+                  control={control}
+                  name="password"
+                  secureTextEntry={!showPassword}
+                  autoComplete="new-password"
+                  accessibilityLabel="Password"
+                  className="pr-12"
+                />
+                <Pressable
+                  onPress={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 p-1"
+                  accessibilityRole="button"
+                  accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff size={20} color={colors.ink[400]} /> : <Eye size={20} color={colors.ink[400]} />}
+                </Pressable>
+              </View>
             </Field>
             <Field label="Confirm password" required error={errors.password_confirmation?.message}>
-              <ControlledInput
-                control={control}
-                name="password_confirmation"
-                secureTextEntry
-                autoComplete="new-password"
-                accessibilityLabel="Confirm password"
-              />
+              <View className="relative justify-center">
+                <ControlledInput
+                  control={control}
+                  name="password_confirmation"
+                  secureTextEntry={!showPassword}
+                  autoComplete="new-password"
+                  accessibilityLabel="Confirm password"
+                  className="pr-12"
+                />
+                <Pressable
+                  onPress={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 p-1"
+                  accessibilityRole="button"
+                  accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff size={20} color={colors.ink[400]} /> : <Eye size={20} color={colors.ink[400]} />}
+                </Pressable>
+              </View>
             </Field>
 
             <Button onPress={onSubmitDetails} loading={otpRequest.isPending} accessibilityLabel="Send verification code">

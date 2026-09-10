@@ -1,10 +1,10 @@
 import type { NavigatorScreenParams } from '@react-navigation/native';
 
 export type TabParamList = {
-  Home: undefined;
-  Reports: { category?: string } | undefined; // Re-labeled to "Products"
+  Home: { openDrawer?: boolean } | undefined;
+  Reports: { category?: string; fromDrawer?: boolean } | undefined;
   Search: undefined;
-  GetCertified: undefined;
+  BrandsTab: { fromDrawer?: boolean } | undefined;
   Profile: undefined;
 };
 

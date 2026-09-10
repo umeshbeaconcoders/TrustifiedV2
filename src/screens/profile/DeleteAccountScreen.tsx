@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ShieldAlert } from 'lucide-react-native';
-import { api, setAuthToken } from '../../api';
+import { api, setAuthToken, useDeleteAccount } from '../../api';
 import { Button, Input } from '../../components/ui';
 import { colors } from '../../theme/tokens';
 import { useAuthStore } from '../../stores/auth';
@@ -16,18 +16,8 @@ export function DeleteAccountScreen() {
   const { isChecking } = useRequireAuth('DeleteAccount');
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const queryClient = useQueryClient();
-  const clearAuth = useAuthStore((s) => s.clear);
+  const destroy = useDeleteAccount();
   const [confirmText, setConfirmText] = useState('');
-
-  const destroy = useMutation({
-    mutationFn: () => api.delete<unknown>('/account'),
-    onSuccess: async () => {
-      await setAuthToken(null);
-      clearAuth();
-      queryClient.clear();
-      navigation.reset({ index: 0, routes: [{ name: 'Tabs' }] });
-    },
-  });
 
   if (isChecking) return null;
 

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, TextInput, Pressable, ScrollView, Image } from 'react-native';
+import { View, Text, TextInput, Pressable, ScrollView, Image, RefreshControl } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Search, X, ChevronRight } from 'lucide-react-native';
@@ -16,12 +16,20 @@ export function SearchScreen() {
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebouncedValue(search, 300);
 
-  const { data: categoriesRes, isLoading: categoriesLoading } = useCategories();
-  const { data: brandsRes, isLoading: brandsLoading } = useCertifiedBrands();
-  const { data: productsRes, isLoading: productsLoading } = useProducts({
+  const { data: categoriesRes, isLoading: categoriesLoading, refetch: refetchCategories, isRefetching: isRefetchingCategories } = useCategories();
+  const { data: brandsRes, isLoading: brandsLoading, refetch: refetchBrands, isRefetching: isRefetchingBrands } = useCertifiedBrands();
+  const { data: productsRes, isLoading: productsLoading, refetch: refetchProducts, isRefetching: isRefetchingProducts } = useProducts({
     search: debouncedSearch,
     per_page: 20,
   });
+
+  const isRefreshing = isRefetchingCategories || isRefetchingBrands || isRefetchingProducts;
+
+  const onRefresh = () => {
+    void refetchCategories();
+    void refetchBrands();
+    void refetchProducts();
+  };
 
   const categories = useMemo(() => {
     return (categoriesRes?.data ?? []).filter((c) => !c.is_upcoming);
@@ -83,7 +91,11 @@ export function SearchScreen() {
         </View>
       ) : hasSearch ? (
         /* Search Results View */
-        <ScrollView className="flex-1 bg-white dark:bg-surface-1" contentContainerClassName="py-4 px-4 pb-8">
+        <ScrollView
+          className="flex-1 bg-white dark:bg-surface-1"
+          contentContainerClassName="py-4 px-4 pb-8"
+          refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} colors={[colors.brand[500]]} />}
+        >
           {/* Brands Matching */}
           {matchingBrands.length > 0 ? (
             <View className="mb-6">
@@ -157,7 +169,11 @@ export function SearchScreen() {
         </ScrollView>
       ) : (
         /* Empty State Suggestions & Browse categories/brands */
-        <ScrollView className="flex-1 bg-white dark:bg-surface-1" contentContainerClassName="py-4 pb-8">
+        <ScrollView
+          className="flex-1 bg-white dark:bg-surface-1"
+          contentContainerClassName="py-4 pb-8"
+          refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} colors={[colors.brand[500]]} />}
+        >
           {/* Quick suggestions */}
           <View className="px-4 mb-6">
             <Text className="text-xs font-bold uppercase tracking-wider text-ink-500 dark:text-ink-400 mb-3">Popular Searches</Text>

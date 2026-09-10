@@ -61,9 +61,11 @@ export function useMe(options: { enabled?: boolean } = {}) {
 
 function useAuthSuccess() {
   const queryClient = useQueryClient();
+  const authStore = require('../../stores/auth').useAuthStore;
   return (user: User, token: string | null) => {
     if (token) void setAuthToken(token);
     queryClient.setQueryData(['auth', 'me'], { data: user });
+    authStore.getState().setUser(user);
   };
 }
 
@@ -154,6 +156,22 @@ export function useLogout() {
     onSettled: () => {
       void setAuthToken(null);
       queryClient.removeQueries({ queryKey: ['auth'] });
+    },
+  });
+}
+
+export function useDeleteAccount() {
+  const queryClient = useQueryClient();
+  const authStore = require('../../stores/auth').useAuthStore;
+  return useMutation({
+    mutationFn: () => api.delete<Envelope<{ message: string }>>('/account'),
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: ['auth', 'me'] });
+    },
+    onSuccess: () => {
+      void setAuthToken(null);
+      queryClient.removeQueries({ queryKey: ['auth'] });
+      authStore.getState().clear();
     },
   });
 }

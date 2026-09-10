@@ -7,7 +7,7 @@ import type { TabParamList } from './types';
 import { HomeScreen } from '../screens/home/HomeScreen';
 import { ReportsScreen } from '../screens/reports/ReportsScreen';
 import { SearchScreen } from '../screens/search/SearchScreen';
-import { GetCertifiedScreen } from '../screens/leads/GetCertifiedScreen';
+import { CertifiedBrandsScreen } from '../screens/brands/CertifiedBrandsScreen';
 import { ProfileScreen } from '../screens/profile/ProfileScreen';
 
 const Tab = createBottomTabNavigator<TabParamList>();
@@ -89,6 +89,9 @@ export function TabNavigator() {
       <Tab.Screen
         name="Reports"
         component={ReportsScreen}
+        listeners={({ navigation }) => ({
+          tabPress: () => navigation.setParams({ fromDrawer: undefined }),
+        })}
         options={{ tabBarLabel: 'Products', tabBarIcon: ({ color, size }) => <ShieldCheck color={color} size={size} /> }}
       />
       <Tab.Screen
@@ -100,9 +103,12 @@ export function TabNavigator() {
         }}
       />
       <Tab.Screen
-        name="GetCertified"
-        component={GetCertifiedScreen}
-        options={{ tabBarLabel: 'Get Certified', tabBarIcon: ({ color, size }) => <BadgeCheck color={color} size={size} /> }}
+        name="BrandsTab"
+        component={CertifiedBrandsScreen}
+        listeners={({ navigation }) => ({
+          tabPress: () => navigation.setParams({ fromDrawer: undefined }),
+        })}
+        options={{ tabBarLabel: 'Brands', tabBarIcon: ({ color, size }) => <BadgeCheck color={color} size={size} /> }}
       />
       <Tab.Screen
         name="Profile"
