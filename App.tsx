@@ -11,10 +11,8 @@ import { StatusBar, useColorScheme } from 'react-native';
 import { enableFreeze } from 'react-native-screens';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
-// Freezes off-screen stack screens (no re-renders/timers while backgrounded)
-// for smoother, glitch-free navigation transitions. Paired with
-// `freezeOnBlur` on the stack navigator in RootNavigator.tsx.
-enableFreeze(true);
+// Freezes off-screen stack screens — disabled to prevent NavigationContext loss on state changes
+enableFreeze(false);
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';

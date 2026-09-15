@@ -42,7 +42,7 @@ export function RootNavigator() {
         headerShadowVisible: false,
         headerStyle: { backgroundColor: nav.headerBackground },
         contentStyle: { backgroundColor: nav.screenBackground },
-        freezeOnBlur: true,
+        freezeOnBlur: false,
         // Swipe-to-go-back on every pushed screen, both platforms — full-width
         // edge swipe on iOS (not just the left-edge sliver), Android gets the
         // matching gesture via react-native-screens.

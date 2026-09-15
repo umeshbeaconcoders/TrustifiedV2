@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, ScrollView, Linking, Pressable, Image, RefreshControl } from 'react-native';
+import { View, Text, ScrollView, Linking, Pressable, Image, RefreshControl, TouchableOpacity } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   PlayCircle,
@@ -107,13 +107,16 @@ export function ProductDetailScreen({ route, navigation }: Props) {
               {images.map((img, idx) => {
                 const active = idx === selectedImageIndex;
                 return (
-                  <Pressable
+                  <TouchableOpacity
                     key={idx}
+                    activeOpacity={0.7}
                     onPress={() => setSelectedImageIndex(idx)}
                     className={`size-16 rounded-xl overflow-hidden border-2 bg-white ${active ? 'border-brand-600 shadow-md' : 'border-ink-200'}`}
                   >
-                    <Image source={{ uri: img }} className="w-full h-full object-cover" />
-                  </Pressable>
+                    <View pointerEvents="none" className="w-full h-full">
+                      <MediaFrame src={img} alt={product.name} aspect="square" rounded="xl" className="w-full h-full" />
+                    </View>
+                  </TouchableOpacity>
                 );
               })}
             </ScrollView>

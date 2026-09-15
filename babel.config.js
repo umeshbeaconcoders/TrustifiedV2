@@ -1,5 +1,13 @@
+function customNativewindBabel() {
+  const config = require('nativewind/babel')();
+  config.plugins = config.plugins.map((plugin) =>
+    plugin === 'react-native-worklets/plugin' ? 'react-native-worklets-core/plugin' : plugin
+  );
+  return config;
+}
+
 module.exports = {
-  presets: ['module:@react-native/babel-preset', 'nativewind/babel'],
+  presets: ['module:@react-native/babel-preset', customNativewindBabel],
   plugins: [
     [
       'module-resolver',

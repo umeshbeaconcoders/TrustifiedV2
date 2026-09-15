@@ -104,11 +104,16 @@ export function usePushNotifications() {
 
     void register();
 
-    const unsubscribeTokenRefresh = messaging().onTokenRefresh((token) => {
-      if (hasRegisteredRef.current) {
-        registerDeviceToken.mutate({ token, device_type: deviceType });
-      }
-    });
+    let unsubscribeTokenRefresh = () => {};
+    try {
+      unsubscribeTokenRefresh = messaging().onTokenRefresh((token) => {
+        if (hasRegisteredRef.current) {
+          registerDeviceToken.mutate({ token, device_type: deviceType });
+        }
+      });
+    } catch {
+      // Ignore
+    }
 
     return () => {
       cancelled = true;
@@ -122,26 +127,30 @@ export function usePushNotifications() {
   // Foreground/background/killed-state message + tap handling — independent
   // of auth state so a tap can still deep-link right after a fresh install.
   useEffect(() => {
-    const unsubscribeOnMessage = messaging().onMessage(async (remoteMessage) => {
-      // No local-notification library is wired up, so a foreground push
-      // doesn't produce a system banner here — this is just an observability
-      // hook a future toast/in-app-banner could plug into.
-      // eslint-disable-next-line no-console
-      console.log('[push] foreground message received', remoteMessage.messageId);
-    });
+    let unsubscribeOnMessage = () => {};
+    let unsubscribeOnOpen = () => {};
 
-    const unsubscribeOnOpen = messaging().onNotificationOpenedApp((remoteMessage) => {
-      navigateForNotification(remoteMessage.data);
-    });
-
-    messaging()
-      .getInitialNotification()
-      .then((remoteMessage) => {
-        if (remoteMessage) navigateForNotification(remoteMessage.data);
-      })
-      .catch(() => {
-        // Ignore — killed-state deep link is a nice-to-have, not critical path.
+    try {
+      unsubscribeOnMessage = messaging().onMessage(async (remoteMessage) => {
+        // eslint-disable-next-line no-console
+        console.log('[push] foreground message received', remoteMessage.messageId);
       });
+
+      unsubscribeOnOpen = messaging().onNotificationOpenedApp((remoteMessage) => {
+        navigateForNotification(remoteMessage.data);
+      });
+
+      messaging()
+        .getInitialNotification()
+        .then((remoteMessage) => {
+          if (remoteMessage) navigateForNotification(remoteMessage.data);
+        })
+        .catch(() => {
+          // Ignore
+        });
+    } catch {
+      // Ignore
+    }
 
     return () => {
       unsubscribeOnMessage();

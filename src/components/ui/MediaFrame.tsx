@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, type ViewStyle } from 'react-native';
+import { View, Text, Image, type ViewStyle } from 'react-native';
 import FastImage, { type Source } from 'react-native-fast-image';
 import { ImageOff } from 'lucide-react-native';
 import { colors } from '../../theme/tokens';
@@ -49,14 +49,18 @@ export function MediaFrame({ src, alt, aspect = 'square', rounded = 'xl', classN
   const resolved = mediaUrl(src ?? undefined) ?? (src ?? undefined);
   const ratio = aspectRatios[aspect];
 
+  React.useEffect(() => {
+    setFailed(false);
+  }, [src]);
+
   return (
     <View
       className={`items-center justify-center overflow-hidden bg-ink-50 ${roundedClasses[rounded]} ${className}`}
       style={[ratio ? { aspectRatio: ratio } : null, style]}>
       {resolved && !failed ? (
-        <FastImage
-          source={{ uri: resolved, priority: FastImage.priority.normal } as Source}
-          resizeMode={FastImage.resizeMode.contain}
+        <Image
+          source={{ uri: resolved }}
+          resizeMode="contain"
           style={{ width: '100%', height: '100%' }}
           onError={() => setFailed(true)}
           accessibilityLabel={alt}
