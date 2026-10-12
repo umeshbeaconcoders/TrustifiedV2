@@ -7,7 +7,11 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-  [FIRApp configure];
+  @try {
+    [FIRApp configure];
+  } @catch (NSException *exception) {
+    NSLog(@"[AppDelegate] FIRApp configure failed: %@", exception);
+  }
 
   self.moduleName = @"TrustifiedV2";
   // You can add your custom initial props in the dictionary below.
@@ -25,7 +29,15 @@
 - (NSURL *)bundleURL
 {
 #if DEBUG
+#if TARGET_IPHONE_SIMULATOR
   return [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index"];
+#else
+  NSURL *bundle = [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];
+  if (bundle != nil) {
+    return bundle;
+  }
+  return [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index"];
+#endif
 #else
   return [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];
 #endif

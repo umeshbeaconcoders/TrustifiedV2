@@ -3,13 +3,13 @@
 <plist version="1.0">
 <dict>
 	<key>API_KEY</key>
-	<string>placeholder-api-key-to-bypass-firebase-checks</string>
+	<string>AIzaSyB00000000000000000000000000000000</string>
 	<key>GCM_SENDER_ID</key>
 	<string>123456789012</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>org.reactjs.native.example.TrustifiedV2</string>
+	<string>com.trustifiedv2.mobile</string>
 	<key>PROJECT_ID</key>
 	<string>trustified-v2-placeholder</string>
 	<key>STORAGE_BUCKET</key>

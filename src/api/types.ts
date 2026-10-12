@@ -64,6 +64,18 @@ export interface BuyLink {
   url: string | null;
 }
 
+export interface ShopSection {
+  id: number;
+  name: string;
+  slug: string;
+  image_path?: string | null;
+  image_url?: string | null;
+  sort_order: number;
+  show_on_shop: boolean;
+  products_count: number;
+  products?: Product[];
+}
+
 /** Legacy report sections stored as a JSON string in `summary`. */
 export interface ReportSummaryBlock {
   title: string;
@@ -124,6 +136,8 @@ export interface Product {
   gallery: string[];
   buy_links: BuyLink[];
   is_gold: boolean;
+  is_active?: boolean;
+  shop_section_id?: number | null;
   status: string;
   tier: string;
   reviews_count: number;
@@ -298,6 +312,16 @@ export interface LoginRequest {
   phone?: string | null;
   password: string;
   device_name?: string | null;
+}
+
+export interface UpdateProfileRequest {
+  name: string;
+}
+
+export interface ChangePasswordRequest {
+  current_password: string;
+  password: string;
+  password_confirmation: string;
 }
 
 export interface RegisterRequest {

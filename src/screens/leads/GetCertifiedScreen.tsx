@@ -19,8 +19,7 @@ const leadSchema = z.object({
   company_name: z.string().max(255).optional().or(z.literal('')),
   phone: z
     .string()
-    .max(20)
-    .regex(/^[+\d][\d\s-]*$/, 'Enter a valid phone number')
+    .regex(/^[6-9]\d{9}$/, 'Enter a valid 10-digit mobile number (starting with 6-9)')
     .optional()
     .or(z.literal('')),
   message: z.string().max(5000).optional().or(z.literal('')),

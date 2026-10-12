@@ -12,6 +12,7 @@ export interface MediaFrameProps {
   rounded?: 'lg' | 'xl' | '2xl' | 'full';
   className?: string;
   style?: ViewStyle;
+  resizeMode?: 'contain' | 'cover' | 'stretch' | 'center';
 }
 
 const aspectRatios: Record<NonNullable<MediaFrameProps['aspect']>, number | undefined> = {
@@ -44,7 +45,7 @@ function getInitials(name: string): string {
  * ground rules, every image in this app goes through this component (or
  * FastImage directly) instead of RN's built-in <Image>.
  */
-export function MediaFrame({ src, alt, aspect = 'square', rounded = 'xl', className = '', style }: MediaFrameProps) {
+export function MediaFrame({ src, alt, aspect = 'square', rounded = 'xl', className = '', style, resizeMode = 'contain' }: MediaFrameProps) {
   const [failed, setFailed] = useState(false);
   const resolved = mediaUrl(src ?? undefined) ?? (src ?? undefined);
   const ratio = aspectRatios[aspect];
@@ -60,7 +61,7 @@ export function MediaFrame({ src, alt, aspect = 'square', rounded = 'xl', classN
       {resolved && !failed ? (
         <Image
           source={{ uri: resolved }}
-          resizeMode="contain"
+          resizeMode={resizeMode}
           style={{ width: '100%', height: '100%' }}
           onError={() => setFailed(true)}
           accessibilityLabel={alt}

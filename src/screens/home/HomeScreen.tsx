@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, ScrollView, Linking, Pressable, Animated, Easing, Dimensions, RefreshControl } from 'react-native';
+import { View, Text, ScrollView, Linking, Pressable, Animated, Easing, Dimensions, RefreshControl, Platform } from 'react-native';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -213,6 +213,9 @@ export function HomeScreen() {
   const route = useRoute<RouteProp<TabParamList, 'Home'>>();
   const insets = useSafeAreaInsets();
   const nav = useNavColors();
+  const topInset = insets.top > 0 ? insets.top : (Platform.OS === 'ios' ? 47 : 24);
+  const headerTopPadding = topInset + 8;
+  const heroTopPadding = headerTopPadding + 54;
   const { width: SCREEN_WIDTH } = Dimensions.get('window');
   const DRAWER_WIDTH = SCREEN_WIDTH * 0.75;
 
@@ -353,8 +356,8 @@ export function HomeScreen() {
           left: 0,
           right: 0,
           zIndex: 40,
-          paddingTop: insets.top + 8,
-          paddingBottom: 8,
+          paddingTop: headerTopPadding,
+          paddingBottom: 10,
           paddingHorizontal: 20,
           flexDirection: 'row',
           alignItems: 'center',
@@ -366,6 +369,15 @@ export function HomeScreen() {
           <Text className="text-lg font-display font-extrabold text-white">Trustified</Text>
         </View>
         <View className="flex-row items-center gap-2.5">
+          <Pressable
+            onPress={() => navigation.navigate('Tabs', { screen: 'ShopTab' })}
+            accessibilityRole="button"
+            accessibilityLabel="Shop"
+            style={{ width: 36, height: 36 }}
+            className="rounded-full bg-white/10 items-center justify-center active:bg-white/20"
+          >
+            <ShoppingBag size={18} color="#ffffff" />
+          </Pressable>
           <Pressable
             onPress={() => navigation.navigate('Tabs', { screen: 'Search' })}
             accessibilityRole="button"
@@ -403,7 +415,7 @@ export function HomeScreen() {
         {/* Hero Section */}
         <View
           className="bg-[#141515] px-6 pb-12 relative overflow-hidden"
-          style={{ paddingTop: insets.top + 60 }}
+          style={{ paddingTop: heroTopPadding }}
         >
           {/* Ambient Glow Background Effect */}
           <View className="absolute top-[-50%] left-[-20%] w-[100%] h-[100%] rounded-full bg-brand-500/10 blur-[80px]" />
@@ -875,7 +887,8 @@ export function HomeScreen() {
             <ScrollView contentContainerClassName="py-4 gap-1" showsVerticalScrollIndicator={false}>
               <DrawerLink label="Home" onPress={() => { toggleDrawer(false); navigation.navigate('Tabs', { screen: 'Home' }); }} />
               <DrawerLink label="Products" onPress={() => { toggleDrawer(false); navigation.navigate('Tabs', { screen: 'Reports', params: { fromDrawer: true } }); }} />
-              <DrawerLink label="Certified Brands" onPress={() => { toggleDrawer(false); navigation.navigate('Tabs', { screen: 'BrandsTab', params: { fromDrawer: true } }); }} />
+              <DrawerLink label="Certified Brands" onPress={() => { toggleDrawer(false); navigation.navigate('CertifiedBrands', { fromDrawer: true }); }} />
+              <DrawerLink label="Shop" onPress={() => { toggleDrawer(false); navigation.navigate('Tabs', { screen: 'ShopTab' }); }} />
               <DrawerLink label="Rankings" onPress={() => { toggleDrawer(false); navigation.navigate('RankingsIndex'); }} />
               <DrawerLink label="Verify Certificate" onPress={() => { toggleDrawer(false); navigation.navigate('Verify'); }} />
               <DrawerLink label="Challenge a Result" onPress={() => { toggleDrawer(false); navigation.navigate('Challenge'); }} />

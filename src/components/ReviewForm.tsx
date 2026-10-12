@@ -67,6 +67,7 @@ export function ReviewForm({ slug, onSubmitted }: { slug: string; onSubmitted?: 
   }
 
   function setRating(key: RatingKey, value: number) {
+    if (error) setError(undefined);
     setRatings((prev) => ({ ...prev, [key]: value }));
   }
 
@@ -87,6 +88,7 @@ export function ReviewForm({ slug, onSubmitted }: { slug: string; onSubmitted?: 
     submitReview.mutate(formData, {
       onSuccess: () => {
         setReviewText('');
+        setError(undefined);
         setRatings({
           quality: 0,
           result: 0,
@@ -100,7 +102,14 @@ export function ReviewForm({ slug, onSubmitted }: { slug: string; onSubmitted?: 
         });
         onSubmitted?.();
       },
-      onError: (err) => setError(err instanceof ApiError ? (err.firstError() ?? err.message) : 'Could not submit review'),
+      onError: (err) => {
+        if (err instanceof ApiError) {
+          const serverMsg = err.firstError() || err.message;
+          setError(serverMsg);
+        } else {
+          setError('Could not submit review. Please try again.');
+        }
+      },
     });
   }
 
@@ -120,7 +129,10 @@ export function ReviewForm({ slug, onSubmitted }: { slug: string; onSubmitted?: 
         placeholder="Share your experience with this product…"
         value={reviewText}
         maxLength={5000}
-        onChangeText={setReviewText}
+        onChangeText={(text) => {
+          setReviewText(text);
+          if (error) setError(undefined);
+        }}
         className="mt-4"
         accessibilityLabel="Review text"
       />

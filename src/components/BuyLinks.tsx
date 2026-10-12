@@ -5,6 +5,13 @@ import { Button } from './ui';
 import type { BuyLink } from '../api/types';
 import { colors } from '../theme/tokens';
 
+export function appendUtmParams(url: string): string {
+  if (!url) return url;
+  if (url.includes('utm_source=')) return url;
+  const separator = url.includes('?') ? '&' : '?';
+  return `${url}${separator}utm_source=trustified&utm_medium=referral`;
+}
+
 /** RN port of `frontend/apps/web/src/components/buy-links.tsx`. */
 export function BuyLinks({ links, className = '' }: { links: BuyLink[]; className?: string }) {
   const valid = links.filter((l) => l.url);
@@ -15,7 +22,7 @@ export function BuyLinks({ links, className = '' }: { links: BuyLink[]; classNam
         <Button
           key={i}
           variant={i === 0 ? 'primary' : 'outline'}
-          onPress={() => link.url && Linking.openURL(link.url)}
+          onPress={() => link.url && Linking.openURL(appendUtmParams(link.url))}
           accessibilityLabel={`Buy on ${link.label ?? 'store'}`}>
           <ExternalLink size={16} color={i === 0 ? '#fff' : colors.ink[800]} />
           <Text className={`ml-1 font-semibold ${i === 0 ? 'text-white' : 'text-ink-800'}`}>

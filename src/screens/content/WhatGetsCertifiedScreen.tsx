@@ -31,12 +31,6 @@ export function WhatGetsCertifiedScreen() {
       ) : (
         <>
           <View className="mt-8">
-            <View className="mb-4 flex-row items-center gap-2">
-              <View className="size-9 items-center justify-center rounded-full bg-brand-50">
-                <CheckCircle2 size={18} color={colors.brand[600]} />
-              </View>
-              <Text className="text-lg font-bold text-ink-900 dark:text-white">Certified today</Text>
-            </View>
             <View style={{ minHeight: 1 }}>
               <FlashList
                 data={current}

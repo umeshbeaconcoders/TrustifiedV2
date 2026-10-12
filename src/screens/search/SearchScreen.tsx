@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, TextInput, Pressable, ScrollView, Image, RefreshControl } from 'react-native';
+import { View, Text, TextInput, Pressable, ScrollView, Image, RefreshControl, Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Search, X, ChevronRight } from 'lucide-react-native';
@@ -9,9 +10,10 @@ import { StatusBadge, MediaFrame, Spinner, EmptyState } from '../../components/u
 import { colors } from '../../theme/tokens';
 import type { RootStackParamList } from '../../navigation/types';
 
-const SUGGESTIONS = ['Protein', 'Creatine', 'Multivitamin', 'Fish Oil', 'Pre-workout'];
-
 export function SearchScreen() {
+  const insets = useSafeAreaInsets();
+  const topInset = insets.top > 0 ? insets.top : (Platform.OS === 'ios' ? 47 : 24);
+  const topPadding = topInset + 8;
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebouncedValue(search, 300);
@@ -63,7 +65,7 @@ export function SearchScreen() {
   const isLoading = (hasSearch && productsLoading) || (!hasSearch && (categoriesLoading || brandsLoading));
 
   return (
-    <View className="flex-1 bg-white dark:bg-surface-1 pt-4">
+    <View className="flex-1 bg-white dark:bg-surface-1" style={{ paddingTop: topPadding }}>
       {/* Search Header */}
       <View className="px-4 pb-3 border-b border-ink-100 dark:border-ink-800">
         <Text className="text-2xl font-display font-bold text-ink-900 dark:text-white mb-3">Search</Text>
@@ -174,21 +176,6 @@ export function SearchScreen() {
           contentContainerClassName="py-4 pb-8"
           refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} colors={[colors.brand[500]]} />}
         >
-          {/* Quick suggestions */}
-          <View className="px-4 mb-6">
-            <Text className="text-xs font-bold uppercase tracking-wider text-ink-500 dark:text-ink-400 mb-3">Popular Searches</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-2">
-              {SUGGESTIONS.map((term) => (
-                <Pressable
-                  key={term}
-                  onPress={() => setSearch(term)}
-                  className="bg-ink-50 dark:bg-surface-2 border border-ink-150 px-3.5 py-2 rounded-full active:bg-brand-50 active:border-brand-200"
-                >
-                  <Text className="text-xs font-bold text-ink-700 dark:text-ink-200">{term}</Text>
-                </Pressable>
-              ))}
-            </ScrollView>
-          </View>
 
           {/* Browse by Category */}
           {categories.length > 0 ? (

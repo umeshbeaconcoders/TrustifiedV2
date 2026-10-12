@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
-import { View, Text, Pressable, ScrollView, Image, Modal, FlatList, RefreshControl, BackHandler } from 'react-native';
+import { View, Text, Pressable, ScrollView, Image, Modal, FlatList, RefreshControl, BackHandler, Platform } from 'react-native';
 import { useRoute, useNavigation, useFocusEffect, type RouteProp } from '@react-navigation/native';
 import { FlashList } from '@shopify/flash-list';
 import { X, RefreshCw, ChevronDown, ShieldCheck, Trophy, FlaskConical, ArrowLeft } from 'lucide-react-native';
@@ -11,6 +11,7 @@ import { Button, CardGridSkeleton, EmptyState, ListFooterLoader, Tabs, TabsList,
 import { ProductCard } from '../../components/ProductCard';
 import { colors, useNavColors } from '../../theme/tokens';
 import { CategoryIcon } from '../../components/CategoryIcon';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { TabParamList } from '../../navigation/types';
 
 function getCategoryInitials(name: string): string {
@@ -38,6 +39,9 @@ export function ReportsScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<RouteProp<TabParamList, 'Reports'>>();
   const nav = useNavColors();
+  const insets = useSafeAreaInsets();
+  const topInset = insets.top > 0 ? insets.top : (Platform.OS === 'ios' ? 47 : 24);
+  const topPadding = topInset + 8;
   const fromDrawer = route.params?.fromDrawer;
 
   useFocusEffect(
@@ -54,7 +58,7 @@ export function ReportsScreen() {
   );
 
   return (
-    <View className="flex-1 bg-white dark:bg-surface-1 pt-4">
+    <View className="flex-1 bg-white dark:bg-surface-1" style={{ paddingTop: topPadding }}>
       <View className="flex-row items-center px-4 mb-2">
         {fromDrawer && (
           <Pressable

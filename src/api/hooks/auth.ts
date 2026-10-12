@@ -7,6 +7,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, getAuthToken, setAuthToken } from '../client';
 import type {
+  ChangePasswordRequest,
   Envelope,
   ForgotPasswordRequest,
   LoginRequest,
@@ -14,6 +15,7 @@ import type {
   OtpVerifyRequest,
   RegisterRequest,
   ResetPasswordRequest,
+  UpdateProfileRequest,
   User,
 } from '../types';
 
@@ -149,13 +151,35 @@ export function useResetPassword() {
   });
 }
 
+export function useUpdateProfile() {
+  const queryClient = useQueryClient();
+  const authStore = require('../../stores/auth').useAuthStore;
+  return useMutation({
+    mutationFn: (body: UpdateProfileRequest) =>
+      api.put<Envelope<User>>('/account/profile', body),
+    onSuccess: (res) => {
+      queryClient.setQueryData(['auth', 'me'], { data: res.data });
+      authStore.getState().setUser(res.data);
+    },
+  });
+}
+
+export function useChangePassword() {
+  return useMutation({
+    mutationFn: (body: ChangePasswordRequest) =>
+      api.put<Envelope<{ message: string }>>('/account/password', body),
+  });
+}
+
 export function useLogout() {
   const queryClient = useQueryClient();
+  const authStore = require('../../stores/auth').useAuthStore;
   return useMutation({
     mutationFn: () => api.post<unknown>('/auth/logout').catch(() => undefined),
     onSettled: () => {
       void setAuthToken(null);
       queryClient.removeQueries({ queryKey: ['auth'] });
+      authStore.getState().clear();
     },
   });
 }

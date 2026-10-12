@@ -6,7 +6,7 @@ import { z } from 'zod';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ApiError, useOtpRequest, useOtpVerifyRegistration, useRegister } from '../../api';
 import { Button, Field, Input } from '../../components/ui';
-import { ControlledInput } from '../../components/form/ControlledInput';
+import { ControlledInput, ControlledPasswordInput } from '../../components/form/ControlledInput';
 import { KeyboardAvoidingScreen } from '../../components/KeyboardAvoidingScreen';
 import { FadeIn } from '../../components/motion';
 import type { RootStackParamList } from '../../navigation/types';
@@ -23,7 +23,7 @@ const registerSchema = z
   .object({
     name: z.string().min(2, 'Enter your name').max(255),
     email: z.string().email('Enter a valid email'),
-    phone: z.string().min(10, 'Enter a valid mobile number').max(20),
+    phone: z.string().regex(/^[6-9]\d{9}$/, 'Enter a valid 10-digit mobile number (starting with 6-9)'),
     password: z.string().min(8, 'At least 8 characters'),
     password_confirmation: z.string().min(8, 'At least 8 characters'),
   })
@@ -43,6 +43,9 @@ export function RegisterScreen({ navigation }: Props) {
   const [code, setCode] = useState('');
   const [verifyError, setVerifyError] = useState<string | undefined>();
   const [showPassword, setShowPassword] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
+  const [resendCount, setResendCount] = useState(0);
+
   const {
     control,
     handleSubmit,
@@ -50,12 +53,22 @@ export function RegisterScreen({ navigation }: Props) {
     formState: { errors },
   } = useForm<RegisterForm>({ resolver: zodResolver(registerSchema) });
 
+  React.useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = setInterval(() => {
+      setCooldown((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [cooldown]);
+
   const onSubmitDetails = handleSubmit((values) => {
     otpRequest.mutate(
       { phone: values.phone },
       {
         onSuccess: () => {
           setDetails(values);
+          setCooldown(30);
+          setResendCount(1);
           toast.success(`OTP sent to ${values.phone}`);
         },
         onError: (err) => {
@@ -70,6 +83,26 @@ export function RegisterScreen({ navigation }: Props) {
       },
     );
   });
+
+  function handleResendOtp() {
+    if (!details || cooldown > 0 || resendCount >= 3) return;
+    setVerifyError(undefined);
+    otpRequest.mutate(
+      { phone: details.phone },
+      {
+        onSuccess: () => {
+          setCooldown(30);
+          setResendCount((c) => c + 1);
+          toast.success(`OTP resent to ${details.phone}`);
+        },
+        onError: (err) => {
+          if (err instanceof ApiError) {
+            setVerifyError(err.firstError() ?? err.message);
+          }
+        },
+      },
+    );
+  }
 
   function onVerifyAndCreate() {
     if (!details || code.length !== 6) return;
@@ -118,8 +151,21 @@ export function RegisterScreen({ navigation }: Props) {
             >
               Verify & create account
             </Button>
+
+            {resendCount >= 3 ? (
+              <Text className="text-center text-xs text-ink-400">Maximum resend attempts (3) reached</Text>
+            ) : cooldown > 0 ? (
+              <Text className="text-center text-xs font-semibold text-ink-400">
+                Resend OTP in {cooldown}s
+              </Text>
+            ) : (
+              <Pressable onPress={handleResendOtp} disabled={otpRequest.isPending} className="items-center py-1" accessibilityRole="button">
+                <Text className="text-xs font-semibold text-brand-600 underline">Resend OTP</Text>
+              </Pressable>
+            )}
+
             <Pressable
-              onPress={() => { setDetails(null); setCode(''); }}
+              onPress={() => { setDetails(null); setCode(''); setCooldown(0); setResendCount(0); }}
               className="items-center py-2"
               accessibilityRole="button"
             >
@@ -140,55 +186,32 @@ export function RegisterScreen({ navigation }: Props) {
                 accessibilityLabel="Email"
               />
             </Field>
-            <Field label="Mobile number" required hint="We'll text you a one-time code to verify it." error={errors.phone?.message}>
+            <Field label="Mobile number" required hint="We'll text you a 10-digit OTP to verify." error={errors.phone?.message}>
               <ControlledInput
                 control={control}
                 name="phone"
                 keyboardType="phone-pad"
                 autoComplete="tel"
-                placeholder="+91 98765 43210"
+                maxLength={10}
+                placeholder="9876543210"
                 accessibilityLabel="Mobile number"
               />
             </Field>
             <Field label="Password" required error={errors.password?.message}>
-              <View className="relative justify-center">
-                <ControlledInput
-                  control={control}
-                  name="password"
-                  secureTextEntry={!showPassword}
-                  autoComplete="new-password"
-                  accessibilityLabel="Password"
-                  className="pr-12"
-                />
-                <Pressable
-                  onPress={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 p-1"
-                  accessibilityRole="button"
-                  accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
-                >
-                  {showPassword ? <EyeOff size={20} color={colors.ink[400]} /> : <Eye size={20} color={colors.ink[400]} />}
-                </Pressable>
-              </View>
+              <ControlledPasswordInput
+                control={control}
+                name="password"
+                autoComplete="new-password"
+                accessibilityLabel="Password"
+              />
             </Field>
             <Field label="Confirm password" required error={errors.password_confirmation?.message}>
-              <View className="relative justify-center">
-                <ControlledInput
-                  control={control}
-                  name="password_confirmation"
-                  secureTextEntry={!showPassword}
-                  autoComplete="new-password"
-                  accessibilityLabel="Confirm password"
-                  className="pr-12"
-                />
-                <Pressable
-                  onPress={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 p-1"
-                  accessibilityRole="button"
-                  accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
-                >
-                  {showPassword ? <EyeOff size={20} color={colors.ink[400]} /> : <Eye size={20} color={colors.ink[400]} />}
-                </Pressable>
-              </View>
+              <ControlledPasswordInput
+                control={control}
+                name="password_confirmation"
+                autoComplete="new-password"
+                accessibilityLabel="Confirm password"
+              />
             </Field>
 
             <Button onPress={onSubmitDetails} loading={otpRequest.isPending} accessibilityLabel="Send verification code">

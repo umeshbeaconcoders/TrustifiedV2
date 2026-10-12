@@ -6,7 +6,7 @@ import { colors } from '../../theme/tokens';
 
 /** RN port of `frontend/apps/web/src/pages/testing.tsx` — web merged the old SixLevelPage/SevenLevelPage split into a single GoldPage (8-level testing incl. the WADA panel); mirrored here as one screen. */
 const testLevels = [
-  { name: 'Macro Accuracy', detail: 'Claimed vs actual protein, carbs, fat — verified in the lab.' },
+  { name: 'Accuracy', detail: 'Claimed vs actual protein, carbs, fat — verified in the lab.' },
   { name: 'Amino Spiking', detail: 'Detects cheap amino acids passed off as protein.' },
   { name: 'Melamine', detail: 'Screens for the industrial adulterant behind fake protein counts.' },
   { name: 'Non-Protein Nitrogen (NPN)', detail: 'Catches nitrogen-based inflation of protein numbers.' },

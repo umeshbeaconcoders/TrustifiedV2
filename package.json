@@ -5,7 +5,8 @@
   "description": "Trustified — React Native mobile app (bare RN CLI, TypeScript). Consumer counterpart to frontend/apps/web, consuming the same Laravel API.",
   "scripts": {
     "android": "react-native run-android",
-    "ios": "react-native run-ios",
+    "ios": "react-native run-ios --simulator=\"iPhone 16 Pro\"",
+    "ios:device": "react-native run-ios --extra-params=\"-allowProvisioningUpdates\"",
     "start": "react-native start",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "typecheck": "tsc --noEmit",

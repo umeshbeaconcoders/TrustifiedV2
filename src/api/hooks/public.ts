@@ -18,6 +18,7 @@ import {
   type Product,
   type Review,
   type Settings,
+  type ShopSection,
   type StoreLeadRequest,
   type TestReport,
   type Video,
@@ -265,5 +266,48 @@ export function useVerifyCertificate(certificateNumber: string | undefined) {
       api.get<Envelope<Certificate>>(`/verify/${encodeURIComponent(certificateNumber ?? '')}`, undefined, signal),
     enabled: Boolean(certificateNumber),
     retry: false,
+  });
+}
+
+/* ---------- shop ---------- */
+
+export function useShopSections() {
+  return useQuery({
+    queryKey: ['shop', 'sections'],
+    queryFn: ({ signal }) => api.get<Envelope<ShopSection[]>>('/shop/sections', undefined, signal),
+    staleTime: 60_000,
+  });
+}
+
+export function useShopSection(slug: string | undefined) {
+  return useQuery({
+    queryKey: ['shop', 'section', slug],
+    queryFn: ({ signal }) => api.get<Envelope<ShopSection>>(`/shop/sections/${slug}`, undefined, signal),
+    enabled: Boolean(slug),
+  });
+}
+
+export function useShopBrands(sectionSlug: string | undefined) {
+  return useQuery({
+    queryKey: ['shop', 'brands', sectionSlug],
+    queryFn: ({ signal }) =>
+      api.get<Envelope<Brand[]>>('/shop/brands', sectionSlug ? { section: sectionSlug } : undefined, signal),
+    staleTime: 5 * 60_000,
+  });
+}
+
+export function useShopProducts(params: ListParams = {}) {
+  return useQuery({
+    queryKey: ['shop', 'products', params],
+    queryFn: ({ signal }) => api.get<Paginated<Product>>('/shop/products', params, signal),
+    staleTime: 60_000,
+  });
+}
+
+export function useShopBanners() {
+  return useQuery({
+    queryKey: ['banners', 'header'],
+    queryFn: ({ signal }) => api.get<Envelope<Banner[]>>('/banners', { position: 'header' }, signal),
+    staleTime: 5 * 60_000,
   });
 }

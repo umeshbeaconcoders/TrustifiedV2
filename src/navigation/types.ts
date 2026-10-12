@@ -4,7 +4,8 @@ export type TabParamList = {
   Home: { openDrawer?: boolean } | undefined;
   Reports: { category?: string; fromDrawer?: boolean } | undefined;
   Search: undefined;
-  BrandsTab: { fromDrawer?: boolean } | undefined;
+  ShopTab: undefined;
+  BrandsTab?: { fromDrawer?: boolean } | undefined;
   Profile: undefined;
 };
 
@@ -21,7 +22,7 @@ export type RootStackParamList = {
   ProductDetail: { slug: string };
   ReportDetail: { slug: string; reportId?: number };
   BrandDetail: { slug: string };
-  CertifiedBrands: undefined;
+  CertifiedBrands: { fromDrawer?: boolean } | undefined;
   RankingsIndex: undefined;
   RankingsCategory: { slug: string };
   Verify: { certificateNumber?: string } | undefined;
@@ -41,6 +42,7 @@ export type RootStackParamList = {
   ForgotPassword: undefined;
   ResetPassword: { token?: string; email?: string } | undefined;
   Shop: undefined;
+  ShopSection: { slug: string; name?: string };
   More: undefined;
 };
 

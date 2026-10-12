@@ -16,7 +16,11 @@ import { toast } from '../../stores/toast';
 const challengeSchema = z.object({
   name: z.string().min(2, 'Please enter your name').max(255),
   email: z.string().email('Enter a valid email').max(255),
-  phone: z.string().max(20).optional().or(z.literal('')),
+  phone: z
+    .string()
+    .regex(/^[6-9]\d{9}$/, 'Enter a valid 10-digit mobile number (starting with 6-9)')
+    .optional()
+    .or(z.literal('')),
   message: z.string().min(10, 'Tell us which product and why').max(5000),
 });
 type ChallengeForm = z.infer<typeof challengeSchema>;

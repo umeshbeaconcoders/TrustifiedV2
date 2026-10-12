@@ -1,4 +1,4 @@
-import React, { useState, useLayoutEffect, useCallback } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useCallback } from 'react';
 import {
   View, Text, ScrollView, Pressable, KeyboardAvoidingView, Platform, BackHandler,
 } from 'react-native';
@@ -6,9 +6,9 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { ApiError, isRequires2fa, isRequires2faSetup, useLogin } from '../../api';
-import { Button, Field } from '../../components/ui';
-import { ControlledInput } from '../../components/form/ControlledInput';
+import { ApiError, isRequires2fa, isRequires2faSetup, useLogin, useOtpRequest, useOtpVerify } from '../../api';
+import { Button, Field, Input } from '../../components/ui';
+import { ControlledInput, ControlledPasswordInput } from '../../components/form/ControlledInput';
 import { useFocusEffect } from '@react-navigation/native';
 import { FadeIn } from '../../components/motion';
 import type { RootStackParamList } from '../../navigation/types';
@@ -167,24 +167,12 @@ export function LoginScreen({ navigation, route }: Props) {
               </Field>
 
               <Field label="Password" required error={errors.password?.message}>
-                <View className="relative justify-center">
-                  <ControlledInput
-                    control={control}
-                    name="password"
-                    secureTextEntry={!showPassword}
-                    autoComplete="current-password"
-                    accessibilityLabel="Password"
-                    className="pr-12"
-                  />
-                  <Pressable
-                    onPress={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 p-1"
-                    accessibilityRole="button"
-                    accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
-                  >
-                    {showPassword ? <EyeOff size={20} color={colors.ink[400]} /> : <Eye size={20} color={colors.ink[400]} />}
-                  </Pressable>
-                </View>
+                <ControlledPasswordInput
+                  control={control}
+                  name="password"
+                  autoComplete="current-password"
+                  accessibilityLabel="Password"
+                />
               </Field>
 
               <Pressable
@@ -209,17 +197,7 @@ export function LoginScreen({ navigation, route }: Props) {
 
           {/* OTP tab */}
           {activeTab === 'otp' && (
-            <View className="gap-4">
-              <Text className="text-sm text-ink-600 dark:text-ink-300 text-center leading-relaxed">
-                We'll send a one-time code to your registered mobile number. No password needed.
-              </Text>
-              <Button
-                onPress={() => navigation.navigate('OtpLogin')}
-                accessibilityLabel="Continue with OTP"
-              >
-                Continue with OTP
-              </Button>
-            </View>
+            <OtpLoginTabSection navigation={navigation} />
           )}
 
           {/* Register link — same as web "New here? Create an account" */}
@@ -248,5 +226,143 @@ export function LoginScreen({ navigation, route }: Props) {
         </FadeIn>
       </ScrollView>
     </KeyboardAvoidingView>
+  );
+}
+
+const otpRequestSchema = z.object({
+  phone: z.string().regex(/^[6-9]\d{9}$/, 'Enter a valid 10-digit mobile number (starting with 6-9)'),
+});
+type OtpRequestForm = z.infer<typeof otpRequestSchema>;
+
+function OtpLoginTabSection({ navigation }: { navigation: any }) {
+  const otpRequest = useOtpRequest();
+  const otpVerify = useOtpVerify();
+  const [phone, setPhone] = useState<string | null>(null);
+  const [code, setCode] = useState('');
+  const [verifyError, setVerifyError] = useState<string | undefined>();
+  const [cooldown, setCooldown] = useState(0);
+  const [resendCount, setResendCount] = useState(0);
+
+  const {
+    control,
+    handleSubmit,
+    setError,
+    formState: { errors },
+  } = useForm<OtpRequestForm>({ resolver: zodResolver(otpRequestSchema) });
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = setInterval(() => {
+      setCooldown((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [cooldown]);
+
+  const onRequestOtp = handleSubmit((values) => {
+    otpRequest.mutate(values, {
+      onSuccess: () => {
+        setPhone(values.phone);
+        setCooldown(30);
+        setResendCount(1);
+      },
+      onError: (err) => {
+        if (err instanceof ApiError) {
+          const message =
+            err.status === 429
+              ? 'Too many attempts — please wait a minute and try again.'
+              : (err.firstError() ?? err.message);
+          setError('phone', { message });
+        }
+      },
+    });
+  });
+
+  function handleResendOtp() {
+    if (!phone || cooldown > 0 || resendCount >= 3) return;
+    setVerifyError(undefined);
+    otpRequest.mutate(
+      { phone },
+      {
+        onSuccess: () => {
+          setCooldown(30);
+          setResendCount((c) => c + 1);
+        },
+        onError: (err) => {
+          if (err instanceof ApiError) {
+            setVerifyError(err.firstError() ?? err.message);
+          }
+        },
+      },
+    );
+  }
+
+  function onVerifyOtp() {
+    if (!phone || code.length !== 6) return;
+    setVerifyError(undefined);
+    otpVerify.mutate(
+      { phone, otp: code },
+      {
+        onSuccess: () => navigation.reset({ index: 0, routes: [{ name: 'Tabs' }] }),
+        onError: (err) => setVerifyError(err instanceof ApiError ? (err.firstError() ?? err.message) : 'Invalid OTP'),
+      },
+    );
+  }
+
+  return (
+    <View>
+      {!phone ? (
+        <View className="gap-4">
+          <Field label="Mobile number" required error={errors.phone?.message}>
+            <ControlledInput
+              control={control}
+              name="phone"
+              keyboardType="phone-pad"
+              autoComplete="tel"
+              maxLength={10}
+              placeholder="9876543210"
+              accessibilityLabel="Mobile number"
+            />
+          </Field>
+          <Button onPress={onRequestOtp} loading={otpRequest.isPending} accessibilityLabel="Send OTP">
+            Send OTP
+          </Button>
+        </View>
+      ) : (
+        <View className="gap-4">
+          <Text className="text-center text-sm text-ink-600 dark:text-ink-300">
+            Enter the 6-digit code sent to {phone}.
+          </Text>
+          <Input
+            keyboardType="number-pad"
+            maxLength={6}
+            value={code}
+            onChangeText={(t) => setCode(t.replace(/\D/g, ''))}
+            placeholder="000000"
+            className="text-center text-lg tracking-[8px]"
+            accessibilityLabel="One-time code"
+          />
+          {verifyError ? <Text className="text-center text-xs font-medium text-fail-strong">{verifyError}</Text> : null}
+          <Button onPress={onVerifyOtp} loading={otpVerify.isPending} accessibilityLabel="Verify and continue">
+            Verify & continue
+          </Button>
+
+          {resendCount >= 3 ? (
+            <Text className="text-center text-xs text-ink-400">Maximum resend attempts (3) reached</Text>
+          ) : cooldown > 0 ? (
+            <Text className="text-center text-xs font-semibold text-ink-400">
+              Resend OTP in {cooldown}s
+            </Text>
+          ) : (
+            <Pressable onPress={handleResendOtp} disabled={otpRequest.isPending} className="items-center py-1" accessibilityRole="button">
+              <Text className="text-xs font-semibold text-brand-600 underline">Resend OTP</Text>
+            </Pressable>
+          )}
+
+          <Pressable onPress={() => { setPhone(null); setCooldown(0); setResendCount(0); }} className="items-center py-1" accessibilityRole="button">
+            <Text className="text-xs text-ink-500 dark:text-ink-400 underline">Use a different number</Text>
+          </Pressable>
+        </View>
+      )}
+    </View>
   );
 }

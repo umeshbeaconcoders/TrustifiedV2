@@ -20,6 +20,7 @@ import { PolicyScreen } from '../screens/content/PolicyScreen';
 import { SettingsMenuScreen } from '../screens/more/SettingsMenuScreen';
 import { MoreScreen } from '../screens/more/MoreScreen';
 import { ShopScreen } from '../screens/shop/ShopScreen';
+import { ShopSectionScreen } from '../screens/shop/ShopSectionScreen';
 import { ExportDataScreen } from '../screens/profile/ExportDataScreen';
 import { DeleteAccountScreen } from '../screens/profile/DeleteAccountScreen';
 import { LoginScreen } from '../screens/auth/LoginScreen';
@@ -46,6 +47,8 @@ export function RootNavigator() {
         // Swipe-to-go-back on every pushed screen, both platforms — full-width
         // edge swipe on iOS (not just the left-edge sliver), Android gets the
         // matching gesture via react-native-screens.
+        headerBackTitleVisible: false,
+        headerBackTitle: '',
         gestureEnabled: true,
         fullScreenGestureEnabled: true,
         animation: 'slide_from_right',
@@ -69,6 +72,7 @@ export function RootNavigator() {
       <Stack.Screen name="ExportData" component={ExportDataScreen} options={{ title: 'Export My Data' }} />
       <Stack.Screen name="DeleteAccount" component={DeleteAccountScreen} options={{ title: 'Delete Account' }} />
       <Stack.Screen name="Shop" component={ShopScreen} options={{ title: 'Shop' }} />
+      <Stack.Screen name="ShopSection" component={ShopSectionScreen} options={{ headerShown: false }} />
       <Stack.Screen name="More" component={MoreScreen} options={{ title: 'More' }} />
 
       <Stack.Screen name="Login" component={LoginScreen} options={{ title: 'Log in' }} />

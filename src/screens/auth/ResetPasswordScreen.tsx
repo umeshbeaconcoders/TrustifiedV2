@@ -6,7 +6,7 @@ import { z } from 'zod';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ApiError, useResetPassword } from '../../api';
 import { Button, Field } from '../../components/ui';
-import { ControlledInput } from '../../components/form/ControlledInput';
+import { ControlledInput, ControlledPasswordInput } from '../../components/form/ControlledInput';
 import { KeyboardAvoidingScreen } from '../../components/KeyboardAvoidingScreen';
 import { FadeIn } from '../../components/motion';
 import type { RootStackParamList } from '../../navigation/types';
@@ -79,19 +79,17 @@ export function ResetPasswordScreen({ route, navigation }: Props) {
             />
           </Field>
           <Field label="New password" required error={errors.password?.message}>
-            <ControlledInput
+            <ControlledPasswordInput
               control={control}
               name="password"
-              secureTextEntry
               autoComplete="new-password"
               accessibilityLabel="New password"
             />
           </Field>
           <Field label="Confirm new password" required error={errors.password_confirmation?.message}>
-            <ControlledInput
+            <ControlledPasswordInput
               control={control}
               name="password_confirmation"
-              secureTextEntry
               autoComplete="new-password"
               accessibilityLabel="Confirm new password"
             />
