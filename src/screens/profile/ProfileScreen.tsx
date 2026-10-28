@@ -21,8 +21,8 @@ import {
   ChevronRight,
 } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useLogout, useMe, useRemoveDeviceToken, useUpdateProfile, useChangePassword } from '../../api';
-import { Badge, Button, Card, Field, Spinner } from '../../components/ui';
+import { ApiError, useLogout, useMe, useRemoveDeviceToken, useUpdateProfile, useChangePassword, useSendEmailCode, useVerifyEmailCode } from '../../api';
+import { Badge, Button, Card, Field, Input, Spinner } from '../../components/ui';
 import { ControlledInput, ControlledPasswordInput } from '../../components/form/ControlledInput';
 import { FadeIn } from '../../components/motion';
 import { colors } from '../../theme/tokens';
@@ -134,14 +134,14 @@ export function ProfileScreen() {
   }
 
   function handleLogout() {
-    removeDeviceToken.mutate(undefined, {
-      onSettled: () =>
-        logout.mutate(undefined, {
-          onSettled: () => {
-            clearAuth();
-          },
-        }),
-    });
+    // Sign out locally right away (the screen resets to Login); the device token and the server-side
+    // session are revoked in the background so a slow network can never leave the user "logged in".
+    void removeDeviceToken
+      .mutateAsync()
+      .catch(() => undefined)
+      .then(() => logout.mutateAsync())
+      .catch(() => undefined);
+    clearAuth();
   }
 
   return (
@@ -182,15 +182,7 @@ export function ProfileScreen() {
         {/* Read-Only Account Contact Info */}
         <Card className="mt-6 gap-3 p-4">
           <Text className="text-xs font-bold uppercase tracking-wider text-ink-500 dark:text-ink-400">Account info</Text>
-          {user.email ? (
-            <View className="flex-row items-center gap-3">
-              <Mail size={16} color={colors.ink[400]} />
-              <Text className="flex-1 text-sm text-ink-700 dark:text-ink-200">{user.email}</Text>
-              <Badge variant={user.email_verified_at ? 'pass' : 'warning'}>
-                {user.email_verified_at ? 'Verified' : 'Unverified'}
-              </Badge>
-            </View>
-          ) : null}
+          <EmailRow email={user.email} verified={Boolean(user.email_verified_at)} />
           {user.phone ? (
             <View className="flex-row items-center gap-3">
               <Phone size={16} color={colors.ink[400]} />
@@ -227,7 +219,8 @@ export function ProfileScreen() {
           </Button>
         </Card>
 
-        {/* Change Password Form */}
+        {/* Change Password — only for accounts that have a password (OTP-only / Google-only accounts have nothing to change) */}
+        {user.has_password ? (
         <Card className="mt-6 p-4">
           <View className="flex-row items-center gap-2 mb-3">
             <KeyRound size={18} color={colors.brand[600]} />
@@ -271,6 +264,7 @@ export function ProfileScreen() {
             Update Password
           </Button>
         </Card>
+        ) : null}
 
         {/* Legal & Policies */}
         <Text className="mt-8 mb-2 px-1 text-xs font-bold uppercase tracking-wider text-ink-500 dark:text-ink-400">Legal & Policies</Text>
@@ -316,7 +310,6 @@ export function ProfileScreen() {
           variant="danger"
           size="md"
           className="mt-8"
-          loading={logout.isPending || removeDeviceToken.isPending}
           onPress={handleLogout}
           accessibilityLabel="Log out">
           <LogOut size={18} color="#fff" />
@@ -324,6 +317,124 @@ export function ProfileScreen() {
         </Button>
       </FadeIn>
     </ScrollView>
+  );
+}
+
+/**
+ * Email line with inline verification: "Verify email" mails a 6-digit code, entering it marks the email
+ * verified. A phone-only account can add an email here too — it is saved once its code is confirmed.
+ */
+function EmailRow({ email, verified }: { email: string | null; verified: boolean }) {
+  const sendCode = useSendEmailCode();
+  const verifyCode = useVerifyEmailCode();
+  const [step, setStep] = useState<'idle' | 'email' | 'code'>('idle');
+  const [newEmail, setNewEmail] = useState('');
+  const [code, setCode] = useState('');
+  const [sentTo, setSentTo] = useState<string | null>(null);
+
+  const errorText = (err: unknown, fallback: string) => (err instanceof ApiError ? (err.firstError() ?? err.message) : fallback);
+
+  function send(target?: string) {
+    sendCode.mutate(target ? { email: target } : {}, {
+      onSuccess: (res) => {
+        setSentTo(res.data.email);
+        setCode('');
+        setStep('code');
+        toast.success(`Code sent to ${res.data.email}`);
+      },
+      onError: (err) => toast.error(errorText(err, 'Could not send the code')),
+    });
+  }
+
+  function confirm() {
+    verifyCode.mutate(
+      { code },
+      {
+        onSuccess: () => {
+          toast.success('Email verified');
+          setStep('idle');
+          setCode('');
+        },
+        onError: (err) => toast.error(errorText(err, 'Incorrect code')),
+      },
+    );
+  }
+
+  return (
+    <View>
+      <View className="flex-row flex-wrap items-center gap-3">
+        <Mail size={16} color={colors.ink[400]} />
+        {email ? (
+          <>
+            <Text className="flex-shrink text-sm text-ink-700 dark:text-ink-200">{email}</Text>
+            <Badge variant={verified ? 'pass' : 'warning'}>{verified ? 'Verified' : 'Unverified'}</Badge>
+            {!verified && step === 'idle' ? (
+              <Button size="sm" variant="outline" loading={sendCode.isPending} onPress={() => send()} accessibilityLabel="Verify email">
+                Verify email
+              </Button>
+            ) : null}
+          </>
+        ) : (
+          <>
+            <Text className="text-sm text-ink-500 dark:text-ink-400">No email added</Text>
+            {step === 'idle' ? (
+              <Button size="sm" variant="outline" onPress={() => setStep('email')} accessibilityLabel="Add and verify email">
+                Add & verify email
+              </Button>
+            ) : null}
+          </>
+        )}
+      </View>
+
+      {step === 'email' ? (
+        <View className="mt-3 gap-2 pl-7">
+          <Input
+            value={newEmail}
+            onChangeText={setNewEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoComplete="email"
+            placeholder="you@example.com"
+            accessibilityLabel="Email address"
+          />
+          <View className="flex-row gap-2">
+            <Button size="sm" loading={sendCode.isPending} onPress={() => newEmail.trim() && send(newEmail.trim())} accessibilityLabel="Send code">
+              Send code
+            </Button>
+            <Button size="sm" variant="ghost" onPress={() => setStep('idle')}>
+              Cancel
+            </Button>
+          </View>
+        </View>
+      ) : null}
+
+      {step === 'code' ? (
+        <View className="mt-3 gap-2 pl-7">
+          <Text className="text-xs text-ink-500 dark:text-ink-400">Enter the 6-digit code we sent to {sentTo}. It expires in 10 minutes.</Text>
+          <Input
+            value={code}
+            onChangeText={(t) => setCode(t.replace(/\D/g, ''))}
+            keyboardType="number-pad"
+            maxLength={6}
+            autoComplete="one-time-code"
+            placeholder="000000"
+            accessibilityLabel="Email verification code"
+            className="w-40 text-center"
+          />
+          <View className="flex-row flex-wrap gap-2">
+            <Button size="sm" loading={verifyCode.isPending} disabled={code.length !== 6} onPress={confirm} accessibilityLabel="Verify code">
+              Verify
+            </Button>
+            <Button size="sm" variant="ghost" loading={sendCode.isPending} onPress={() => send(email ? undefined : (sentTo ?? undefined))}>
+              Resend code
+            </Button>
+            <Button size="sm" variant="ghost" onPress={() => setStep('idle')}>
+              Cancel
+            </Button>
+          </View>
+        </View>
+      ) : null}
+    </View>
   );
 }
 

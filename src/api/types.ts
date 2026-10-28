@@ -64,6 +64,18 @@ export interface BuyLink {
   url: string | null;
 }
 
+/** Shown to customers as a "sub category" of a shop category. */
+export interface ShopSubSection {
+  id: number;
+  shop_section_id: number;
+  name: string;
+  slug: string;
+  image_url: string | null;
+  sort_order: number;
+  products_count?: number;
+}
+
+/** Customer-facing label: "category". */
 export interface ShopSection {
   id: number;
   name: string;
@@ -73,7 +85,15 @@ export interface ShopSection {
   sort_order: number;
   show_on_shop: boolean;
   products_count: number;
+  /** Present on /shop/sections and /shop/sections/{slug}. */
+  sub_sections?: ShopSubSection[];
+  /** Present on /shop/sections (first products of the category). */
   products?: Product[];
+}
+
+export interface ShopSectionWithProducts extends ShopSection {
+  sub_sections: ShopSubSection[];
+  products: Product[];
 }
 
 /** Legacy report sections stored as a JSON string in `summary`. */
@@ -187,6 +207,8 @@ export interface User {
   avatar_url: string | null;
   email_verified_at: string | null;
   phone_verified_at: string | null;
+  /** False for accounts that only ever used OTP / Google login (no password to change). */
+  has_password?: boolean;
   two_factor_enabled: boolean;
   is_active: boolean;
   roles?: string[];
@@ -244,19 +266,25 @@ export interface Settings {
   app_version?: Partial<Record<'ios' | 'android', string>>;
   maintenance_mode: boolean;
   maintenance_message?: string;
+  /** Live counts computed by the backend — never admin-entered. */
   hero_stats?: {
-    certified_products?: number;
-    brands?: number;
-    tests_conducted?: number;
+    certified_products: number;
+    /** Active products with a pass/fail/expired verdict. */
+    products_tested: number;
+    brands: number;
+    tests_conducted: number;
   };
 }
 
+export type BannerPosition = 'header' | 'footer' | 'home' | 'shop';
+
 export interface Banner {
   id: number;
-  title?: string | null;
   image_url?: string | null;
   link?: string | null;
   position?: string | null;
+  is_active?: boolean;
+  sort_order?: number;
   [key: string]: unknown;
 }
 

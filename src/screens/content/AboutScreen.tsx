@@ -1,23 +1,20 @@
 import React from 'react';
 import { View, Text, ScrollView } from 'react-native';
 import { ShieldCheck, TestTube2, Building2, FileSearch, Beaker, CheckCircle2 } from 'lucide-react-native';
-import { useReports, useCertifiedBrands } from '../../api';
+import { useSettings } from '../../api';
 import { FadeIn, StaggerChildren, StaggerItem } from '../../components/motion';
 import { colors } from '../../theme/tokens';
 
 /** RN port of `frontend/apps/web/src/pages/about.tsx` — hero/mission copy + live stats, condensed to a single scroll (web's parallax/gradient sections don't have an RN equivalent worth building here). */
 export function AboutScreen() {
-  const { data: passFail } = useReports('pass-fail', { per_page: 1 });
-  const { data: brands } = useCertifiedBrands();
-
-  const totalTested = passFail?.meta.total ?? 542;
-  const brandList = Array.isArray(brands?.data) ? brands.data : [];
-  const totalBrands = brandList.length > 0 ? brandList.length : 120;
+  // Same live numbers and labels as the Home hero; nothing is shown (rather than a made-up number) until loaded.
+  const { data: settingsRes } = useSettings();
+  const heroStats = settingsRes?.data?.hero_stats;
 
   const stats = [
-    { label: 'Products Tested', value: totalTested, Icon: FileSearch },
-    { label: 'Brands Certified', value: totalBrands, Icon: ShieldCheck },
-    { label: 'Lab Partners', value: 3, Icon: Beaker },
+    { label: 'Total certified products', value: heroStats?.certified_products, Icon: FileSearch },
+    { label: 'Brands', value: heroStats?.brands, Icon: ShieldCheck },
+    { label: 'Tests conducted', value: heroStats?.tests_conducted, Icon: Beaker },
   ];
 
   return (
@@ -31,8 +28,7 @@ export function AboutScreen() {
           The Truth About What You Consume.
         </Text>
         <Text className="mt-4 text-base leading-relaxed text-ink-600 dark:text-ink-300">
-          Labels lie more often than they should. We exist to bring absolute transparency to the Indian
-          health and supplement market.
+          Independent lab testing. Unbiased results. Greater transparency in every product you choose.
         </Text>
       </FadeIn>
 
@@ -57,7 +53,9 @@ export function AboutScreen() {
                 <stat.Icon size={22} color={colors.brand[600]} />
               </View>
               <View>
-                <Text className="text-2xl font-black text-ink-900 dark:text-white">{stat.value}+</Text>
+                <Text className="text-2xl font-black text-ink-900 dark:text-white">
+                  {typeof stat.value === 'number' ? `${stat.value.toLocaleString('en-IN')}+` : '–'}
+                </Text>
                 <Text className="text-xs font-bold uppercase tracking-widest text-ink-500 dark:text-ink-400">{stat.label}</Text>
               </View>
             </View>

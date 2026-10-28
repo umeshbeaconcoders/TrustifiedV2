@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Search, X, ChevronRight } from 'lucide-react-native';
-import { useProducts, useCategories, useCertifiedBrands } from '../../api';
+import { useProducts, useCategories, useAllCertifiedBrands } from '../../api';
 import { useDebouncedValue } from '../../lib/useDebounce';
 import { StatusBadge, MediaFrame, Spinner, EmptyState } from '../../components/ui';
 import { colors } from '../../theme/tokens';
@@ -19,7 +19,8 @@ export function SearchScreen() {
   const debouncedSearch = useDebouncedValue(search, 300);
 
   const { data: categoriesRes, isLoading: categoriesLoading, refetch: refetchCategories, isRefetching: isRefetchingCategories } = useCategories();
-  const { data: brandsRes, isLoading: brandsLoading, refetch: refetchBrands, isRefetching: isRefetchingBrands } = useCertifiedBrands();
+  // Every certified brand (all pages), not just the API's first page.
+  const { data: allBrands = [], isLoading: brandsLoading, refetch: refetchBrands, isRefetching: isRefetchingBrands } = useAllCertifiedBrands();
   const { data: productsRes, isLoading: productsLoading, refetch: refetchProducts, isRefetching: isRefetchingProducts } = useProducts({
     search: debouncedSearch,
     per_page: 20,
@@ -37,16 +38,13 @@ export function SearchScreen() {
     return (categoriesRes?.data ?? []).filter((c) => !c.is_upcoming);
   }, [categoriesRes]);
 
-  const brands = useMemo(() => {
-    return (brandsRes?.data ?? []).filter((b) => !!b.logo_url);
-  }, [brandsRes]);
+  const brands = useMemo(() => allBrands, [allBrands]);
 
   const matchingBrands = useMemo(() => {
     if (!debouncedSearch.trim()) return [];
     const query = debouncedSearch.toLowerCase();
-    const allBrands = Array.isArray(brandsRes?.data) ? brandsRes.data : [];
     return allBrands.filter((brand) => brand.name.toLowerCase().includes(query));
-  }, [debouncedSearch, brandsRes]);
+  }, [debouncedSearch, allBrands]);
 
   const products = productsRes?.data ?? [];
 
@@ -57,8 +55,9 @@ export function SearchScreen() {
     });
   };
 
+  // A certified brand opens the Pass & Fail list filtered to that brand.
   const handleBrandPress = (slug: string) => {
-    navigation.navigate('BrandDetail', { slug });
+    navigation.navigate('Tabs', { screen: 'Reports', params: { brand: slug } });
   };
 
   const hasSearch = debouncedSearch.trim().length > 0;

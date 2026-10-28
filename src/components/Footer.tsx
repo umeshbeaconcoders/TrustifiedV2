@@ -1,20 +1,15 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, Pressable, Linking, Alert } from 'react-native';
+import React from 'react';
+import { View, Text, Pressable, Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { Mail, Facebook, Instagram, Youtube, Send, ArrowRight } from 'lucide-react-native';
+import { Mail, Facebook, Instagram, Youtube, Linkedin, ArrowRight } from 'lucide-react-native';
+import { useSettings } from '../api';
 import { TrustifiedStamp } from './icons/TrustifiedStamp';
-import { colors } from '../theme/tokens';
 
 export function Footer() {
   const navigation = useNavigation<any>();
-  const [email, setEmail] = useState('');
-
-  const handleSubscribe = () => {
-    if (email.trim()) {
-      Alert.alert("Subscribed", "You'll get new test results in your inbox.");
-      setEmail('');
-    }
-  };
+  const { data } = useSettings();
+  const socials = data?.data?.socials ?? {};
+  const contactEmail = data?.data?.contact_email || 'support@trustified.in';
 
   return (
     <View className="bg-[#0b0f19] pt-12 pb-8 border-t-[3px] border-[#2563eb]">
@@ -37,44 +32,21 @@ export function Footer() {
           </Text>
         </View>
 
-        {/* Socials row */}
+        {/* Socials row — only the ones set in admin settings (incl. LinkedIn) */}
         <View className="flex-row gap-3">
-          <SocialLink icon={Facebook} url="https://facebook.com" />
-          <SocialLink icon={Instagram} url="https://instagram.com" />
-          <SocialLink icon={Youtube} url="https://youtube.com" />
+          {socials.facebook ? <SocialLink icon={Facebook} url={socials.facebook} /> : null}
+          {socials.instagram ? <SocialLink icon={Instagram} url={socials.instagram} /> : null}
+          {socials.youtube ? <SocialLink icon={Youtube} url={socials.youtube} /> : null}
+          {socials.linkedin ? <SocialLink icon={Linkedin} url={socials.linkedin} /> : null}
         </View>
 
-        {/* Explore Links */}
+        {/* Explore Links — Standard / Gold / NMR are one Pass/Fail page */}
         <View>
           <Text className="text-white text-xs font-bold uppercase tracking-wider mb-3">Explore</Text>
           <View className="gap-2.5">
-            <FooterLink label="Standard Database" onPress={() => navigation.navigate('Reports', { type: 'pass-fail' })} />
-            <FooterLink label="Gold Certified" onPress={() => navigation.navigate('Reports', { type: 'gold' })} />
-            <FooterLink label="NMR Reports" onPress={() => navigation.navigate('Reports', { type: 'nmr' })} />
-          </View>
-        </View>
-
-        {/* Stay Updated Card */}
-        <View className="bg-white/5 border border-white/10 rounded-2xl p-4">
-          <Text className="text-white text-xs font-bold uppercase tracking-wider mb-1">Stay Updated</Text>
-          <Text className="text-[10px] text-ink-450 font-bold mb-3">
-            Get new test results and alerts delivered directly to your inbox.
-          </Text>
-          <View className="flex-row gap-2">
-            <TextInput
-              value={email}
-              onChangeText={setEmail}
-              placeholder="Enter your email"
-              placeholderTextColor="#4b5563"
-              keyboardType="email-address"
-              className="flex-1 bg-[#111827] text-white text-xs font-semibold px-3.5 py-2.5 rounded-xl border border-white/10"
-            />
-            <Pressable 
-              onPress={handleSubscribe} 
-              className="bg-brand-500 rounded-xl px-3.5 items-center justify-center active:opacity-90"
-            >
-              <Send size={14} color="#fff" />
-            </Pressable>
+            <FooterLink label="Pass/Fail" onPress={() => navigation.navigate('Reports')} />
+            <FooterLink label="Certified Brands" onPress={() => navigation.navigate('CertifiedBrands')} />
+            <FooterLink label="Shop" onPress={() => navigation.navigate('Shop')} />
           </View>
         </View>
 
@@ -85,11 +57,11 @@ export function Footer() {
           </View>
           <View>
             <Text className="text-[10px] text-ink-500 dark:text-ink-400 font-bold uppercase">Contact Email</Text>
-            <Text 
-              className="text-xs font-bold text-white mt-0.5" 
-              onPress={() => Linking.openURL('mailto:support@trustified.in')}
+            <Text
+              className="text-xs font-bold text-white mt-0.5"
+              onPress={() => Linking.openURL(`mailto:${contactEmail}`)}
             >
-              support@trustified.in
+              {contactEmail}
             </Text>
           </View>
         </View>

@@ -80,11 +80,6 @@ export function MoreScreen() {
       onPress: () => navigation.navigate('Testing'),
     },
     {
-      label: 'What Gets Certified',
-      icon: <ListChecks size={20} color={colors.ink[600]} />,
-      onPress: () => navigation.navigate('WhatGetsCertified'),
-    },
-    {
       label: 'Settings',
       icon: <SettingsIcon size={20} color={colors.ink[600]} />,
       onPress: () => navigation.navigate('SettingsMenu'),

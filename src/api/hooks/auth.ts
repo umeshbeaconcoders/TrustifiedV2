@@ -171,15 +171,47 @@ export function useChangePassword() {
   });
 }
 
+/** Don't let a slow/hung logout request keep the UI "logged in". */
+const LOGOUT_REQUEST_TIMEOUT_MS = 2500;
+
+/**
+ * Signs out locally right away (token, store, caches), then revokes the server token in the
+ * background — the user is never left waiting on (or stuck behind) the network.
+ */
 export function useLogout() {
   const queryClient = useQueryClient();
   const authStore = require('../../stores/auth').useAuthStore;
   return useMutation({
-    mutationFn: () => api.post<unknown>('/auth/logout').catch(() => undefined),
+    mutationFn: () =>
+      Promise.race([
+        api.post<unknown>('/auth/logout').catch(() => undefined),
+        new Promise<void>((resolve) => setTimeout(resolve, LOGOUT_REQUEST_TIMEOUT_MS)),
+      ]),
     onSettled: () => {
       void setAuthToken(null);
       queryClient.removeQueries({ queryKey: ['auth'] });
       authStore.getState().clear();
+    },
+  });
+}
+
+/** Mails a 6-digit code to the user's email (or to `email` when they have none / are adding one). */
+export function useSendEmailCode() {
+  return useMutation({
+    mutationFn: (body: { email?: string } = {}) =>
+      api.post<Envelope<{ message: string; email: string; expires_in: number }>>('/account/email/send-code', body),
+  });
+}
+
+/** Confirms the emailed code; the email is saved + marked verified and the cached user refreshed. */
+export function useVerifyEmailCode() {
+  const queryClient = useQueryClient();
+  const authStore = require('../../stores/auth').useAuthStore;
+  return useMutation({
+    mutationFn: (body: { code: string }) => api.post<Envelope<User>>('/account/email/verify', body),
+    onSuccess: (res) => {
+      queryClient.setQueryData(['auth', 'me'], { data: res.data });
+      authStore.getState().setUser(res.data);
     },
   });
 }

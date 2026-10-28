@@ -15,7 +15,6 @@ import { GetCertifiedScreen } from '../screens/leads/GetCertifiedScreen';
 import { ChallengeScreen } from '../screens/leads/ChallengeScreen';
 import { AboutScreen } from '../screens/content/AboutScreen';
 import { TestingScreen } from '../screens/content/TestingScreen';
-import { WhatGetsCertifiedScreen } from '../screens/content/WhatGetsCertifiedScreen';
 import { PolicyScreen } from '../screens/content/PolicyScreen';
 import { SettingsMenuScreen } from '../screens/more/SettingsMenuScreen';
 import { MoreScreen } from '../screens/more/MoreScreen';
@@ -66,7 +65,6 @@ export function RootNavigator() {
       <Stack.Screen name="Challenge" component={ChallengeScreen} options={{ title: 'Challenge a Result' }} />
       <Stack.Screen name="About" component={AboutScreen} options={{ title: 'About Us' }} />
       <Stack.Screen name="Testing" component={TestingScreen} options={{ title: 'Gold Certification' }} />
-      <Stack.Screen name="WhatGetsCertified" component={WhatGetsCertifiedScreen} options={{ title: 'What Gets Certified' }} />
       <Stack.Screen name="Policy" component={PolicyScreen} options={{ title: 'Policy' }} />
       <Stack.Screen name="SettingsMenu" component={SettingsMenuScreen} options={{ title: 'Settings' }} />
       <Stack.Screen name="ExportData" component={ExportDataScreen} options={{ title: 'Export My Data' }} />

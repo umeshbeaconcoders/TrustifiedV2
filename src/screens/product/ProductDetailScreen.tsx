@@ -68,7 +68,7 @@ export function ProductDetailScreen({ route, navigation }: Props) {
       <View className="flex-1 justify-center px-6">
         <EmptyState
           title="Product not found"
-          action={<Button variant="outline" onPress={() => navigation.goBack()}>Go back</Button>}
+          action={<Button variant="outline" onPress={() => navigation.navigate('Tabs', { screen: 'ShopTab' })}>Browse products</Button>}
         />
       </View>
     );

@@ -40,7 +40,7 @@ import {
   X,
   Search
 } from 'lucide-react-native';
-import { useReports, useCertifiedBrands, useOffers, useYoutubeVideos, useBanners, useSettings, useCategories } from '../../api';
+import { useReports, useAllCertifiedBrands, useOffers, useYoutubeVideos, useBanners, useSettings, useCategories } from '../../api';
 import { Button, Spinner, MediaFrame } from '../../components/ui';
 import { ProductCard } from '../../components/ProductCard';
 import { FadeIn, StaggerChildren } from '../../components/motion';
@@ -49,6 +49,8 @@ import { TrustifiedStamp } from '../../components/icons/TrustifiedStamp';
 import { CategoryIcon } from '../../components/CategoryIcon';
 
 import { InfiniteMarquee } from '../../components/InfiniteMarquee';
+import { BannerSlider } from '../../components/BannerSlider';
+import { ProductRail } from '../../components/ProductRail';
 import { usePullToRefresh } from '../../lib/usePullToRefresh';
 import { useNavColors } from '../../theme/tokens';
 import type { RootStackParamList, TabParamList } from '../../navigation/types';
@@ -219,11 +221,13 @@ export function HomeScreen() {
   const { width: SCREEN_WIDTH } = Dimensions.get('window');
   const DRAWER_WIDTH = SCREEN_WIDTH * 0.75;
 
-  const { data: passFail, isLoading: reportsLoading, refetch: refetchPassFail } = useReports('pass-fail', { per_page: 6 });
-  const { data: brandsRes, refetch: refetchBrands } = useCertifiedBrands();
+  // Latest Reports shows only products that passed — expired and failed ones are left out.
+  const { data: passFail, isLoading: reportsLoading, refetch: refetchPassFail } = useReports('pass-fail', { per_page: 6, status: 'pass' });
+  // Every certified brand (all pages) — the strip must never be cut off at a page size.
+  const { data: brandList = [], refetch: refetchBrands } = useAllCertifiedBrands();
   const { data: offersRes, refetch: refetchOffers } = useOffers();
   const { data: videosRes, refetch: refetchVideos } = useYoutubeVideos();
-  const { data: bannersRes, refetch: refetchBanners } = useBanners();
+  const { data: bannersRes, refetch: refetchBanners } = useBanners('home');
   const { data: settingsRes, refetch: refetchSettings } = useSettings();
   const { data: categoriesRes, refetch: refetchCategories } = useCategories();
   const { refreshing, onRefresh } = usePullToRefresh([
@@ -296,47 +300,19 @@ export function HomeScreen() {
     outputRange: ['0deg', '-360deg'],
   });
 
-  const brands = (brandsRes?.data ?? [])
-    .filter((b) => !!b.logo_url)
-    .slice()
-    .sort((a, b) => {
-      const aHasLogo = !!a.logo_url;
-      const bHasLogo = !!b.logo_url;
-      if (aHasLogo && !bHasLogo) return -1;
-      if (!aHasLogo && bHasLogo) return 1;
-      return 0;
-    });
+  const brands = brandList;
 
   const offers = offersRes?.data ?? [];
   const videos = videosRes?.data ?? [];
-  const homeBanners = (bannersRes?.data ?? []).filter(
-    (b) => (b.position === 'home' || b.position === 'header') && !b.image_url?.includes('placeholder'),
-  );
+  const homeBanners = bannersRes?.data ?? [];
 
   const categories = (categoriesRes?.data ?? []).filter((c) => !c.is_upcoming);
 
-  // Dynamic statistics bound from settings API
+  // Live counts from the backend (never admin-entered); nothing is shown — rather than a made-up
+  // number — until they load.
   const settings = settingsRes?.data;
   const heroStats = settings?.hero_stats;
-  const certifiedProductsCount = heroStats?.certified_products ?? (passFail?.meta as { total?: number } | undefined)?.total ?? 542;
-  const brandsCount = heroStats?.brands ?? brands.length ?? 100;
-  const testsConductedCount = heroStats?.tests_conducted ?? 1500;
-
-  const handleBannerPress = (link: string | null | undefined) => {
-    if (!link) return;
-    if (link.startsWith('http')) {
-      Linking.openURL(link).catch(() => { });
-      return;
-    }
-    const cleanLink = link.replace(/\/$/, '');
-    if (cleanLink === '/brands') {
-      navigation.navigate('CertifiedBrands');
-    } else if (cleanLink === '/certificates' || cleanLink === '/verify') {
-      navigation.navigate('Verify');
-    } else if (cleanLink === '/products' || cleanLink === '/reports') {
-      navigation.navigate('Tabs', { screen: 'Reports' });
-    }
-  };
+  const statValue = (n: number | undefined) => (typeof n === 'number' ? `${n.toLocaleString('en-IN')}+` : '–');
 
   const handleCategoryPress = (slug: string) => {
     // Navigate to standard Reports screen prefilled with this category
@@ -442,9 +418,9 @@ export function HomeScreen() {
 
             {/* Dynamic Counters loaded from backend Settings */}
             <View className="mt-10 flex-row justify-between gap-x-4 pr-4 border-t border-ink-800/60 pt-6">
-              <Stat icon={<CheckCircle size={20} color="#2ab841" />} label="Total certified products" value={`${certifiedProductsCount}+`} />
-              <Stat icon={<Trophy size={20} color="#2ab841" />} label="Brands" value={`${brandsCount}+`} />
-              <Stat icon={<Beaker size={20} color="#2ab841" />} label="Tests conducted" value={`${testsConductedCount}+`} />
+              <Stat icon={<CheckCircle size={20} color="#2ab841" />} label="Total certified products" value={statValue(heroStats?.certified_products)} />
+              <Stat icon={<Trophy size={20} color="#2ab841" />} label="Brands" value={statValue(heroStats?.brands)} />
+              <Stat icon={<Beaker size={20} color="#2ab841" />} label="Tests conducted" value={statValue(heroStats?.tests_conducted)} />
             </View>
 
             {/* Web-aligned Hero Graphic Stamp Illustration positioned below counters */}
@@ -485,35 +461,11 @@ export function HomeScreen() {
           </FadeIn>
         </View>
 
-        {/* Dynamic Banners Slider */}
+        {/* Admin banners with position "home" */}
         {homeBanners.length > 0 ? (
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-4 px-6 py-6">
-            {homeBanners.map((banner) => {
-              const hasLink = !!banner.link;
-              const content = (
-                <MediaFrame
-                  src={banner.image_url}
-                  alt={banner.title ?? 'Banner'}
-                  aspect="video"
-                  rounded="2xl"
-                  className="w-80 shadow-md border border-ink-100 dark:border-ink-800"
-                />
-              );
-              if (hasLink) {
-                return (
-                  <Pressable
-                    key={banner.id}
-                    onPress={() => handleBannerPress(banner.link)}
-                    accessibilityRole="button"
-                    accessibilityLabel={banner.title ?? 'Banner'}
-                    className="active:opacity-90">
-                    {content}
-                  </Pressable>
-                );
-              }
-              return <View key={banner.id}>{content}</View>;
-            })}
-          </ScrollView>
+          <View className="py-6">
+            <BannerSlider banners={homeBanners} className="mx-6" />
+          </View>
         ) : null}
 
         {/* Why We're Better Section */}
@@ -675,11 +627,11 @@ export function HomeScreen() {
                 <Text className="text-xs leading-relaxed text-ink-600 dark:text-ink-300 font-medium">{item.body}</Text>
                 {item.screen ? (
                   <Pressable
-                    onPress={() => navigation.navigate('Tabs', { screen: 'Reports' })}
+                    onPress={() => navigation.navigate('Tabs', { screen: 'ShopTab' })}
                     accessibilityRole="button"
                     className="mt-3 flex-row items-center gap-1 self-start"
                   >
-                    <Text className="text-xs font-bold text-brand-600">Browse products</Text>
+                    <Text className="text-xs font-bold text-brand-600">Visit the shop</Text>
                     <ChevronRight size={14} color={colors.brand[600]} />
                   </Pressable>
                 ) : null}
@@ -713,7 +665,7 @@ export function HomeScreen() {
           <View className="py-6 bg-ink-50/30">
             <SectionHeader
               title="Categories"
-              subtitle="Browse certified products across every category we test"
+              subtitle="Browse products across every category we test"
               className="px-6 mb-4"
             />
             <View className="px-6">
@@ -757,10 +709,20 @@ export function HomeScreen() {
                 {brands.map((brand) => (
                   <Pressable
                     key={brand.id}
-                    onPress={() => brand.slug && navigation.navigate('BrandDetail', { slug: brand.slug })}
+                    // A brand opens the Pass & Fail list filtered to that brand.
+                    onPress={() => brand.slug && navigation.navigate('Tabs', { screen: 'Reports', params: { brand: brand.slug } })}
+                    accessibilityRole="button"
+                    accessibilityLabel={brand.name}
                     className="w-full items-center"
                   >
-                    <MediaFrame src={brand.logo_url} alt={brand.name} aspect="square" rounded="xl" className="w-20 shadow-sm border border-ink-100 dark:border-ink-800" />
+                    {/* Brands without a logo still show — as their initial. */}
+                    {brand.logo_url ? (
+                      <MediaFrame src={brand.logo_url} alt={brand.name} aspect="square" rounded="xl" className="w-20 shadow-sm border border-ink-100 dark:border-ink-800" />
+                    ) : (
+                      <View className="h-20 w-20 items-center justify-center rounded-xl border border-ink-100 bg-ink-50 dark:border-ink-800 dark:bg-surface-2">
+                        <Text className="text-2xl font-bold text-ink-400">{brand.name.charAt(0).toUpperCase()}</Text>
+                      </View>
+                    )}
                     <Text className="mt-1 text-center text-xs font-semibold text-ink-700 dark:text-ink-200" numberOfLines={1}>
                       {brand.name}
                     </Text>
@@ -807,30 +769,38 @@ export function HomeScreen() {
               title="Latest Videos"
               subtitle="Watch our recent independent reviews"
             />
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-4 py-4">
-              {videos.map((video) => (
-                <Pressable
-                  key={video.id}
-                  onPress={() => video.url && Linking.openURL(video.url)}
-                  accessibilityRole="button"
-                  accessibilityLabel={video.title ?? 'Watch video'}
-                  className="w-64 overflow-hidden rounded-2xl border border-ink-100 dark:border-ink-800 bg-white dark:bg-surface-1 active:opacity-95 shadow-sm">
-                  <View className="relative">
-                    <MediaFrame src={video.thumbnail_url} alt={video.title ?? ''} aspect="video" rounded="lg" />
-                    <View className="absolute inset-0 items-center justify-center bg-black/20">
-                      <View className="size-12 items-center justify-center rounded-full bg-white/90 shadow-md">
-                        <PlayCircle size={24} color="#FF0000" />
+            {/* Auto-scrolling strip (pauses on touch); with only a few videos it centres instead of scrolling. */}
+            <View className="-mx-6 py-4">
+              <ProductRail
+                data={videos}
+                keyExtractor={(v) => String(v.id)}
+                itemWidth={256}
+                gap={16}
+                paddingHorizontal={24}
+                renderItem={({ item: video }) => (
+                  <Pressable
+                    onPress={() => video.url && Linking.openURL(video.url)}
+                    accessibilityRole="button"
+                    accessibilityLabel={video.title ?? 'Watch video'}
+                    style={{ width: 256 }}
+                    className="overflow-hidden rounded-2xl border border-ink-100 dark:border-ink-800 bg-white dark:bg-surface-1 active:opacity-95 shadow-sm">
+                    <View className="relative">
+                      <MediaFrame src={video.thumbnail_url} alt={video.title ?? ''} aspect="video" rounded="lg" />
+                      <View className="absolute inset-0 items-center justify-center bg-black/20">
+                        <View className="size-12 items-center justify-center rounded-full bg-white/90 shadow-md">
+                          <PlayCircle size={24} color="#FF0000" />
+                        </View>
                       </View>
                     </View>
-                  </View>
-                  <View className="p-3">
-                    <Text className="text-sm font-bold text-ink-900 dark:text-white" numberOfLines={2}>
-                      {video.title}
-                    </Text>
-                  </View>
-                </Pressable>
-              ))}
-            </ScrollView>
+                    <View className="p-3">
+                      <Text className="text-sm font-bold text-ink-900 dark:text-white" numberOfLines={2}>
+                        {video.title}
+                      </Text>
+                    </View>
+                  </Pressable>
+                )}
+              />
+            </View>
           </View>
         ) : null}
 
@@ -894,7 +864,7 @@ export function HomeScreen() {
               <DrawerLink label="Challenge a Result" onPress={() => { toggleDrawer(false); navigation.navigate('Challenge'); }} />
               <DrawerLink label="About Us" onPress={() => { toggleDrawer(false); navigation.navigate('About'); }} />
               <DrawerLink label="Gold Certification" onPress={() => { toggleDrawer(false); navigation.navigate('Testing'); }} />
-              <DrawerLink label="What Gets Certified" onPress={() => { toggleDrawer(false); navigation.navigate('WhatGetsCertified'); }} />
+              <DrawerLink label="Get Certified" onPress={() => { toggleDrawer(false); navigation.navigate('GetCertified'); }} />
             </ScrollView>
           </Animated.View>
         </View>

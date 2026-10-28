@@ -25,7 +25,7 @@ export function CertifiedBrandsScreen() {
   const { data, isLoading, isRefetching, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
     queryKey: ['brands', 'certified-infinite'],
     queryFn: ({ pageParam, signal }) =>
-      api.get<Paginated<Brand>>('/certified-brands', { page: pageParam, per_page: 20 }, signal),
+      api.get<Paginated<Brand>>('/certified-brands', { page: pageParam, per_page: 36 }, signal),
     initialPageParam: 1,
     getNextPageParam: (lastPage: Paginated<Brand>) => {
       if (lastPage?.meta) {
@@ -99,7 +99,7 @@ export function CertifiedBrandsScreen() {
             ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
             renderItem={({ item: brand }) => (
               <View style={{ flex: 1, paddingHorizontal: 6 }}>
-                <Card pressable onPress={() => navigation.navigate('BrandDetail', { slug: brand.slug })} className="items-center gap-2 p-4">
+                <Card pressable onPress={() => navigation.navigate('Tabs', { screen: 'Reports', params: { brand: brand.slug } })} className="items-center gap-2 p-4">
                   <MediaFrame src={brand.logo_url} alt={brand.name} aspect="square" rounded="lg" className="w-full" />
                   <Text className="text-center text-sm font-semibold text-ink-900 dark:text-white" numberOfLines={1}>
                     {brand.name}
@@ -112,7 +112,8 @@ export function CertifiedBrandsScreen() {
                 </Card>
               </View>
             )}
-            onEndReachedThreshold={0.4}
+            // Load well ahead of the end so the next page is usually already there.
+            onEndReachedThreshold={1.5}
             onEndReached={() => {
               if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
             }}

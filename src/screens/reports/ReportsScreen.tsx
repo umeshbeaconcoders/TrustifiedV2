@@ -129,20 +129,25 @@ const SORT_OPTIONS = [
 
 function ReportsCollectionList({ collection, showStatusFilter }: { collection: ReportCollection; showStatusFilter: boolean }) {
   const route = useRoute();
-  const initialCategory = (route.params as { category?: string } | undefined)?.category || '';
+  const routeParams = route.params as { category?: string; brand?: string } | undefined;
+  const initialCategory = routeParams?.category || '';
 
   const [category, setCategory] = useState(initialCategory);
-  const [brand, setBrand] = useState('');
+  // A brand can be preselected from a Certified Brands tap (Home strip / Certified Brands screen).
+  const [brand, setBrand] = useState(routeParams?.brand || '');
   const [status, setStatus] = useState<Status>('');
   const [sort, setSort] = useState<Sort>('newest');
   const [brandModalVisible, setBrandModalVisible] = useState(false);
   const [sortModalVisible, setSortModalVisible] = useState(false);
 
-  // Sync category if navigated from Home screen category list
+  // Sync category / brand if navigated here from the Home screen (category list, brand strip)
   useEffect(() => {
-    const params = route.params as { category?: string } | undefined;
+    const params = route.params as { category?: string; brand?: string } | undefined;
     if (params && 'category' in params) {
       setCategory(params.category || '');
+    }
+    if (params && 'brand' in params) {
+      setBrand(params.brand || '');
     }
   }, [route.params]);
 
@@ -163,7 +168,7 @@ function ReportsCollectionList({ collection, showStatusFilter }: { collection: R
   }, [sort]);
 
   const params = useMemo(
-    () => ({ search: '', category, brand, status, sort, per_page: 12 }),
+    () => ({ search: '', category, brand, status, sort, per_page: 24 }),
     [category, brand, status, sort],
   );
 
@@ -374,7 +379,8 @@ function ReportsCollectionList({ collection, showStatusFilter }: { collection: R
                 <ProductCard product={item} to="ProductDetail" />
               </View>
             )}
-            onEndReachedThreshold={0.4}
+            // Load well ahead of the end (bigger pages, earlier trigger) so scrolling never waits on the network.
+            onEndReachedThreshold={1.5}
             onEndReached={() => {
               if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
             }}

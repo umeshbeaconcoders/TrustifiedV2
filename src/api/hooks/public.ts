@@ -3,11 +3,12 @@
  * names, params, and query keys, ported 1:1 per Appendix B of
  * REACT_NATIVE_INSTRUCTIONS.md.
  */
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../client';
 import {
   sanitizeCategory,
   type Banner,
+  type BannerPosition,
   type Brand,
   type Category,
   type Certificate,
@@ -19,6 +20,7 @@ import {
   type Review,
   type Settings,
   type ShopSection,
+  type ShopSectionWithProducts,
   type StoreLeadRequest,
   type TestReport,
   type Video,
@@ -94,11 +96,28 @@ export function useBrands(params: ListParams = {}) {
   });
 }
 
-export function useCertifiedBrands() {
+export function useCertifiedBrands(perPage = 24) {
   return useQuery({
-    queryKey: ['brands', 'certified'],
+    queryKey: ['brands', 'certified', perPage],
     queryFn: ({ signal }) =>
-      api.get<Envelope<Brand[]> | Paginated<Brand>>('/certified-brands', undefined, signal),
+      api.get<Envelope<Brand[]> | Paginated<Brand>>('/certified-brands', { per_page: perPage }, signal),
+    staleTime: 5 * 60_000,
+  });
+}
+
+/** Every certified brand (all pages, 100 per request) — for sliders that must never be cut off at a page size. */
+export function useAllCertifiedBrands() {
+  return useQuery({
+    queryKey: ['brands', 'certified', 'all'],
+    queryFn: async ({ signal }) => {
+      const brands: Brand[] = [];
+      for (let page = 1; ; page++) {
+        const res = await api.get<Paginated<Brand>>('/certified-brands', { page, per_page: 100 }, signal);
+        brands.push(...res.data);
+        if (res.meta.current_page >= res.meta.last_page || res.data.length === 0) break;
+      }
+      return brands;
+    },
     staleTime: 5 * 60_000,
   });
 }
@@ -195,11 +214,16 @@ export function useSettings() {
   });
 }
 
-export function useBanners() {
+/**
+ * Active banners for one position. Every screen shares ONE cached `/banners` request (all positions,
+ * already active-only and sorted by sort_order); the position is filtered here.
+ */
+export function useBanners(position?: BannerPosition) {
   return useQuery({
     queryKey: ['banners'],
     queryFn: ({ signal }) => api.get<Envelope<Banner[]>>('/banners', undefined, signal),
     staleTime: 5 * 60_000,
+    select: (res) => (position ? { ...res, data: res.data.filter((b) => b.position === position) } : res),
   });
 }
 
@@ -269,13 +293,14 @@ export function useVerifyCertificate(certificateNumber: string | undefined) {
   });
 }
 
-/* ---------- shop ---------- */
+/* ---------- shop (affiliate showcase — separate from reports) ---------- */
 
+/** Visible shop categories (sort order), each with its sub categories and first products. */
 export function useShopSections() {
   return useQuery({
     queryKey: ['shop', 'sections'],
-    queryFn: ({ signal }) => api.get<Envelope<ShopSection[]>>('/shop/sections', undefined, signal),
-    staleTime: 60_000,
+    queryFn: ({ signal }) => api.get<Envelope<ShopSectionWithProducts[]>>('/shop/sections', undefined, signal),
+    staleTime: 5 * 60_000,
   });
 }
 
@@ -284,30 +309,36 @@ export function useShopSection(slug: string | undefined) {
     queryKey: ['shop', 'section', slug],
     queryFn: ({ signal }) => api.get<Envelope<ShopSection>>(`/shop/sections/${slug}`, undefined, signal),
     enabled: Boolean(slug),
-  });
-}
-
-export function useShopBrands(sectionSlug: string | undefined) {
-  return useQuery({
-    queryKey: ['shop', 'brands', sectionSlug],
-    queryFn: ({ signal }) =>
-      api.get<Envelope<Brand[]>>('/shop/brands', sectionSlug ? { section: sectionSlug } : undefined, signal),
     staleTime: 5 * 60_000,
   });
 }
 
-export function useShopProducts(params: ListParams = {}) {
+/** Brands that have shoppable products, optionally within one category / sub category. */
+export function useShopBrands(section?: string, sub?: string) {
   return useQuery({
+    queryKey: ['shop', 'brands', section ?? '', sub ?? ''],
+    queryFn: ({ signal }) => api.get<Envelope<Brand[]>>('/shop/brands', { section, sub }, signal),
+    staleTime: 5 * 60_000,
+  });
+}
+
+export interface ShopProductParams {
+  section?: string | undefined;
+  /** Sub category slug (within `section`). */
+  sub?: string | undefined;
+  brand?: string | undefined;
+  search?: string | undefined;
+  per_page?: number;
+}
+
+/** Infinite-scroll shop products (only products with an affiliate buy link in a visible category). */
+export function useShopProductsInfinite(params: ShopProductParams = {}) {
+  return useInfiniteQuery({
     queryKey: ['shop', 'products', params],
-    queryFn: ({ signal }) => api.get<Paginated<Product>>('/shop/products', params, signal),
+    queryFn: ({ pageParam, signal }) =>
+      api.get<Paginated<Product>>('/shop/products', { ...params, page: pageParam }, signal),
+    initialPageParam: 1,
+    getNextPageParam: (last) => (last.meta.current_page < last.meta.last_page ? last.meta.current_page + 1 : undefined),
     staleTime: 60_000,
-  });
-}
-
-export function useShopBanners() {
-  return useQuery({
-    queryKey: ['banners', 'header'],
-    queryFn: ({ signal }) => api.get<Envelope<Banner[]>>('/banners', { position: 'header' }, signal),
-    staleTime: 5 * 60_000,
   });
 }

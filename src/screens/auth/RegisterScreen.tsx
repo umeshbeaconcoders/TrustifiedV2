@@ -193,7 +193,7 @@ export function RegisterScreen({ navigation }: Props) {
                 keyboardType="phone-pad"
                 autoComplete="tel"
                 maxLength={10}
-                placeholder="9876543210"
+                placeholder="Enter 10-digit mobile number"
                 accessibilityLabel="Mobile number"
               />
             </Field>

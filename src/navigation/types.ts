@@ -2,7 +2,7 @@ import type { NavigatorScreenParams } from '@react-navigation/native';
 
 export type TabParamList = {
   Home: { openDrawer?: boolean } | undefined;
-  Reports: { category?: string; fromDrawer?: boolean } | undefined;
+  Reports: { category?: string; brand?: string; fromDrawer?: boolean } | undefined;
   Search: undefined;
   ShopTab: undefined;
   BrandsTab?: { fromDrawer?: boolean } | undefined;
@@ -30,7 +30,6 @@ export type RootStackParamList = {
   Challenge: undefined;
   About: undefined;
   Testing: undefined;
-  WhatGetsCertified: undefined;
   Policy: { slug: string; title?: string };
   SettingsMenu: undefined;
   ExportData: undefined;
@@ -42,7 +41,8 @@ export type RootStackParamList = {
   ForgotPassword: undefined;
   ResetPassword: { token?: string; email?: string } | undefined;
   Shop: undefined;
-  ShopSection: { slug: string; name?: string };
+  /** A shop category; no `slug` = the "All products" screen. `sub` = sub category slug, `brand` = brand slug. */
+  ShopSection: { slug?: string; name?: string; sub?: string; brand?: string } | undefined;
   More: undefined;
 };
 

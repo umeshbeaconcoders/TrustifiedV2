@@ -9,9 +9,11 @@ const testLevels = [
   { name: 'Accuracy', detail: 'Claimed vs actual protein, carbs, fat — verified in the lab.' },
   { name: 'Amino Spiking', detail: 'Detects cheap amino acids passed off as protein.' },
   { name: 'Melamine', detail: 'Screens for the industrial adulterant behind fake protein counts.' },
-  { name: 'Non-Protein Nitrogen (NPN)', detail: 'Catches nitrogen-based inflation of protein numbers.' },
+  { name: 'MSG Spiking', detail: 'Catches Monosodium glutamate spiking' },
   { name: 'Heavy Metals', detail: 'Lead, arsenic, cadmium and mercury within safe limits.' },
-  { name: 'Aflatoxins & Pesticides', detail: 'Fungal toxins and residue screening for everyday safety.' },
+  { name: 'Aflatoxins', detail: 'Screening for toxic fungal compounds' },
+  { name: 'Pesticides', detail: 'Screening for harmful pesticide residues' },
+  { name: 'Steroids & Hormones', detail: 'Screening for 19 WADA-listed banned substances and prohibited hormones' },
 ];
 
 const wadaSubstances = [
