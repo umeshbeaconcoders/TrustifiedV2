@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, ScrollView, Linking, Pressable, Image, RefreshControl, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, Linking, Pressable, Image, RefreshControl, TouchableOpacity, Platform } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   PlayCircle,
@@ -88,18 +88,19 @@ export function ProductDetailScreen({ route, navigation }: Props) {
       <FadeIn>
         <View className="p-4">
           {/* Main Product Image — tap to open the full-screen zoom/pan viewer */}
-          <Pressable
-            onPress={() => images[selectedImageIndex] && setLightboxOpen(true)}
-            accessibilityRole="button"
-            accessibilityLabel="View full-size image"
-          >
-            <MediaFrame src={images[selectedImageIndex]} alt={product.name} aspect="square" rounded="2xl" />
-            {images[selectedImageIndex] ? (
-              <View className="absolute bottom-3 right-3 size-9 rounded-full bg-ink-900/70 items-center justify-center">
-                <ZoomIn size={16} color="#fff" />
-              </View>
-            ) : null}
-          </Pressable>
+          {/* Main product image (selected) */}
+<Pressable
+  onPress={() => images[selectedImageIndex] && setLightboxOpen(true)}
+  accessibilityRole="button"
+  accessibilityLabel="View full-size image"
+>
+  <MediaFrame src={images[selectedImageIndex]} alt={product.name} aspect="square" rounded="2xl" />
+  {images[selectedImageIndex] ? (
+    <View className="absolute bottom-3 right-3 size-9 rounded-full bg-ink-900/70 items-center justify-center">
+      <ZoomIn size={16} color="#fff" />
+    </View>
+  ) : null}
+</Pressable>
 
           {/* Dynamic Image Gallery Slider (Circular Thumbnails) */}
           {images.length > 1 ? (

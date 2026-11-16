@@ -71,7 +71,7 @@ export function TabNavigator() {
   const tabHeight = (Platform.OS === 'ios' ? 52 : 56) + bottomPadding;
 
   return (
-    <Tab.Navigator
+    <Tab.Navigator initialRouteName="ShopTab"
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: nav.tabActive,
