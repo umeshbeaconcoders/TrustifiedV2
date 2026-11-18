@@ -33,6 +33,7 @@
     "react-native-bootsplash": "^6.3.12",
     "react-native-code-push": "^9.0.1",
     "react-native-config": "^1.5.3",
+    "react-native-device-info": "^14.0.4",
     "react-native-fast-image": "^8.6.3",
     "react-native-gesture-handler": "2.18.1",
     "react-native-keychain": "^8.2.0",

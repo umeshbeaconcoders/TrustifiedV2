@@ -255,6 +255,14 @@ export interface Lead {
   created_at?: string;
 }
 
+/** Response of GET /app-version — what the launch-time update check compares against. */
+export interface AppVersionInfo {
+  platform: 'ios' | 'android';
+  latest_version: string | null;
+  store_url: string | null;
+  force_update: boolean;
+}
+
 export interface Settings {
   site_name: string;
   logo_path: string | null;
@@ -263,7 +271,7 @@ export interface Settings {
   contact_phone: string | null;
   socials: Partial<Record<'facebook' | 'instagram' | 'twitter' | 'linkedin' | 'youtube', string>>;
   app_links: Partial<Record<'ios' | 'android', string>>;
-  app_version?: Partial<Record<'ios' | 'android', string>>;
+  app_version?: Partial<Record<'ios' | 'android', string | null>>;
   maintenance_mode: boolean;
   maintenance_message?: string;
   /** Live counts computed by the backend — never admin-entered. */

@@ -7,6 +7,7 @@ import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tansta
 import { api } from '../client';
 import {
   sanitizeCategory,
+  type AppVersionInfo,
   type Banner,
   type BannerPosition,
   type Brand,
@@ -211,6 +212,27 @@ export function useSettings() {
     queryKey: ['settings'],
     queryFn: ({ signal }) => api.get<Envelope<Settings>>('/settings', undefined, signal),
     staleTime: 10 * 60_000,
+  });
+}
+
+export const APP_VERSION_STALE_MS = 60 * 60_000;
+
+/**
+ * Store version info for the launch-time update check. Cached for an hour in memory (the endpoint is
+ * also cached server- and edge-side), never retried loudly — a failed check must never get in the
+ * user's way, so errors are swallowed and the app simply carries on without the popup.
+ */
+export function useAppVersion(platform: 'ios' | 'android') {
+  return useQuery({
+    queryKey: ['app-version', platform],
+    queryFn: ({ signal }) => api.get<Envelope<AppVersionInfo>>('/app-version', { platform }, signal),
+    select: (res) => res.data,
+    staleTime: APP_VERSION_STALE_MS,
+    gcTime: 24 * 60 * 60_000,
+    retry: 1,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    refetchOnWindowFocus: false,
   });
 }
 

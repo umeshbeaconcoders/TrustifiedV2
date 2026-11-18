@@ -17,6 +17,7 @@ enableFreeze(false);
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { AppUpdateGate } from './src/components/AppUpdateGate';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
 import { ToastHost } from './src/components/ToastHost';
 import { AuthHydrator } from './src/navigation/AuthHydrator';
@@ -62,6 +63,7 @@ export default function App() {
               <ToastHost />
             </NavigationContainer>
           </AuthHydrator>
+          <AppUpdateGate />
         </QueryClientProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
