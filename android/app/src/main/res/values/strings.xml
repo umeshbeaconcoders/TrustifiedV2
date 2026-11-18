@@ -1,4 +1,4 @@
 <resources>
-    <string name="app_name">TrustifiedV2</string>
+    <string name="app_name">Trustified</string>
     <string name="CodePushDeploymentKey">placeholder-key-to-bypass-build-check</string>
 </resources>

@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "123456789012",
-    "project_id": "trustified-v2-placeholder",
-    "storage_bucket": "trustified-v2-placeholder.appspot.com"
+    "project_number": "178584583247",
+    "project_id": "trustified-1f9f6",
+    "storage_bucket": "trustified-1f9f6.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:123456789012:android:abcdef1234567890",
+        "mobilesdk_app_id": "1:178584583247:android:d232f7262ee09ddfd3fe3a",
         "android_client_info": {
-          "package_name": "com.trustifiedv2"
+          "package_name": "com.trustified.app"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "placeholder-api-key-to-bypass-firebase-checks"
+          "current_key": "AIzaSyDyDlH_aMQVE_gghQSfoXR-dHRiXAdq2Xg"
         }
       ],
       "services": {

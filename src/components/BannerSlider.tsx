@@ -1,5 +1,13 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View, Pressable, ScrollView, type LayoutChangeEvent, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native';
+import {
+  View,
+  Pressable,
+  ScrollView,
+  Image,
+  type LayoutChangeEvent,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+} from 'react-native';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { Banner } from '../api/types';
@@ -14,10 +22,19 @@ const RESUME_AFTER_MS = 3500;
 
 /**
  * Auto-advancing banner carousel with dots and swipe. Tapping a slide opens its admin-set link
- * (in-app screen, website, mail/tel…). A single banner renders without dots. Height follows the
- * website's phone ratio (2:1).
+ * (in-app screen, website, mail/tel…). A single banner renders without dots.
+ * Height automatically matches the banner's natural aspect ratio (1920x672 = ~2.86:1) so
+ * no content or text is cropped.
  */
-export function BannerSlider({ banners, className = 'mx-5' }: { banners: Banner[]; className?: string }) {
+export function BannerSlider({
+  banners,
+  className = 'mx-5',
+  aspectRatio: customAspectRatio,
+}: {
+  banners: Banner[];
+  className?: string;
+  aspectRatio?: number;
+}) {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const focused = useIsFocused();
   // Defensive: the API only returns active banners, but never show an inactive one.
@@ -26,9 +43,35 @@ export function BannerSlider({ banners, className = 'mx-5' }: { banners: Banner[
 
   const [width, setWidth] = useState(0);
   const [index, setIndex] = useState(0);
+  // Default to standard banner ratio (1920 / 672 ≈ 2.857)
+  const [aspectRatio, setAspectRatio] = useState<number>(customAspectRatio ?? 1920 / 672);
+
   const scrollRef = useRef<ScrollView>(null);
   const indexRef = useRef(0);
   const pausedUntil = useRef(0);
+
+  // Measure natural aspect ratio from first slide's image
+  useEffect(() => {
+    if (customAspectRatio) {
+      setAspectRatio(customAspectRatio);
+      return;
+    }
+    const firstUrl = slides[0]?.image_url;
+    if (firstUrl) {
+      Image.getSize(
+        firstUrl,
+        (w, h) => {
+          if (w > 0 && h > 0) {
+            setAspectRatio(w / h);
+          }
+        },
+        () => {
+          // Fallback to standard 1920:672
+          setAspectRatio(1920 / 672);
+        },
+      );
+    }
+  }, [slides[0]?.image_url, customAspectRatio]);
 
   const onLayout = useCallback((e: LayoutChangeEvent) => setWidth(Math.round(e.nativeEvent.layout.width)), []);
 
@@ -59,9 +102,11 @@ export function BannerSlider({ banners, className = 'mx-5' }: { banners: Banner[
 
   if (count === 0) return null;
 
+  const bannerHeight = width > 0 ? Math.round(width / aspectRatio) : 120;
+
   return (
     <View className={className}>
-      <View onLayout={onLayout} className="overflow-hidden rounded-2xl bg-ink-100 dark:bg-surface-2">
+      <View onLayout={onLayout} className="overflow-hidden rounded-2xl bg-ink-100 dark:bg-surface-2" style={{ height: width > 0 ? bannerHeight : undefined }}>
         {width > 0 ? (
           <ScrollView
             ref={scrollRef}
@@ -73,7 +118,7 @@ export function BannerSlider({ banners, className = 'mx-5' }: { banners: Banner[
               pausedUntil.current = Date.now() + RESUME_AFTER_MS;
             }}
             onMomentumScrollEnd={onMomentumEnd}
-            style={{ width }}>
+            style={{ width, height: bannerHeight }}>
             {slides.map((banner) => (
               <Pressable
                 key={banner.id}
@@ -81,13 +126,19 @@ export function BannerSlider({ banners, className = 'mx-5' }: { banners: Banner[
                 onPress={() => openLink(navigation, banner.link)}
                 accessibilityRole={banner.link ? 'link' : 'image'}
                 accessibilityLabel="Featured offer"
-                style={{ width, height: Math.round(width * 0.5) }}>
-                <MediaFrame src={banner.image_url} aspect="auto" rounded="2xl" resizeMode="cover" style={{ width: '100%', height: '100%' }} />
+                style={{ width, height: bannerHeight }}>
+                <MediaFrame
+                  src={banner.image_url}
+                  aspect="auto"
+                  rounded="2xl"
+                  resizeMode="contain"
+                  style={{ width: '100%', height: '100%' }}
+                />
               </Pressable>
             ))}
           </ScrollView>
         ) : (
-          <View style={{ height: 160 }} />
+          <View style={{ height: 120 }} />
         )}
       </View>
 

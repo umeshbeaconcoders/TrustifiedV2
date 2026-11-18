@@ -40,6 +40,7 @@ export type RootStackParamList = {
   TwoFactorChallenge: { challengeToken: string };
   ForgotPassword: undefined;
   ResetPassword: { token?: string; email?: string } | undefined;
+  Splash: undefined;
   Shop: undefined;
   /** A shop category; no `slug` = the "All products" screen. `sub` = sub category slug, `brand` = brand slug. */
   ShopSection: { slug?: string; name?: string; sub?: string; brand?: string } | undefined;

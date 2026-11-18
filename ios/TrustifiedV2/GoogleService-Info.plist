@@ -9,7 +9,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.trustifiedv2.mobile</string>
+	<string>com.trustified.app</string>
 	<key>PROJECT_ID</key>
 	<string>trustified-v2-placeholder</string>
 	<key>STORAGE_BUCKET</key>

@@ -11,6 +11,7 @@ import { StatusBar, useColorScheme } from 'react-native';
 import { enableFreeze } from 'react-native-screens';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
+
 // Freezes off-screen stack screens — disabled to prevent NavigationContext loss on state changes
 enableFreeze(false);
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
@@ -45,10 +46,7 @@ function PushNotificationsBridge() {
 export default function App() {
   const scheme = useColorScheme();
 
-  useEffect(() => {
-    // react-native-bootsplash would be hidden here once the first frame is
-    // ready — native bootsplash config itself lives in ios/Android (Phase 7).
-  }, []);
+  useEffect(() => {}, []);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

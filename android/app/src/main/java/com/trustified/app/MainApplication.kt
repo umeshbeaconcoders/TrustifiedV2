@@ -1,4 +1,4 @@
-package com.trustifiedv2
+package com.trustified.app
 
 import android.app.Application
 import com.facebook.react.PackageList
@@ -41,3 +41,4 @@ class MainApplication : Application(), ReactApplication {
     }
   }
 }
+

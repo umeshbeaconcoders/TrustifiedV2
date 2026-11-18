@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useNavColors } from '../theme/tokens';
 import type { RootStackParamList } from './types';
 import { TabNavigator } from './TabNavigator';
+import SplashScreen from '../screens/SplashScreen';
 
 import { ProductDetailScreen } from '../screens/product/ProductDetailScreen';
 import { ReportDetailScreen } from '../screens/reports/ReportDetailScreen';
@@ -35,7 +36,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 export function RootNavigator() {
   const nav = useNavColors();
   return (
-    <Stack.Navigator
+    <Stack.Navigator initialRouteName="Splash"
       screenOptions={{
         headerTintColor: nav.headerTint,
         headerTitleStyle: { fontWeight: '700', color: nav.headerTint },
@@ -43,15 +44,13 @@ export function RootNavigator() {
         headerStyle: { backgroundColor: nav.headerBackground },
         contentStyle: { backgroundColor: nav.screenBackground },
         freezeOnBlur: false,
-        // Swipe-to-go-back on every pushed screen, both platforms — full-width
-        // edge swipe on iOS (not just the left-edge sliver), Android gets the
-        // matching gesture via react-native-screens.
         headerBackTitleVisible: false,
         headerBackTitle: '',
         gestureEnabled: true,
         fullScreenGestureEnabled: true,
         animation: 'slide_from_right',
       }}>
+      <Stack.Screen name="Splash" component={SplashScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Tabs" component={TabNavigator} options={{ headerShown: false }} />
 
       <Stack.Screen name="ProductDetail" component={ProductDetailScreen} options={{ title: 'Product' }} />
