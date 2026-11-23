@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useLayoutEffect, useCallback } from 'react';
 import {
-  View, Text, ScrollView, Pressable, KeyboardAvoidingView, Platform, BackHandler,
+  View, Text, ScrollView, KeyboardAvoidingView, Platform, BackHandler, TouchableOpacity,
 } from 'react-native';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -34,14 +34,14 @@ export function LoginScreen({ navigation, route }: Props) {
   useLayoutEffect(() => {
     navigation.setOptions({
       headerLeft: () => (
-        <Pressable
+        <TouchableOpacity
           onPress={() => navigation.navigate('Tabs', { screen: 'Home' })}
-          className="p-2 -ml-2 mr-2 active:bg-ink-50 dark:active:bg-ink-800 rounded-full"
+          style={{ padding: 8, marginLeft: -8, marginRight: 8, borderRadius: 20 }}
           accessibilityRole="button"
           accessibilityLabel="Go to Home"
         >
           <ArrowLeft size={24} color={nav.headerTint} />
-        </Pressable>
+        </TouchableOpacity>
       ),
     });
   }, [navigation, nav]);
@@ -129,27 +129,25 @@ export function LoginScreen({ navigation, route }: Props) {
           </Text>
 
           {/* Tab switcher — "Email & password" | "Mobile OTP" — pill style like web */}
-          <View className="flex-row bg-ink-100 dark:bg-surface-2 rounded-xl p-1 mt-8 mb-5">
-            <Pressable
-              onPress={() => setActiveTab('email')}
-              className={`flex-1 py-2.5 rounded-lg items-center ${activeTab === 'email' ? 'bg-white dark:bg-surface-3 shadow-sm' : ''}`}
-              accessibilityRole="tab"
-              accessibilityState={{ selected: activeTab === 'email' }}
-            >
-              <Text className={`text-sm font-semibold ${activeTab === 'email' ? 'text-ink-900 dark:text-white' : 'text-ink-500 dark:text-ink-400'}`}>
-                Email & password
-              </Text>
-            </Pressable>
-            <Pressable
-              onPress={() => setActiveTab('otp')}
-              className={`flex-1 py-2.5 rounded-lg items-center ${activeTab === 'otp' ? 'bg-white dark:bg-surface-3 shadow-sm' : ''}`}
-              accessibilityRole="tab"
-              accessibilityState={{ selected: activeTab === 'otp' }}
-            >
-              <Text className={`text-sm font-semibold ${activeTab === 'otp' ? 'text-ink-900 dark:text-white' : 'text-ink-500 dark:text-ink-400'}`}>
-                Mobile OTP
-              </Text>
-            </Pressable>
+          <View style={{ flexDirection: 'row', backgroundColor: '#f0f0f0', borderRadius: 12, padding: 4, marginTop: 32, marginBottom: 20 }}>
+            {(['email', 'otp'] as const).map((tab) => (
+              <TouchableOpacity
+                key={tab}
+                activeOpacity={0.7}
+                onPress={() => setActiveTab(tab)}
+                style={{
+                  flex: 1,
+                  paddingVertical: 10,
+                  borderRadius: 8,
+                  alignItems: 'center',
+                  backgroundColor: activeTab === tab ? '#ffffff' : 'transparent',
+                }}
+              >
+                <Text style={{ fontSize: 14, fontWeight: '600', color: activeTab === tab ? '#111' : '#888' }}>
+                  {tab === 'email' ? 'Email & password' : 'Mobile OTP'}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </View>
 
           {/* Email/password form */}
@@ -175,15 +173,14 @@ export function LoginScreen({ navigation, route }: Props) {
                 />
               </Field>
 
-              <Pressable
+              <TouchableOpacity
                 onPress={() => navigation.navigate('ForgotPassword')}
-                className="self-end"
+                activeOpacity={0.7}
+                style={{ alignSelf: 'flex-end' }}
                 accessibilityRole="button"
               >
-                <Text className="text-xs font-semibold text-brand-600">
-                  Forgot password?
-                </Text>
-              </Pressable>
+                <Text className="text-xs font-semibold text-brand-600">Forgot password?</Text>
+              </TouchableOpacity>
 
               <Button
                 onPress={onSubmit}
@@ -201,16 +198,11 @@ export function LoginScreen({ navigation, route }: Props) {
           )}
 
           {/* Register link — same as web "New here? Create an account" */}
-          <View className="flex-row justify-center items-center gap-1 mt-8">
+          <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 4, marginTop: 32 }}>
             <Text className="text-sm text-ink-500 dark:text-ink-400">New here?</Text>
-            <Pressable
-              onPress={() => navigation.navigate('Register')}
-              accessibilityRole="button"
-            >
-              <Text className="text-sm font-semibold text-brand-700">
-                {' '}Create an account
-              </Text>
-            </Pressable>
+            <TouchableOpacity onPress={() => navigation.navigate('Register')} activeOpacity={0.7} accessibilityRole="button">
+              <Text className="text-sm font-semibold text-brand-700">{' '}Create an account</Text>
+            </TouchableOpacity>
           </View>
 
           <Text className="mt-4 text-center text-xs text-ink-500 dark:text-ink-400">
@@ -353,14 +345,14 @@ function OtpLoginTabSection({ navigation }: { navigation: any }) {
               Resend OTP in {cooldown}s
             </Text>
           ) : (
-            <Pressable onPress={handleResendOtp} disabled={otpRequest.isPending} className="items-center py-1" accessibilityRole="button">
+            <TouchableOpacity onPress={handleResendOtp} disabled={otpRequest.isPending} style={{ alignItems: 'center', paddingVertical: 4 }} accessibilityRole="button">
               <Text className="text-xs font-semibold text-brand-600 underline">Resend OTP</Text>
-            </Pressable>
+            </TouchableOpacity>
           )}
 
-          <Pressable onPress={() => { setPhone(null); setCooldown(0); setResendCount(0); }} className="items-center py-1" accessibilityRole="button">
+          <TouchableOpacity onPress={() => { setPhone(null); setCooldown(0); setResendCount(0); }} style={{ alignItems: 'center', paddingVertical: 4 }} accessibilityRole="button">
             <Text className="text-xs text-ink-500 dark:text-ink-400 underline">Use a different number</Text>
-          </Pressable>
+          </TouchableOpacity>
         </View>
       )}
     </View>

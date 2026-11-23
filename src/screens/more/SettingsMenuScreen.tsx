@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, Pressable, Switch, Linking, Platform } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Switch, Linking, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import messaging from '@react-native-firebase/messaging';
@@ -110,20 +110,16 @@ export function SettingsMenuScreen() {
         <Card className="gap-2 p-4">
           <Text className="text-xs font-bold uppercase tracking-wide text-ink-500 dark:text-ink-400">Contact us</Text>
           {settings.contact_email ? (
-            <Pressable
-              onPress={() => Linking.openURL(`mailto:${settings.contact_email}`)}
-              className="flex-row items-center gap-2">
+            <TouchableOpacity activeOpacity={0.7} onPress={() => Linking.openURL(`mailto:${settings.contact_email}`)} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <Mail size={14} color={colors.ink[400]} />
               <Text className="text-sm text-ink-700 dark:text-ink-200">{settings.contact_email}</Text>
-            </Pressable>
+            </TouchableOpacity>
           ) : null}
           {settings.contact_phone ? (
-            <Pressable
-              onPress={() => Linking.openURL(`tel:${settings.contact_phone}`)}
-              className="flex-row items-center gap-2">
+            <TouchableOpacity activeOpacity={0.7} onPress={() => Linking.openURL(`tel:${settings.contact_phone}`)} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <Phone size={14} color={colors.ink[400]} />
               <Text className="text-sm text-ink-700 dark:text-ink-200">{settings.contact_phone}</Text>
-            </Pressable>
+            </TouchableOpacity>
           ) : null}
           {settings.socials && Object.keys(settings.socials).length > 0 ? (
             <View className="mt-2 flex-row gap-3">
@@ -132,14 +128,15 @@ export function SettingsMenuScreen() {
                 const Icon = socialIcons[key];
                 if (!Icon) return null;
                 return (
-                  <Pressable
+                  <TouchableOpacity
                     key={key}
+                    activeOpacity={0.7}
                     onPress={() => Linking.openURL(url)}
                     accessibilityRole="link"
                     accessibilityLabel={key}
-                    className="size-9 items-center justify-center rounded-full bg-ink-50 dark:bg-surface-2">
+                    style={{ width: 36, height: 36, alignItems: 'center', justifyContent: 'center', borderRadius: 18, backgroundColor: '#f5f5f5' }}>
                     <Icon size={16} color={colors.ink[600]} />
-                  </Pressable>
+                  </TouchableOpacity>
                 );
               })}
             </View>
@@ -227,14 +224,15 @@ function MenuRow({
   last?: boolean;
 }) {
   return (
-    <Pressable
+    <TouchableOpacity
       onPress={onPress}
+      activeOpacity={0.7}
       accessibilityRole="button"
       accessibilityLabel={label}
-      className={`flex-row items-center gap-3 px-3 py-3 active:bg-ink-50 ${last ? '' : 'border-b border-ink-100'}`}>
+      style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 12, paddingVertical: 12, borderBottomWidth: last ? 0 : 1, borderBottomColor: '#f0f0f0' }}>
       {icon}
-      <Text className={`flex-1 text-sm font-medium ${danger ? 'text-fail' : 'text-ink-800'}`}>{label}</Text>
+      <Text style={{ flex: 1, fontSize: 14, fontWeight: '500', color: danger ? '#dc2626' : '#1a1a1a' }}>{label}</Text>
       <ChevronRight size={16} color={colors.ink[300]} />
-    </Pressable>
+    </TouchableOpacity>
   );
 }

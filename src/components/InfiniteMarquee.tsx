@@ -14,6 +14,7 @@ export function InfiniteMarquee({
 }) {
   const scrollViewRef = useRef<ScrollView>(null);
   const offset = useRef(0);
+  const pausedUntil = useRef(0);
   const totalItemWidth = itemWidth + gap;
   const count = children.length;
   const resetLimit = totalItemWidth * count;
@@ -26,12 +27,14 @@ export function InfiniteMarquee({
 
     const tick = () => {
       if (!isActive) return;
-      offset.current += speed;
-      if (offset.current >= resetLimit) {
-        offset.current = 0;
-      }
-      if (scrollViewRef.current) {
-        scrollViewRef.current.scrollTo({ x: offset.current, animated: false });
+      if (Date.now() >= pausedUntil.current) {
+        offset.current += speed;
+        if (offset.current >= resetLimit) {
+          offset.current = 0;
+        }
+        if (scrollViewRef.current) {
+          scrollViewRef.current.scrollTo({ x: offset.current, animated: false });
+        }
       }
       frameId = requestAnimationFrame(tick);
     };
@@ -59,6 +62,9 @@ export function InfiniteMarquee({
       showsHorizontalScrollIndicator={false}
       scrollEventThrottle={16}
       decelerationRate="fast"
+      onTouchStart={() => { pausedUntil.current = Date.now() + 2500; }}
+      onScrollBeginDrag={() => { pausedUntil.current = Date.now() + 6000; }}
+      onScrollEndDrag={() => { pausedUntil.current = Date.now() + 2500; }}
       contentContainerStyle={{ gap }}
     >
       {duplicatedChildren.map((child, idx) => (

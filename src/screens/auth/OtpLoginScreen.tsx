@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Pressable } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -139,14 +139,14 @@ export function OtpLoginScreen({ navigation }: Props) {
                 Resend OTP in {cooldown}s
               </Text>
             ) : (
-              <Pressable onPress={handleResendOtp} disabled={otpRequest.isPending} className="items-center py-1" accessibilityRole="button">
+              <TouchableOpacity onPress={handleResendOtp} disabled={otpRequest.isPending} style={{ alignItems: 'center', paddingVertical: 4 }} accessibilityRole="button">
                 <Text className="text-xs font-semibold text-brand-600 underline">Resend OTP</Text>
-              </Pressable>
+              </TouchableOpacity>
             )}
 
-            <Pressable onPress={() => { setPhone(null); setCooldown(0); setResendCount(0); }} className="items-center py-1" accessibilityRole="button">
+            <TouchableOpacity onPress={() => { setPhone(null); setCooldown(0); setResendCount(0); }} style={{ alignItems: 'center', paddingVertical: 4 }} accessibilityRole="button">
               <Text className="text-xs text-ink-500 dark:text-ink-400 underline">Use a different number</Text>
-            </Pressable>
+            </TouchableOpacity>
           </View>
         )}
       </FadeIn>

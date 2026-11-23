@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, ScrollView, Linking, Pressable, RefreshControl } from 'react-native';
+import { View, Text, ScrollView, Linking, TouchableOpacity, RefreshControl } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { 
   ExternalLink,
@@ -186,9 +186,9 @@ export function ReportDetailScreen({ route, navigation }: Props) {
 
             <BuyLinks links={product.buy_links} className="mt-5" />
 
-            <Pressable onPress={() => navigation.navigate('ProductDetail', { slug: product.slug })} className="mt-5">
+            <TouchableOpacity onPress={() => navigation.navigate('ProductDetail', { slug: product.slug })} activeOpacity={0.7} className="mt-5">
               <Text className="text-sm font-bold text-brand-600">View community reviews →</Text>
-            </Pressable>
+            </TouchableOpacity>
           </View>
 
           {/* Trustified Test Reports card (from web left column) */}
@@ -204,13 +204,18 @@ export function ReportDetailScreen({ route, navigation }: Props) {
                 {product.test_reports.map((rep) => {
                   const isActiveReport = rep.id === report?.id;
                   return (
-                    <Pressable
+                    <TouchableOpacity
                       key={rep.id}
                       onPress={() => navigation.navigate('ReportDetail', { slug: product.slug, reportId: rep.id })}
-                      className={`flex-row items-center justify-between rounded-xl border p-3 ${isActiveReport ? 'border-brand-300 bg-brand-50/30' : 'border-ink-100 bg-white active:bg-ink-50'}`}
+                      activeOpacity={0.7}
+                      className={`flex-row items-center justify-between rounded-xl border p-3 ${
+                        isActiveReport
+                          ? 'border-brand-300 bg-brand-50/30 dark:bg-brand-950/20'
+                          : 'border-ink-100 dark:border-ink-800 bg-white dark:bg-surface-1'
+                      }`}
                     >
                       <View>
-                        <Text className={`text-xs font-bold ${isActiveReport ? 'text-brand-700' : 'text-ink-800'}`}>
+                        <Text className={`text-xs font-bold ${isActiveReport ? 'text-brand-700' : 'text-ink-800 dark:text-ink-200'}`}>
                           Trustified Report — {rep.batch_no || 'N/A'}
                         </Text>
                         <Text className="text-[10px] text-ink-400 dark:text-ink-500 font-bold mt-1">
@@ -220,7 +225,7 @@ export function ReportDetailScreen({ route, navigation }: Props) {
                       {isActiveReport ? (
                         <Text className="text-[9px] font-bold uppercase tracking-wider text-brand-600">Viewing</Text>
                       ) : null}
-                    </Pressable>
+                    </TouchableOpacity>
                   );
                 })}
               </View>

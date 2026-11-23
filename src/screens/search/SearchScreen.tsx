@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, TextInput, Pressable, ScrollView, Image, RefreshControl, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Image, RefreshControl, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -79,9 +79,9 @@ export function SearchScreen() {
             accessibilityLabel="Search products or brands"
           />
           {search.length > 0 ? (
-            <Pressable onPress={() => setSearch('')} className="p-1">
+            <TouchableOpacity onPress={() => setSearch('')} activeOpacity={0.7} style={{ padding: 4 }}>
               <X size={16} color={colors.ink[500]} />
-            </Pressable>
+            </TouchableOpacity>
           ) : null}
         </View>
       </View>
@@ -105,18 +105,18 @@ export function SearchScreen() {
               </Text>
               <View className="gap-2">
                 {matchingBrands.map((brand) => (
-                  <Pressable
+                  <TouchableOpacity
                     key={brand.id}
                     onPress={() => brand.slug && handleBrandPress(brand.slug)}
-                    className="flex-row items-center gap-3 bg-ink-50/40 border border-ink-100 dark:border-ink-800 p-3 rounded-2xl active:bg-ink-100/50"
-                  >
+                    activeOpacity={0.7}
+                    style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#fafafa', borderWidth: 1, borderColor: '#f0f0f0', padding: 12, borderRadius: 16 }}>
                     <MediaFrame src={brand.logo_url} alt={brand.name} aspect="square" rounded="xl" className="w-10 h-10 border border-ink-100 dark:border-ink-800 bg-white dark:bg-surface-1" />
-                    <View className="flex-1">
+                    <View style={{ flex: 1 }}>
                       <Text className="text-sm font-bold text-ink-900 dark:text-white">{brand.name}</Text>
                       <Text className="text-[10px] font-semibold text-brand-700 uppercase">Certified Brand</Text>
                     </View>
                     <ChevronRight size={16} color={colors.ink[300]} />
-                  </Pressable>
+                  </TouchableOpacity>
                 ))}
               </View>
             </View>
@@ -132,21 +132,24 @@ export function SearchScreen() {
                 title="No results found"
                 description={`We couldn't find any products or brands matching "${search}"`}
                 action={
-                  <Pressable onPress={() => setSearch('')} className="bg-brand-50 border border-brand-100 px-4 py-2 rounded-xl">
+                  <TouchableOpacity
+                    onPress={() => setSearch('')}
+                    activeOpacity={0.7}
+                    style={{ backgroundColor: '#f0fdf4', borderWidth: 1, borderColor: '#dcfce7', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 12 }}>
                     <Text className="text-xs font-bold text-brand-700">Clear Search</Text>
-                  </Pressable>
+                  </TouchableOpacity>
                 }
               />
             ) : (
               <View className="gap-3">
                 {products.map((product) => (
-                  <Pressable
+                  <TouchableOpacity
                     key={product.id}
                     onPress={() => navigation.navigate('ProductDetail', { slug: product.slug })}
-                    className="flex-row items-center gap-3 bg-white dark:bg-surface-1 border border-ink-100 dark:border-ink-800 p-3 rounded-2xl active:bg-ink-50"
-                  >
+                    activeOpacity={0.7}
+                    style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#fff', borderWidth: 1, borderColor: '#f0f0f0', padding: 12, borderRadius: 16 }}>
                     <MediaFrame src={product.image_url} alt={product.name} aspect="square" rounded="xl" className="w-16 h-16 border border-ink-100 dark:border-ink-800 bg-white dark:bg-surface-1" />
-                    <View className="flex-1 gap-0.5">
+                    <View style={{ flex: 1, gap: 2 }}>
                       {product.brand ? (
                         <Text className="text-[10px] font-bold uppercase tracking-wider text-brand-700">
                           {product.brand.name}
@@ -155,14 +158,14 @@ export function SearchScreen() {
                       <Text className="text-xs font-bold text-ink-900 dark:text-white" numberOfLines={2}>
                         {product.name}
                       </Text>
-                      <View className="mt-1 flex-row items-center gap-2">
+                      <View style={{ marginTop: 4, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                         {product.status !== 'untested' ? (
                           <StatusBadge status={product.status} isGold={product.is_gold} size="sm" />
                         ) : null}
                       </View>
                     </View>
                     <ChevronRight size={16} color={colors.ink[300]} />
-                  </Pressable>
+                  </TouchableOpacity>
                 ))}
               </View>
             )}
@@ -182,14 +185,14 @@ export function SearchScreen() {
               <Text className="text-xs font-bold uppercase tracking-wider text-ink-500 dark:text-ink-400 mb-3">Browse Categories</Text>
               <View className="flex-row flex-wrap justify-between gap-y-3">
                 {categories.map((cat) => (
-                  <Pressable
+                  <TouchableOpacity
                     key={cat.id}
                     onPress={() => handleCategoryPress(cat.slug)}
-                    className="w-[48%] flex-row items-center gap-2.5 bg-ink-50/30 border border-ink-100 dark:border-ink-800 p-3 rounded-2xl active:bg-ink-100/50"
-                  >
-                    <View className="w-8 h-8 rounded-full overflow-hidden bg-white dark:bg-surface-1 border border-ink-100 dark:border-ink-800 items-center justify-center">
+                    activeOpacity={0.7}
+                    style={{ width: '48%', flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: '#fafafa', borderWidth: 1, borderColor: '#f0f0f0', padding: 12, borderRadius: 16 }}>
+                    <View style={{ width: 32, height: 32, borderRadius: 16, overflow: 'hidden', backgroundColor: '#fff', borderWidth: 1, borderColor: '#f0f0f0', alignItems: 'center', justifyContent: 'center' }}>
                       {cat.image_url ? (
-                        <Image source={{ uri: cat.image_url }} className="w-full h-full object-cover" />
+                        <Image source={{ uri: cat.image_url }} style={{ width: '100%', height: '100%' }} />
                       ) : (
                         <Text className="text-xs font-bold text-ink-300">
                           {cat.name.trim().charAt(0).toUpperCase() || '?'}
@@ -199,7 +202,7 @@ export function SearchScreen() {
                     <Text className="flex-1 text-xs font-bold text-ink-800 dark:text-ink-100" numberOfLines={1}>
                       {cat.name}
                     </Text>
-                  </Pressable>
+                  </TouchableOpacity>
                 ))}
               </View>
             </View>
@@ -211,16 +214,16 @@ export function SearchScreen() {
               <Text className="px-4 text-xs font-bold uppercase tracking-wider text-ink-500 dark:text-ink-400 mb-3">Certified Brands</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-3 px-4">
                 {brands.map((brand) => (
-                  <Pressable
+                  <TouchableOpacity
                     key={brand.id}
                     onPress={() => brand.slug && handleBrandPress(brand.slug)}
-                    className="w-24 items-center gap-1 bg-white dark:bg-surface-1 border border-ink-100 dark:border-ink-800 p-2.5 rounded-2xl shadow-sm active:border-brand-300"
-                  >
+                    activeOpacity={0.7}
+                    style={{ width: 96, alignItems: 'center', gap: 4, backgroundColor: '#fff', borderWidth: 1, borderColor: '#f0f0f0', padding: 10, borderRadius: 16 }}>
                     <MediaFrame src={brand.logo_url} alt={brand.name} aspect="square" rounded="lg" className="w-16 h-16 border border-ink-50" />
                     <Text className="text-center text-[10px] font-bold text-ink-700 dark:text-ink-200 w-full" numberOfLines={1}>
                       {brand.name}
                     </Text>
-                  </Pressable>
+                  </TouchableOpacity>
                 ))}
               </ScrollView>
             </View>

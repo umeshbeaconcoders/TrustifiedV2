@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, ScrollView, Linking, Pressable, Image, RefreshControl, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, ScrollView, Linking, TouchableOpacity, Image, RefreshControl, Platform } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   PlayCircle,
@@ -74,8 +74,11 @@ export function ProductDetailScreen({ route, navigation }: Props) {
     );
   }
 
-  const images = [product.image_url, ...product.gallery].filter((s): s is string => Boolean(s));
+  const gallery = Array.isArray(product.gallery) ? product.gallery : [];
+  const images = [product.image_url, ...gallery].filter((s): s is string => typeof s === 'string' && s.length > 0);
   const reviews = reviewsRes?.data ?? [];
+  const buyLinks = Array.isArray(product.buy_links) ? product.buy_links : [];
+  const testReports = Array.isArray(product.test_reports) ? product.test_reports : [];
   const reviewVideoId = extractYoutubeId(product.review_video_url);
   const testVideoId = extractYoutubeId(product.test_video_url);
 
@@ -89,8 +92,9 @@ export function ProductDetailScreen({ route, navigation }: Props) {
         <View className="p-4">
           {/* Main Product Image — tap to open the full-screen zoom/pan viewer */}
           {/* Main product image (selected) */}
-<Pressable
+<TouchableOpacity
   onPress={() => images[selectedImageIndex] && setLightboxOpen(true)}
+  activeOpacity={0.9}
   accessibilityRole="button"
   accessibilityLabel="View full-size image"
 >
@@ -100,7 +104,7 @@ export function ProductDetailScreen({ route, navigation }: Props) {
       <ZoomIn size={16} color="#fff" />
     </View>
   ) : null}
-</Pressable>
+</TouchableOpacity>
 
           {/* Dynamic Image Gallery Slider (Circular Thumbnails) */}
           {images.length > 1 ? (
@@ -134,11 +138,11 @@ export function ProductDetailScreen({ route, navigation }: Props) {
 
           <View className="mt-3 flex-row flex-wrap items-center gap-3">
             {product.status !== 'untested' ? <StatusBadge status={product.status} isGold={product.is_gold} /> : null}
-            {product.reviews_count > 0 ? (
+            {Number(product.reviews_count) > 0 ? (
               <View className="flex-row items-center gap-1.5">
-                <StarRating value={product.rating_avg} size={14} />
+                <StarRating value={Number(product.rating_avg) || 0} size={14} />
                 <Text className="text-sm text-ink-600 dark:text-ink-300 font-bold">
-                  {product.rating_avg.toFixed(1)} ({product.reviews_count} reviews)
+                  {(Number(product.rating_avg) || 0).toFixed(1)} ({Number(product.reviews_count)} reviews)
                 </Text>
               </View>
             ) : null}
@@ -165,7 +169,7 @@ export function ProductDetailScreen({ route, navigation }: Props) {
             <Text className="mt-5 text-sm leading-relaxed text-ink-700 dark:text-ink-200 font-medium">{product.description}</Text>
           ) : null}
 
-          <BuyLinks links={product.buy_links} className="mt-6" />
+          <BuyLinks links={buyLinks} className="mt-6" />
 
           {/* Lab Test Reports panel redesigned like web */}
           <View className="mt-8 rounded-3xl border-2 border-brand-200 bg-brand-50/40 p-5 shadow-sm">
@@ -177,23 +181,24 @@ export function ProductDetailScreen({ route, navigation }: Props) {
             </View>
 
             {/* Check if product is expired */}
-            {product.status.toLowerCase() === 'expired' ? (
+            {(product.status || '').toLowerCase() === 'expired' ? (
               <View className="flex-row items-center gap-3 rounded-2xl border border-ink-200 dark:border-ink-700 bg-ink-50 dark:bg-surface-2 p-4 mt-3">
                 <HelpCircle size={18} color={colors.ink[500]} />
                 <Text className="text-xs font-bold text-ink-600 dark:text-ink-300 flex-1 leading-relaxed">
                   This certification has expired — the detailed report is no longer published.
                 </Text>
               </View>
-            ) : product.test_reports && product.test_reports.length > 0 ? (
+            ) : testReports.length > 0 ? (
               <View className="gap-1">
-                {product.test_reports.map((rep, index) => {
+                {testReports.map((rep, index) => {
                   const isLatest = index === 0;
                   const typeLabel = rep.type === 'gold' ? 'Gold' : rep.type === 'nmr' ? 'NMR' : 'Standard';
                   return (
-                    <Pressable
+                    <TouchableOpacity
                       key={rep.id}
                       onPress={() => navigation.navigate('ReportDetail', { slug: product.slug, reportId: rep.id })}
-                      className="relative rounded-2xl border border-brand-200 bg-white dark:bg-surface-1 p-5 mt-4 shadow-sm active:opacity-95 overflow-visible items-center"
+                      activeOpacity={0.8}
+                      style={{ position: 'relative', borderRadius: 16, borderWidth: 1, borderColor: '#bbf7d0', backgroundColor: '#fff', padding: 20, marginTop: 16, overflow: 'visible', alignItems: 'center' }}
                     >
                       {isLatest ? (
                         <View className="absolute -top-2.5 left-5 rounded-full bg-brand-600 px-2.5 py-0.5 shadow-sm">
@@ -242,11 +247,11 @@ export function ProductDetailScreen({ route, navigation }: Props) {
                         <StatusBadge 
                           status={rep.status} 
                           size="sm" 
-                          isGold={rep.status.toLowerCase() === 'pass' && (rep.type === 'gold' || product.is_gold)} 
+                          isGold={(rep.status || '').toLowerCase() === 'pass' && (rep.type === 'gold' || product.is_gold)} 
                         />
                         <ChevronRight size={16} color="#c1cec8" />
                       </View>
-                    </Pressable>
+                    </TouchableOpacity>
                   );
                 })}
               </View>

@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState } from 'react';
-import { View, Text, Pressable } from 'react-native';
+import React, { createContext, useContext, useState, useMemo } from 'react';
+import { View, Text, TouchableOpacity } from 'react-native';
 
 interface TabsContextValue {
   value: string;
@@ -21,10 +21,13 @@ export function Tabs({
   className?: string;
 }) {
   const [uncontrolled, setUncontrolled] = useState(defaultValue ?? '');
-  const value = controlledValue ?? uncontrolled;
+  const value = controlledValue !== undefined ? controlledValue : uncontrolled;
   const setValue = onValueChange ?? setUncontrolled;
+
+  const contextValue = useMemo(() => ({ value, setValue }), [value, setValue]);
+
   return (
-    <TabsContext.Provider value={{ value, setValue }}>
+    <TabsContext.Provider value={contextValue}>
       <View className={className}>{children}</View>
     </TabsContext.Provider>
   );
@@ -51,17 +54,18 @@ export function TabsTrigger({
   if (!ctx) throw new Error('TabsTrigger must be used within <Tabs>');
   const active = ctx.value === value;
   return (
-    <Pressable
+    <TouchableOpacity
       accessibilityRole="tab"
       accessibilityState={{ selected: active }}
+      activeOpacity={0.7}
       onPress={() => ctx.setValue(value)}
       className={`flex-1 items-center justify-center rounded-lg py-2.5 ${className} ${active ? activeClassName || 'bg-white shadow-sm' : inactiveClassName}`}>
       {typeof children === 'string' ? (
         <Text className={`text-sm font-semibold ${active ? 'text-ink-900' : 'text-ink-500'}`}>{children}</Text>
       ) : (
-        children
+        <View pointerEvents="none">{children}</View>
       )}
-    </Pressable>
+    </TouchableOpacity>
   );
 }
 

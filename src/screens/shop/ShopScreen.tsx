@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, ScrollView, Pressable, RefreshControl, Platform } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, RefreshControl, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ShoppingBag, Search, LayoutGrid, Award } from 'lucide-react-native';
@@ -61,18 +61,21 @@ export function ShopScreen() {
             <Text className="text-[11px] font-medium text-ink-500 dark:text-ink-400">Lab-tested products with trusted places to buy</Text>
           </View>
         </View>
-        <Pressable
+        <TouchableOpacity
           onPress={() => navigation.navigate('Tabs', { screen: 'Search' })}
+          activeOpacity={0.7}
           accessibilityRole="button"
           accessibilityLabel="Search"
-          className="h-9 w-9 items-center justify-center rounded-full bg-ink-100 active:opacity-80 dark:bg-surface-2">
+          style={{ height: 36, width: 36, alignItems: 'center', justifyContent: 'center', borderRadius: 18, backgroundColor: '#f0f0f0' }}>
           <Search size={17} color={nav.headerTint} />
-        </Pressable>
+        </TouchableOpacity>
       </View>
 
       <ScrollView
         contentContainerStyle={{ paddingBottom: 48 }}
         showsVerticalScrollIndicator={false}
+        nestedScrollEnabled={true}
+        keyboardShouldPersistTaps="handled"
         refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={onRefresh} colors={[colors.brand[500]]} />}>
         {shopBanners.length > 0 ? (
           <View className="pt-4">
@@ -109,13 +112,14 @@ export function ShopScreen() {
               </View>
               <View className="flex-row flex-wrap justify-center gap-3.5">
                 {sections.map((section) => (
-                  <Pressable
+                  <TouchableOpacity
                     key={section.id}
                     onPress={() => navigation.navigate('ShopSection', { slug: section.slug, name: section.name })}
+                    activeOpacity={0.7}
                     accessibilityRole="button"
                     accessibilityLabel={section.name}
-                    className="w-[47%] items-center rounded-2xl border border-ink-100 bg-white p-4 active:opacity-90 dark:border-ink-800 dark:bg-surface-1">
-                    <View className="mb-3 h-24 w-24 items-center justify-center overflow-hidden rounded-full border-2 border-brand-500/20 bg-ink-50 dark:bg-surface-2">
+                    style={{ width: '47%', alignItems: 'center', borderRadius: 16, borderWidth: 1, borderColor: '#f0f0f0', backgroundColor: '#fff', padding: 16 }}>
+                    <View style={{ marginBottom: 12, height: 96, width: 96, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', borderRadius: 48, borderWidth: 2, borderColor: 'rgba(42,184,65,0.2)', backgroundColor: '#f5f5f5' }}>
                       {section.image_url ? (
                         <MediaFrame src={section.image_url} alt={section.name} aspect="square" rounded="full" resizeMode="cover" className="h-full w-full" />
                       ) : (
@@ -130,7 +134,7 @@ export function ShopScreen() {
                         {section.products_count} product{section.products_count === 1 ? '' : 's'}
                       </Text>
                     ) : null}
-                  </Pressable>
+                  </TouchableOpacity>
                 ))}
               </View>
             </View>
@@ -148,17 +152,18 @@ export function ShopScreen() {
                 <View className="px-5">
                   <InfiniteMarquee itemWidth={104} gap={16} speed={0.6}>
                     {fillTo(brands, 8).map((brand, i) => (
-                      <Pressable
+                      <TouchableOpacity
                         key={`${brand.id}-${i}`}
                         onPress={() => navigation.navigate('ShopSection', { brand: brand.slug })}
+                        activeOpacity={0.7}
                         accessibilityRole="button"
                         accessibilityLabel={`Shop ${brand.name}`}
-                        className="w-full items-center rounded-2xl border border-ink-100 bg-white p-3 active:opacity-80 dark:border-ink-800 dark:bg-surface-2">
-                        <View className="mb-2 h-14 w-full items-center justify-center">
+                        style={{ width: '100%', alignItems: 'center', borderRadius: 16, borderWidth: 1, borderColor: '#f0f0f0', backgroundColor: '#fff', padding: 12 }}>
+                        <View style={{ marginBottom: 8, height: 56, width: '100%', alignItems: 'center', justifyContent: 'center' }}>
                           {brand.logo_url ? (
                             <MediaFrame src={brand.logo_url} alt={brand.name} aspect="square" rounded="xl" resizeMode="contain" className="h-14 w-14 bg-transparent" />
                           ) : (
-                            <View className="h-12 w-12 items-center justify-center rounded-full bg-ink-100 dark:bg-surface-3">
+                            <View style={{ height: 48, width: 48, alignItems: 'center', justifyContent: 'center', borderRadius: 24, backgroundColor: '#f0f0f0' }}>
                               <Text className="text-lg font-bold text-ink-400">{brand.name.charAt(0).toUpperCase()}</Text>
                             </View>
                           )}
@@ -166,7 +171,7 @@ export function ShopScreen() {
                         <Text className="text-center text-xs font-bold text-ink-800 dark:text-ink-100" numberOfLines={1}>
                           {brand.name}
                         </Text>
-                      </Pressable>
+                      </TouchableOpacity>
                     ))}
                   </InfiniteMarquee>
                 </View>

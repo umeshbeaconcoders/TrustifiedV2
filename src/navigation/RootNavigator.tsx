@@ -47,11 +47,11 @@ export function RootNavigator() {
         headerBackTitleVisible: false,
         headerBackTitle: '',
         gestureEnabled: true,
-        fullScreenGestureEnabled: true,
+        fullScreenGestureEnabled: false,
         animation: 'slide_from_right',
       }}>
-      <Stack.Screen name="Splash" component={SplashScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="Tabs" component={TabNavigator} options={{ headerShown: false }} />
+      <Stack.Screen name="Splash" component={SplashScreen} options={{ headerShown: false, gestureEnabled: false }} />
+      <Stack.Screen name="Tabs" component={TabNavigator} options={{ headerShown: false, gestureEnabled: false }} />
 
       <Stack.Screen name="ProductDetail" component={ProductDetailScreen} options={{ title: 'Product' }} />
       <Stack.Screen name="ReportDetail" component={ReportDetailScreen} options={{ title: 'Test Report' }} />

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, Pressable, RefreshControl, Platform } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, RefreshControl, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useForm } from 'react-hook-form';
@@ -270,16 +270,17 @@ export function ProfileScreen() {
         <Text className="mt-8 mb-2 px-1 text-xs font-bold uppercase tracking-wider text-ink-500 dark:text-ink-400">Legal & Policies</Text>
         <Card className="p-1">
           {policyLinks.map((policy, i) => (
-            <Pressable
+            <TouchableOpacity
               key={policy.slug}
               onPress={() => navigation.navigate('Policy', { slug: policy.slug, title: policy.title })}
+              activeOpacity={0.7}
               accessibilityRole="button"
               accessibilityLabel={policy.title}
-              className={`flex-row items-center gap-3 px-3 py-3 active:bg-ink-50 ${i === policyLinks.length - 1 ? '' : 'border-b border-ink-100 dark:border-ink-800'}`}>
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 12, paddingVertical: 12, borderBottomWidth: i === policyLinks.length - 1 ? 0 : 1, borderBottomColor: '#f0f0f0' }}>
               <FileText size={18} color={colors.ink[500]} />
-              <Text className="flex-1 text-sm font-medium text-ink-800 dark:text-ink-100">{policy.title}</Text>
+              <Text style={{ flex: 1, fontSize: 14, fontWeight: '500', color: '#1a1a1a' }}>{policy.title}</Text>
               <ChevronRight size={16} color={colors.ink[300]} />
-            </Pressable>
+            </TouchableOpacity>
           ))}
         </Card>
 
@@ -452,15 +453,16 @@ function ProfileLink({
   last?: boolean;
 }) {
   return (
-    <Pressable
+    <TouchableOpacity
       onPress={onPress}
+      activeOpacity={0.7}
       accessibilityRole="button"
       accessibilityLabel={label}
-      className={`flex-row items-center gap-3 px-3 py-3 active:bg-ink-50 ${last ? '' : 'border-b border-ink-100 dark:border-ink-800'}`}>
+      style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 12, paddingVertical: 12, borderBottomWidth: last ? 0 : 1, borderBottomColor: '#f0f0f0' }}>
       {icon}
-      <Text className={`flex-1 text-sm font-medium ${danger ? 'text-fail' : 'text-ink-800 dark:text-ink-100'}`}>{label}</Text>
+      <Text style={{ flex: 1, fontSize: 14, fontWeight: '500', color: danger ? '#dc2626' : '#1a1a1a' }}>{label}</Text>
       <ChevronRight size={16} color={colors.ink[300]} />
-    </Pressable>
+    </TouchableOpacity>
   );
 }
 

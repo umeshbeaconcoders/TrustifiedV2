@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Pressable, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, FlatList } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ChevronRight } from 'lucide-react-native';
@@ -8,20 +8,20 @@ import type { RootStackParamList } from '../navigation/types';
 import { colors } from '../theme/tokens';
 import { MediaFrame } from './ui';
 import { ProductCard } from './ProductCard';
-import { ProductRail } from './ProductRail';
 
 const CARD_WIDTH = 176;
 const CARD_GAP = 14;
 
 /**
- * One shop category: title + "View all products", its sub category pills, then an auto-scrolling
- * rail of its products. Shared by the Shop home and the bottom of every category screen.
+ * One shop category: title + "View all products", its sub category pills, then a horizontal
+ * row of its products. Shared by the Shop home and the bottom of every category screen.
  * Product tiles are the plain Pass & Fail tile — "View Details" opens the full product page.
  */
 export function ShopCategoryRow({ section }: { section: ShopSectionWithProducts }) {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const openCategory = (sub?: string) => navigation.navigate('ShopSection', { slug: section.slug, name: section.name, sub });
   const subs = section.sub_sections ?? [];
+  const products = section.products ?? [];
 
   return (
     <View className="mt-8">
@@ -43,42 +43,54 @@ export function ShopCategoryRow({ section }: { section: ShopSectionWithProducts 
             ) : null}
           </View>
         </View>
-        <Pressable
+        <TouchableOpacity
           onPress={() => openCategory()}
+          activeOpacity={0.7}
           accessibilityRole="button"
           accessibilityLabel={`View all ${section.name} products`}
           className="flex-row items-center gap-1 rounded-full bg-brand-50 px-3 py-1.5 active:opacity-80 dark:bg-brand-950/40">
           <Text className="text-xs font-bold text-brand-700 dark:text-brand-400">View all</Text>
           <ChevronRight size={13} color={colors.brand[600]} />
-        </Pressable>
+        </TouchableOpacity>
       </View>
 
       {subs.length > 0 ? (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 8, alignItems: 'center' }} className="mb-3">
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          nestedScrollEnabled={true}
+          directionalLockEnabled={true}
+          contentContainerStyle={{ paddingHorizontal: 20, gap: 8, alignItems: 'center' }}
+          className="mb-3">
           <Text className="text-[10px] font-bold uppercase tracking-wider text-ink-500 dark:text-ink-400">Sub categories</Text>
           {subs.map((sub) => (
-            <Pressable
+            <TouchableOpacity
               key={sub.id}
               onPress={() => openCategory(sub.slug)}
+              activeOpacity={0.7}
               accessibilityRole="button"
               className="rounded-full border border-ink-200 bg-white px-3 py-1.5 active:bg-brand-50 dark:border-ink-700 dark:bg-surface-1">
               <Text className="text-xs font-semibold text-ink-700 dark:text-ink-200">{sub.name}</Text>
-            </Pressable>
+            </TouchableOpacity>
           ))}
         </ScrollView>
       ) : null}
 
-      <ProductRail<Product>
-        data={section.products}
-        keyExtractor={(p) => String(p.id)}
-        itemWidth={CARD_WIDTH}
-        gap={CARD_GAP}
-        renderItem={({ item }) => (
-          <View style={{ width: CARD_WIDTH }}>
-            <ProductCard product={item} />
-          </View>
-        )}
-      />
+      {products.length > 0 ? (
+        <FlatList
+          horizontal
+          data={products}
+          keyExtractor={(p) => String(p.id)}
+          showsHorizontalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{ paddingHorizontal: 20, gap: CARD_GAP }}
+          renderItem={({ item: p }) => (
+            <View style={{ width: CARD_WIDTH }}>
+              <ProductCard product={p} to="ProductDetail" />
+            </View>
+          )}
+        />
+      ) : null}
     </View>
   );
 }

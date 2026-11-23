@@ -32,11 +32,12 @@ export function StatusBadge({
   isGold = false,
   size = 'md',
 }: {
-  status: string;
+  status?: string | null;
   isGold?: boolean;
   size?: 'sm' | 'md';
 }) {
-  const normalized = status.toLowerCase();
+  const safeStatus = status ?? 'untested';
+  const normalized = safeStatus.toLowerCase();
   const label =
     isGold && normalized === 'pass'
       ? 'GOLD CERTIFIED'
@@ -44,7 +45,7 @@ export function StatusBadge({
         ? 'CERTIFIED'
         : normalized === 'untested' || !normalized
           ? 'NOT CERTIFIED'
-          : status.toUpperCase();
+          : safeStatus.toUpperCase();
   const variant: BadgeVariant =
     isGold && normalized === 'pass'
       ? 'gold'

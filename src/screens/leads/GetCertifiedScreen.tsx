@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, Pressable, Linking } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Linking } from 'react-native';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -116,12 +116,12 @@ export function GetCertifiedScreen() {
           ))}
         </View>
 
-        <Pressable onPress={() => void Linking.openURL('mailto:support@trustified.in')} accessibilityRole="link" className="mt-5 flex-row items-center gap-2 self-start">
+        <TouchableOpacity onPress={() => void Linking.openURL('mailto:support@trustified.in')} activeOpacity={0.7} accessibilityRole="link" style={{ marginTop: 20, flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'flex-start' }}>
           <Mail size={15} color={colors.brand[600]} />
           <Text className="text-xs text-ink-600 dark:text-ink-300">
             Email us at <Text className="font-bold text-brand-700">support@trustified.in</Text>
           </Text>
-        </Pressable>
+        </TouchableOpacity>
 
         {/* Lead Request Form Card */}
         <View className="mt-6 gap-4 rounded-3xl border border-ink-100 bg-white p-5 dark:border-ink-800 dark:bg-surface-1">
@@ -141,22 +141,23 @@ export function GetCertifiedScreen() {
             <ControlledTextarea control={control} name="message" accessibilityLabel="Brief description of what you would like to discuss" />
           </Field>
 
-          <Pressable
+          <TouchableOpacity
             onPress={() => {
               const next = !termsAccepted;
               setTermsAccepted(next);
               setValue('terms', next, { shouldValidate: true });
             }}
+            activeOpacity={0.7}
             accessibilityRole="checkbox"
             accessibilityState={{ checked: termsAccepted }}
-            className="mt-1 flex-row items-start gap-2.5">
-            <View className={`mt-0.5 size-5 items-center justify-center rounded border ${termsAccepted ? 'border-brand-600 bg-brand-600' : 'border-ink-300 bg-white'}`}>
-              {termsAccepted ? <Text className="text-xs font-bold text-white">✓</Text> : null}
+            style={{ marginTop: 4, flexDirection: 'row', alignItems: 'flex-start', gap: 10 }}>
+            <View style={{ marginTop: 2, width: 20, height: 20, alignItems: 'center', justifyContent: 'center', borderRadius: 4, borderWidth: 1, borderColor: termsAccepted ? colors.brand[600] : '#ccc', backgroundColor: termsAccepted ? colors.brand[600] : '#fff' }}>
+              {termsAccepted ? <Text style={{ fontSize: 12, fontWeight: '700', color: '#fff' }}>✓</Text> : null}
             </View>
             <Text className="flex-1 text-xs leading-relaxed text-ink-600 dark:text-ink-300">
               I have read and accept the Terms & Conditions for Blind Testing below.
             </Text>
-          </Pressable>
+          </TouchableOpacity>
           {errors.terms ? <Text className="text-xs font-medium text-fail-strong">{errors.terms.message}</Text> : null}
 
           <Button onPress={onSubmit} loading={submitLead.isPending} accessibilityLabel="Send" className="mt-2">

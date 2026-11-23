@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -159,18 +159,18 @@ export function RegisterScreen({ navigation }: Props) {
                 Resend OTP in {cooldown}s
               </Text>
             ) : (
-              <Pressable onPress={handleResendOtp} disabled={otpRequest.isPending} className="items-center py-1" accessibilityRole="button">
+              <TouchableOpacity onPress={handleResendOtp} disabled={otpRequest.isPending} style={{ alignItems: 'center', paddingVertical: 4 }} accessibilityRole="button">
                 <Text className="text-xs font-semibold text-brand-600 underline">Resend OTP</Text>
-              </Pressable>
+              </TouchableOpacity>
             )}
 
-            <Pressable
+            <TouchableOpacity
               onPress={() => { setDetails(null); setCode(''); setCooldown(0); setResendCount(0); }}
-              className="items-center py-2"
+              style={{ alignItems: 'center', paddingVertical: 8 }}
               accessibilityRole="button"
             >
               <Text className="text-xs text-ink-500 dark:text-ink-400 underline">Edit details / use a different number</Text>
-            </Pressable>
+            </TouchableOpacity>
           </View>
         ) : (
           <View className="mt-6 gap-4">
@@ -234,9 +234,9 @@ export function RegisterScreen({ navigation }: Props) {
 
         <View className="mt-6 flex-row justify-center gap-1">
           <Text className="text-sm text-ink-500 dark:text-ink-400">Already have an account?</Text>
-          <Pressable onPress={() => navigation.navigate('Login')} accessibilityRole="button">
+          <TouchableOpacity onPress={() => navigation.navigate('Login')} activeOpacity={0.7} accessibilityRole="button">
             <Text className="text-sm font-semibold text-brand-700">Log in</Text>
-          </Pressable>
+          </TouchableOpacity>
         </View>
       </FadeIn>
     </KeyboardAvoidingScreen>

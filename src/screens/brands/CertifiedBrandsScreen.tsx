@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { View, Text, RefreshControl, Pressable, BackHandler, Platform } from 'react-native';
+import { View, Text, RefreshControl, TouchableOpacity, BackHandler, Platform } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { useNavigation, useRoute, type RouteProp, useFocusEffect } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -68,14 +68,15 @@ export function CertifiedBrandsScreen() {
         style={{ backgroundColor: nav.headerBackground, paddingTop: fromDrawer ? topPadding : 12 }}
       >
         {fromDrawer && (
-          <Pressable
+          <TouchableOpacity
             onPress={() => navigation.navigate('Tabs', { screen: 'Home', params: { openDrawer: true } })}
-            className="p-2 -ml-2 mr-2 active:bg-ink-50 dark:active:bg-ink-800 rounded-full"
+            activeOpacity={0.7}
+            style={{ padding: 8, marginLeft: -8, marginRight: 8, borderRadius: 20 }}
             accessibilityRole="button"
             accessibilityLabel="Go back"
           >
             <ArrowLeft size={24} color={nav.headerTint} />
-          </Pressable>
+          </TouchableOpacity>
         )}
         <Text className="text-xl font-bold" style={{ color: nav.headerTint }}>
           Certified Brands

@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
-  Pressable,
+  TouchableOpacity,
   FlatList,
   Modal,
   ScrollView,
@@ -32,24 +32,26 @@ const GRID_PADDING = 12;
 /** Compact rounded filter pill (optional tiny thumbnail). */
 function Pill({ active, onPress, image, icon, children }: { active: boolean; onPress: () => void; image?: string | null; icon?: React.ReactNode; children: string }) {
   return (
-    <Pressable
+    <TouchableOpacity
       onPress={onPress}
+      activeOpacity={0.7}
       accessibilityRole="button"
       accessibilityState={{ selected: active }}
-      className={`h-9 flex-row items-center gap-2 rounded-full border px-3.5 ${
-        active ? 'border-brand-600 bg-brand-600' : 'border-ink-200 bg-white active:bg-brand-50 dark:border-ink-700 dark:bg-surface-1'
-      }`}>
+      style={{
+        height: 36, flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: 999,
+        borderWidth: 1, paddingHorizontal: 14,
+        borderColor: active ? colors.brand[600] : '#e5e5e5',
+        backgroundColor: active ? colors.brand[600] : '#ffffff',
+      }}>
       {image ? (
-        <View className="h-5 w-5 overflow-hidden rounded-full">
+        <View style={{ height: 20, width: 20, overflow: 'hidden', borderRadius: 10 }}>
           <MediaFrame src={image} alt={children} aspect="square" rounded="full" resizeMode="cover" className="h-full w-full" />
         </View>
-      ) : (
-        icon
-      )}
-      <Text className={`text-sm font-semibold ${active ? 'text-white' : 'text-ink-700 dark:text-ink-200'}`} numberOfLines={1}>
+      ) : icon}
+      <Text style={{ fontSize: 14, fontWeight: '600', color: active ? '#fff' : '#374151' }} numberOfLines={1}>
         {children}
       </Text>
-    </Pressable>
+    </TouchableOpacity>
   );
 }
 
@@ -82,28 +84,26 @@ function BrandPicker({
   const options = [{ id: 0, name: 'All brands', slug: '' }, ...brands];
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <Pressable className="flex-1 bg-black/50" onPress={onClose} accessibilityLabel="Close brand filter" />
+      <TouchableOpacity activeOpacity={1} style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' }} onPress={onClose} accessibilityLabel="Close brand filter" />
       <View className="max-h-[70%] rounded-t-3xl bg-white pb-6 dark:bg-surface-1">
         <View className="flex-row items-center justify-between px-5 py-4">
           <Text className="text-base font-bold text-ink-900 dark:text-white">Filter by brand</Text>
-          <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Close" className="p-1">
+          <TouchableOpacity onPress={onClose} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel="Close" style={{ padding: 4 }}>
             <X size={20} color={colors.ink[500]} />
-          </Pressable>
+          </TouchableOpacity>
         </View>
         <FlatList
           data={options}
           keyExtractor={(o) => String(o.id)}
           renderItem={({ item }) => (
-            <Pressable
-              onPress={() => {
-                onSelect(item.slug);
-                onClose();
-              }}
+            <TouchableOpacity
+              onPress={() => { onSelect(item.slug); onClose(); }}
+              activeOpacity={0.7}
               accessibilityRole="button"
-              className="flex-row items-center justify-between border-t border-ink-100 px-5 py-3.5 active:bg-ink-50 dark:border-ink-800">
-              <Text className={`text-sm ${value === item.slug ? 'font-bold text-brand-700' : 'text-ink-800 dark:text-ink-100'}`}>{item.name}</Text>
+              style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderTopWidth: 1, borderTopColor: '#f0f0f0', paddingHorizontal: 20, paddingVertical: 14 }}>
+              <Text style={{ fontSize: 14, fontWeight: value === item.slug ? '700' : '400', color: value === item.slug ? colors.brand[700] : '#1a1a1a' }}>{item.name}</Text>
               {value === item.slug ? <Check size={16} color={colors.brand[600]} /> : null}
-            </Pressable>
+            </TouchableOpacity>
           )}
         />
       </View>
@@ -274,26 +274,28 @@ export function ShopSectionScreen() {
       <View
         style={{ backgroundColor: nav.headerBackground, paddingTop: topInset + 8, paddingBottom: 10, paddingHorizontal: 12 }}
         className="flex-row items-center justify-between border-b border-ink-100 dark:border-ink-800">
-        <Pressable
+        <TouchableOpacity
           onPress={() => (navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Shop'))}
+          activeOpacity={0.7}
           accessibilityRole="button"
           accessibilityLabel="Back to all categories"
-          className="h-10 flex-row items-center gap-2 rounded-lg border border-ink-200 bg-white px-3 active:bg-ink-50 dark:border-ink-700 dark:bg-surface-1">
+          style={{ height: 40, flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: 8, borderWidth: 1, borderColor: '#e5e5e5', backgroundColor: '#fff', paddingHorizontal: 12 }}>
           <ArrowLeft size={16} color={nav.headerTint} />
           <Text className="text-sm font-medium text-ink-800 dark:text-ink-100">All categories</Text>
-        </Pressable>
+        </TouchableOpacity>
 
         {brands.length > 0 || brand ? (
-          <Pressable
+          <TouchableOpacity
             onPress={() => setBrandPickerOpen(true)}
+            activeOpacity={0.7}
             accessibilityRole="button"
             accessibilityLabel="Filter by brand"
-            className="h-10 max-w-[55%] flex-row items-center gap-2 rounded-lg border border-ink-200 bg-white px-3 active:bg-ink-50 dark:border-ink-700 dark:bg-surface-1">
+            style={{ height: 40, maxWidth: '55%', flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: 8, borderWidth: 1, borderColor: '#e5e5e5', backgroundColor: '#fff', paddingHorizontal: 12 }}>
             <Text className="flex-shrink text-sm font-medium text-ink-800 dark:text-ink-100" numberOfLines={1}>
               {activeBrand?.name ?? 'All brands'}
             </Text>
             <ChevronDown size={15} color={colors.ink[500]} />
-          </Pressable>
+          </TouchableOpacity>
         ) : null}
       </View>
 

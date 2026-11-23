@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, ScrollView, Linking, Pressable, Animated, Easing, Dimensions, RefreshControl, Platform } from 'react-native';
+import { View, Text, ScrollView, Linking, Pressable, Animated, Easing, Dimensions, RefreshControl, Platform, TouchableOpacity, Modal } from 'react-native';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -326,6 +326,7 @@ export function HomeScreen() {
     <View className="flex-1 bg-white dark:bg-surface-1">
       {/* Floating Transparent Header */}
       <View
+        pointerEvents="box-none"
         style={{
           position: 'absolute',
           top: 0,
@@ -345,39 +346,24 @@ export function HomeScreen() {
           <Text className="text-lg font-display font-extrabold text-white">Trustified</Text>
         </View>
         <View className="flex-row items-center gap-2.5">
-          <Pressable
-            onPress={() => navigation.navigate('Tabs', { screen: 'ShopTab' })}
-            accessibilityRole="button"
-            accessibilityLabel="Shop"
-            style={{ width: 36, height: 36 }}
-            className="rounded-full bg-white/10 items-center justify-center active:bg-white/20"
-          >
+          <TouchableOpacity onPress={() => navigation.navigate('Tabs', { screen: 'ShopTab' })} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel="Shop" style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' }}>
             <ShoppingBag size={18} color="#ffffff" />
-          </Pressable>
-          <Pressable
-            onPress={() => navigation.navigate('Tabs', { screen: 'Search' })}
-            accessibilityRole="button"
-            accessibilityLabel="Search"
-            style={{ width: 36, height: 36 }}
-            className="rounded-full bg-white/10 items-center justify-center active:bg-white/20"
-          >
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('Tabs', { screen: 'Search' })} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel="Search" style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' }}>
             <Search size={18} color="#ffffff" />
-          </Pressable>
-          <Pressable
-            onPress={() => toggleDrawer(true)}
-            accessibilityRole="button"
-            accessibilityLabel="Menu"
-            style={{ width: 36, height: 36 }}
-            className="rounded-full bg-white/10 items-center justify-center active:bg-white/20"
-          >
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => toggleDrawer(true)} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel="Menu" style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' }}>
             <Menu size={18} color="#ffffff" />
-          </Pressable>
+          </TouchableOpacity>
         </View>
       </View>
 
       <ScrollView
         className="flex-1 bg-white dark:bg-surface-1"
         contentContainerClassName="pb-16"
+        nestedScrollEnabled={true}
+        directionalLockEnabled={true}
+        keyboardShouldPersistTaps="handled"
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -478,12 +464,15 @@ export function HomeScreen() {
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerClassName="gap-4 px-6 py-4"
+            nestedScrollEnabled={true}
+            directionalLockEnabled={true}
+            contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 16, gap: 16 }}
           >
             {WHY_BETTER_ITEMS.map((item) => (
               <View
                 key={item.title}
-                className="w-64 rounded-[2rem] bg-white dark:bg-surface-1 border border-ink-100 dark:border-ink-800 p-6 shadow-sm"
+                style={{ width: 260 }}
+                className="rounded-[2rem] bg-white dark:bg-surface-1 border border-ink-100 dark:border-ink-800 p-6 shadow-sm"
               >
                 <View
                   className="w-14 h-14 rounded-full items-center justify-center mb-5"
@@ -549,12 +538,15 @@ export function HomeScreen() {
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerClassName="gap-4 px-6 py-4"
+            nestedScrollEnabled={true}
+            directionalLockEnabled={true}
+            contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 16, gap: 16 }}
           >
             {WHAT_WE_TEST_ITEMS.map((item) => (
               <View
                 key={item.title}
-                className="w-56 rounded-2xl bg-white dark:bg-surface-1 border border-ink-100 dark:border-ink-800 p-4 shadow-sm flex-row items-center gap-3"
+                style={{ width: 230 }}
+                className="rounded-2xl bg-white dark:bg-surface-1 border border-ink-100 dark:border-ink-800 p-4 shadow-sm flex-row items-center gap-3"
               >
                 <View className="w-10 h-10 rounded-xl bg-ink-50 dark:bg-surface-2 items-center justify-center shrink-0">
                   {getSectionIcon(item.iconName, 20, '#2ab841')}
@@ -578,12 +570,15 @@ export function HomeScreen() {
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerClassName="gap-4 px-6 py-4"
+            nestedScrollEnabled={true}
+            directionalLockEnabled={true}
+            contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 16, gap: 16 }}
           >
             {TESTING_STEPS.map((item, index) => (
               <View
                 key={item.title}
-                className="w-60 bg-white dark:bg-surface-1 border border-ink-100 dark:border-ink-800 rounded-2xl p-5 shadow-sm relative overflow-visible mt-2"
+                style={{ width: 250 }}
+                className="bg-white dark:bg-surface-1 border border-ink-100 dark:border-ink-800 rounded-2xl p-5 shadow-sm relative overflow-visible mt-2"
               >
                 {/* Step number badge */}
                 <View className="absolute -top-3 -right-2 w-7 h-7 rounded-full bg-brand-600 items-center justify-center shadow-md z-10">
@@ -613,12 +608,15 @@ export function HomeScreen() {
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerClassName="gap-4 px-6 py-4"
+            nestedScrollEnabled={true}
+            directionalLockEnabled={true}
+            contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 16, gap: 16 }}
           >
             {SUPPORT_MISSION_ITEMS.map((item) => (
               <View
                 key={item.title}
-                className="w-60 rounded-2xl bg-white dark:bg-surface-1 border border-ink-100 dark:border-ink-800 p-6 shadow-sm"
+                style={{ width: 250 }}
+                className="rounded-2xl bg-white dark:bg-surface-1 border border-ink-100 dark:border-ink-800 p-6 shadow-sm"
               >
                 <View className="w-12 h-12 rounded-xl bg-brand-50 items-center justify-center mb-4">
                   {getSectionIcon(item.iconName, 22, '#2ab841')}
@@ -626,14 +624,10 @@ export function HomeScreen() {
                 <Text className="text-base font-bold text-ink-900 dark:text-white mb-2">{item.title}</Text>
                 <Text className="text-xs leading-relaxed text-ink-600 dark:text-ink-300 font-medium">{item.body}</Text>
                 {item.screen ? (
-                  <Pressable
-                    onPress={() => navigation.navigate('Tabs', { screen: 'ShopTab' })}
-                    accessibilityRole="button"
-                    className="mt-3 flex-row items-center gap-1 self-start"
-                  >
+                  <TouchableOpacity onPress={() => navigation.navigate('Tabs', { screen: 'ShopTab' })} activeOpacity={0.7} accessibilityRole="button" style={{ marginTop: 12, flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start' }}>
                     <Text className="text-xs font-bold text-brand-600">Visit the shop</Text>
                     <ChevronRight size={14} color={colors.brand[600]} />
-                  </Pressable>
+                  </TouchableOpacity>
                 ) : null}
               </View>
             ))}
@@ -650,13 +644,13 @@ export function HomeScreen() {
           {reportsLoading ? (
             <Spinner />
           ) : (
-            <StaggerChildren className="mt-4 flex-row flex-wrap justify-between gap-y-4">
+            <View className="mt-4 flex-row flex-wrap justify-between gap-y-4">
               {(passFail?.data ?? []).map((product) => (
-                <View key={product.id} className="w-[48%]">
+                <View key={product.id} style={{ width: '48%' }}>
                   <ProductCard product={product} to="ProductDetail" />
                 </View>
               ))}
-            </StaggerChildren>
+            </View>
           )}
         </View>
 
@@ -671,10 +665,12 @@ export function HomeScreen() {
             <View className="px-6">
               <InfiniteMarquee itemWidth={112} gap={16} speed={0.8}>
                 {categories.map((cat) => (
-                  <Pressable
+                  <TouchableOpacity
                     key={cat.id}
-                    onPress={() => handleCategoryPress(cat.slug)}
-                    className="group items-center w-full rounded-2xl bg-white dark:bg-surface-1 border border-ink-100 dark:border-ink-800 p-4 shadow-sm active:bg-brand-50/10 active:border-brand-300"
+                    delayPressIn={0}
+                    onPressIn={() => handleCategoryPress(cat.slug)}
+                    activeOpacity={0.7}
+                    className="items-center w-full rounded-2xl bg-white dark:bg-surface-1 border border-ink-100 dark:border-ink-800 p-4 shadow-sm"
                   >
                     <View className="size-14 rounded-full overflow-hidden bg-ink-50 dark:bg-surface-2 border border-ink-100 dark:border-ink-800 items-center justify-center mb-2">
                       {cat.image_url ? (
@@ -688,7 +684,7 @@ export function HomeScreen() {
                     <Text className="text-center text-xs font-bold text-ink-900 dark:text-white leading-snug line-clamp-2" numberOfLines={2}>
                       {cat.name}
                     </Text>
-                  </Pressable>
+                  </TouchableOpacity>
                 ))}
               </InfiniteMarquee>
             </View>
@@ -707,10 +703,11 @@ export function HomeScreen() {
             <View className="px-6">
               <InfiniteMarquee itemWidth={96} gap={16} speed={0.6}>
                 {brands.map((brand) => (
-                  <Pressable
+                  <TouchableOpacity
                     key={brand.id}
-                    // A brand opens the Pass & Fail list filtered to that brand.
-                    onPress={() => brand.slug && navigation.navigate('Tabs', { screen: 'Reports', params: { brand: brand.slug } })}
+                    delayPressIn={0}
+                    onPressIn={() => brand.slug && navigation.navigate('Tabs', { screen: 'Reports', params: { brand: brand.slug } })}
+                    activeOpacity={0.7}
                     accessibilityRole="button"
                     accessibilityLabel={brand.name}
                     className="w-full items-center"
@@ -726,7 +723,7 @@ export function HomeScreen() {
                     <Text className="mt-1 text-center text-xs font-semibold text-ink-700 dark:text-ink-200" numberOfLines={1}>
                       {brand.name}
                     </Text>
-                  </Pressable>
+                  </TouchableOpacity>
                 ))}
               </InfiniteMarquee>
             </View>
@@ -742,9 +739,19 @@ export function HomeScreen() {
               className="px-6"
               light
             />
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-4 px-6 py-4">
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              nestedScrollEnabled={true}
+              directionalLockEnabled={true}
+              contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 16, gap: 16 }}
+            >
               {offers.map((offer) => (
-                <View key={offer.id} className="w-64 overflow-hidden rounded-2xl bg-ink-950 border border-ink-800">
+                <View
+                  key={offer.id}
+                  style={{ width: 260 }}
+                  className="overflow-hidden rounded-2xl bg-ink-950 border border-ink-800"
+                >
                   <MediaFrame src={offer.image_url} alt={offer.title ?? ''} aspect="video" rounded="lg" />
                   <View className="p-4">
                     <Text className="text-base font-bold text-white" numberOfLines={1}>
@@ -778,12 +785,12 @@ export function HomeScreen() {
                 gap={16}
                 paddingHorizontal={24}
                 renderItem={({ item: video }) => (
-                  <Pressable
+                  <TouchableOpacity
                     onPress={() => video.url && Linking.openURL(video.url)}
+                    activeOpacity={0.7}
                     accessibilityRole="button"
                     accessibilityLabel={video.title ?? 'Watch video'}
-                    style={{ width: 256 }}
-                    className="overflow-hidden rounded-2xl border border-ink-100 dark:border-ink-800 bg-white dark:bg-surface-1 active:opacity-95 shadow-sm">
+                    style={{ width: 256, overflow: 'hidden', borderRadius: 16, borderWidth: 1, borderColor: '#f0f0f0', backgroundColor: '#fff' }}>
                     <View className="relative">
                       <MediaFrame src={video.thumbnail_url} alt={video.title ?? ''} aspect="video" rounded="lg" />
                       <View className="absolute inset-0 items-center justify-center bg-black/20">
@@ -797,7 +804,7 @@ export function HomeScreen() {
                         {video.title}
                       </Text>
                     </View>
-                  </Pressable>
+                  </TouchableOpacity>
                 )}
               />
             </View>
@@ -806,82 +813,83 @@ export function HomeScreen() {
 
       </ScrollView>
 
-      {/* Side Navigation Drawer Overlay */}
-      {drawerOpen && (
-        <View style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, zIndex: 100 }}>
-          {/* Backdrop */}
-          <Pressable
-            onPress={() => toggleDrawer(false)}
-            style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }}
-          >
-            <Animated.View
-              style={{
-                flex: 1,
-                backgroundColor: 'rgba(0, 0, 0, 0.4)',
-                opacity: backdropOpacity,
-              }}
-            />
-          </Pressable>
+      {/* Side Navigation Drawer — Modal for reliable touch on iOS real device */}
+      <Modal
+        visible={drawerOpen}
+        transparent
+        animationType="none"
+        onRequestClose={() => toggleDrawer(false)}
+        statusBarTranslucent
+      >
+        {/* Backdrop */}
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={() => toggleDrawer(false)}
+          style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }}
+        >
+          <Animated.View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', opacity: backdropOpacity }} />
+        </TouchableOpacity>
 
-          {/* Drawer content */}
-          <Animated.View
-            style={{
-              position: 'absolute',
-              top: 0,
-              bottom: 0,
-              right: 0,
-              width: DRAWER_WIDTH,
-              backgroundColor: nav.screenBackground,
-              shadowColor: '#000000',
-              shadowOffset: { width: -4, height: 0 },
-              shadowOpacity: 0.1,
-              shadowRadius: 12,
-              elevation: 16,
-              paddingTop: insets.top + 16,
-              paddingHorizontal: 20,
-              transform: [{ translateX: slideAnim }],
-            }}
-          >
-            {/* Drawer Header */}
-            <View className="flex-row items-center justify-between pb-6 border-b border-ink-100 dark:border-ink-800">
-              <View className="flex-row items-center gap-2">
-                <TrustifiedStamp size={28} />
-                <Text className="text-lg font-display font-extrabold text-ink-900 dark:text-white">Trustified</Text>
-              </View>
-              <Pressable onPress={() => toggleDrawer(false)} className="p-1 rounded-full active:bg-ink-50">
-                <X size={20} color={colors.ink[600]} />
-              </Pressable>
+        {/* Drawer panel */}
+        <Animated.View
+          style={{
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            right: 0,
+            width: DRAWER_WIDTH,
+            backgroundColor: nav.screenBackground,
+            shadowColor: '#000',
+            shadowOffset: { width: -4, height: 0 },
+            shadowOpacity: 0.1,
+            shadowRadius: 12,
+            elevation: 16,
+            paddingTop: insets.top + 16,
+            paddingHorizontal: 20,
+            transform: [{ translateX: slideAnim }],
+          }}
+        >
+          {/* Drawer Header */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 24, borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.08)' }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <TrustifiedStamp size={28} />
+              <Text className="text-lg font-display font-extrabold text-ink-900 dark:text-white">Trustified</Text>
             </View>
+            <TouchableOpacity onPress={() => toggleDrawer(false)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+              <X size={20} color={colors.ink[600]} />
+            </TouchableOpacity>
+          </View>
 
-            {/* Drawer Links list */}
-            <ScrollView contentContainerClassName="py-4 gap-1" showsVerticalScrollIndicator={false}>
-              <DrawerLink label="Home" onPress={() => { toggleDrawer(false); navigation.navigate('Tabs', { screen: 'Home' }); }} />
-              <DrawerLink label="Products" onPress={() => { toggleDrawer(false); navigation.navigate('Tabs', { screen: 'Reports', params: { fromDrawer: true } }); }} />
-              <DrawerLink label="Certified Brands" onPress={() => { toggleDrawer(false); navigation.navigate('CertifiedBrands', { fromDrawer: true }); }} />
-              <DrawerLink label="Shop" onPress={() => { toggleDrawer(false); navigation.navigate('Tabs', { screen: 'ShopTab' }); }} />
-              <DrawerLink label="Rankings" onPress={() => { toggleDrawer(false); navigation.navigate('RankingsIndex'); }} />
-              <DrawerLink label="Verify Certificate" onPress={() => { toggleDrawer(false); navigation.navigate('Verify'); }} />
-              <DrawerLink label="Challenge a Result" onPress={() => { toggleDrawer(false); navigation.navigate('Challenge'); }} />
-              <DrawerLink label="About Us" onPress={() => { toggleDrawer(false); navigation.navigate('About'); }} />
-              <DrawerLink label="Gold Certification" onPress={() => { toggleDrawer(false); navigation.navigate('Testing'); }} />
-              <DrawerLink label="Get Certified" onPress={() => { toggleDrawer(false); navigation.navigate('GetCertified'); }} />
-            </ScrollView>
-          </Animated.View>
-        </View>
-      )}
+          {/* Drawer Links */}
+          <ScrollView contentContainerStyle={{ paddingVertical: 16, gap: 4 }} showsVerticalScrollIndicator={false}>
+            <DrawerLink label="Home" onPress={() => { toggleDrawer(false); navigation.navigate('Tabs', { screen: 'Home' }); }} />
+            <DrawerLink label="Products" onPress={() => { toggleDrawer(false); navigation.navigate('Tabs', { screen: 'Reports', params: { fromDrawer: true } }); }} />
+            <DrawerLink label="Certified Brands" onPress={() => { toggleDrawer(false); navigation.navigate('CertifiedBrands', { fromDrawer: true }); }} />
+            <DrawerLink label="Shop" onPress={() => { toggleDrawer(false); navigation.navigate('Tabs', { screen: 'ShopTab' }); }} />
+            <DrawerLink label="Rankings" onPress={() => { toggleDrawer(false); navigation.navigate('RankingsIndex'); }} />
+            <DrawerLink label="Verify Certificate" onPress={() => { toggleDrawer(false); navigation.navigate('Verify'); }} />
+            <DrawerLink label="Challenge a Result" onPress={() => { toggleDrawer(false); navigation.navigate('Challenge'); }} />
+            <DrawerLink label="About Us" onPress={() => { toggleDrawer(false); navigation.navigate('About'); }} />
+            <DrawerLink label="Gold Certification" onPress={() => { toggleDrawer(false); navigation.navigate('Testing'); }} />
+            <DrawerLink label="Get Certified" onPress={() => { toggleDrawer(false); navigation.navigate('GetCertified'); }} />
+          </ScrollView>
+        </Animated.View>
+      </Modal>
     </View>
   );
 }
 
 function DrawerLink({ label, onPress }: { label: string; onPress: () => void }) {
   return (
-    <Pressable
+    <TouchableOpacity
       onPress={onPress}
-      className="flex-row items-center justify-between py-3.5 px-3 rounded-2xl active:bg-ink-50"
+      activeOpacity={0.6}
+      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+      style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 14, paddingHorizontal: 12, borderRadius: 16 }}
     >
       <Text className="text-sm font-semibold text-ink-800 dark:text-ink-100">{label}</Text>
       <ChevronRight size={14} color={colors.ink[400]} />
-    </Pressable>
+    </TouchableOpacity>
   );
 }
 

@@ -1351,6 +1351,8 @@ PODS:
     - React-utils (= 0.74.5)
   - RNBootSplash (6.3.12):
     - React-Core
+  - RNDeviceInfo (14.1.1):
+    - React-Core
   - RNFastImage (8.6.3):
     - React-Core
     - SDWebImage (~> 5.11.1)
@@ -1465,18 +1467,6 @@ PODS:
     - SDWebImage/Core (~> 5.10)
   - SocketRocket (0.7.0)
   - SSZipArchive (2.5.5)
-  - VisionCamera (4.7.3):
-    - VisionCamera/Core (= 4.7.3)
-    - VisionCamera/FrameProcessors (= 4.7.3)
-    - VisionCamera/React (= 4.7.3)
-  - VisionCamera/Core (4.7.3)
-  - VisionCamera/FrameProcessors (4.7.3):
-    - React
-    - React-callinvoker
-    - react-native-worklets-core
-  - VisionCamera/React (4.7.3):
-    - React-Core
-    - VisionCamera/FrameProcessors
   - Yoga (0.0.0)
 
 DEPENDENCIES:
@@ -1544,6 +1534,7 @@ DEPENDENCIES:
   - React-utils (from `../node_modules/react-native/ReactCommon/react/utils`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - RNBootSplash (from `../node_modules/react-native-bootsplash`)
+  - RNDeviceInfo (from `../node_modules/react-native-device-info`)
   - RNFastImage (from `../node_modules/react-native-fast-image`)
   - "RNFBApp (from `../node_modules/@react-native-firebase/app`)"
   - "RNFBMessaging (from `../node_modules/@react-native-firebase/messaging`)"
@@ -1555,7 +1546,6 @@ DEPENDENCIES:
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
   - RNSVG (from `../node_modules/react-native-svg`)
-  - VisionCamera (from `../node_modules/react-native-vision-camera`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
@@ -1702,6 +1692,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon"
   RNBootSplash:
     :path: "../node_modules/react-native-bootsplash"
+  RNDeviceInfo:
+    :path: "../node_modules/react-native-device-info"
   RNFastImage:
     :path: "../node_modules/react-native-fast-image"
   RNFBApp:
@@ -1724,8 +1716,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-screens"
   RNSVG:
     :path: "../node_modules/react-native-svg"
-  VisionCamera:
-    :path: "../node_modules/react-native-vision-camera"
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
@@ -1806,6 +1796,7 @@ SPEC CHECKSUMS:
   React-utils: 9fa4e5d0b5e6c6c85c958f19d6ef854337886417
   ReactCommon: 9f285823dbe955099978d9bff65a7653ca029256
   RNBootSplash: cf2099b76af3eeacbd5dc26ac95347a30f561fb1
+  RNDeviceInfo: bcce8752b5043a623fe3c26789679b473f705d3c
   RNFastImage: 462a183c4b0b6b26fdfd639e1ed6ba37536c3b87
   RNFBApp: 4e6da65e29a144d20bcb5bf264fc8e2055831bab
   RNFBMessaging: fb5a9b0a3043d5d3e6e9fe7b27b78fcc3a0f753f
@@ -1821,7 +1812,6 @@ SPEC CHECKSUMS:
   SDWebImageWebPCoder: 908b83b6adda48effe7667cd2b7f78c897e5111d
   SocketRocket: abac6f5de4d4d62d24e11868d7a2f427e0ef940d
   SSZipArchive: c69881e8ac5521f0e622291387add5f60f30f3c4
-  VisionCamera: 0044a94f7489f19e19d5938e97dfc36f4784af3c
   Yoga: 950bbfd7e6f04790fdb51149ed51df41f329fcc8
 
 PODFILE CHECKSUM: 1a66d2c3cb6ba74b3d2fee541f924aebadf63e5d

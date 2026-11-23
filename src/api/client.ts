@@ -22,7 +22,7 @@ try {
   _Config = {};
 }
 
-const DEFAULT_API = 'https://trustified-laravelapi-jyroqs-2f60ac-51-79-17-70.sslip.io';
+const DEFAULT_API = 'https://api.trustified.in';
 export const API_ORIGIN = (_Config.API_ORIGIN ?? DEFAULT_API).replace(/\/$/, '');
 const API_BASE = _Config.API_URL ?? `${API_ORIGIN}/api/v1`;
 

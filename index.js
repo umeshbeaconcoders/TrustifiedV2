@@ -52,3 +52,5 @@ try {
 }
 
 AppRegistry.registerComponent(appName, () => App);
+if (appName !== 'Trustified') AppRegistry.registerComponent('Trustified', () => App);
+if (appName !== 'TrustifiedV2') AppRegistry.registerComponent('TrustifiedV2', () => App);

@@ -1,3 +1,6 @@
+import { NativeModules } from 'react-native';
+import packageJson from '../../package.json';
+
 /**
  * Installed-app version helpers for the launch-time "update available" check.
  */
@@ -33,17 +36,27 @@ let cachedVersion: string | null | undefined;
 /**
  * The installed app's version string (Android versionName / iOS CFBundleShortVersionString).
  *
- * `react-native-device-info` is required lazily so a JS bundle delivered over CodePush to a binary
- * that predates the native module degrades to "unknown" (no popup) instead of crashing on launch.
+ * Uses NativeModules.RNDeviceInfo if compiled into the native binary,
+ * falling back safely to package.json version so the app never throws
+ * "Requiring unknown module 'undefined'".
  */
 export function getInstalledVersion(): string | null {
   if (cachedVersion !== undefined) return cachedVersion;
   try {
-    const DeviceInfo = require('react-native-device-info');
-    const version = (DeviceInfo.default ?? DeviceInfo).getVersion?.();
-    cachedVersion = typeof version === 'string' && version.trim() !== '' ? version.trim() : null;
+    const RNDeviceInfo = NativeModules.RNDeviceInfo;
+    const nativeVersion = RNDeviceInfo?.appVersion;
+    if (typeof nativeVersion === 'string' && nativeVersion.trim() !== '') {
+      cachedVersion = nativeVersion.trim();
+      return cachedVersion;
+    }
+
+    const fallback = (packageJson as any)?.version;
+    if (typeof fallback === 'string' && fallback.trim() !== '') {
+      cachedVersion = fallback.trim();
+      return cachedVersion;
+    }
   } catch {
     cachedVersion = null;
   }
-  return cachedVersion;
+  return cachedVersion ?? null;
 }

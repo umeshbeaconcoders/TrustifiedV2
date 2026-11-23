@@ -69,6 +69,9 @@ export function ProductRail<T>({
       renderItem={renderItem}
       keyExtractor={keyExtractor}
       showsHorizontalScrollIndicator={false}
+      nestedScrollEnabled={true}
+      directionalLockEnabled={true}
+      keyboardShouldPersistTaps="handled"
       onLayout={(e) => setLayoutWidth(e.nativeEvent.layout.width)}
       onContentSizeChange={(w) => setContentWidth(w)}
       onScroll={onScroll}

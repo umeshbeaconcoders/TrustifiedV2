@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
-import { View, Text, Pressable, ScrollView, Image, Modal, FlatList, RefreshControl, BackHandler, Platform } from 'react-native';
+import { View, Text, Pressable, ScrollView, Image, Modal, FlatList, RefreshControl, BackHandler, Platform, TouchableOpacity } from 'react-native';
 import { useRoute, useNavigation, useFocusEffect, type RouteProp } from '@react-navigation/native';
 import { FlashList } from '@shopify/flash-list';
 import { X, RefreshCw, ChevronDown, ShieldCheck, Trophy, FlaskConical, ArrowLeft } from 'lucide-react-native';
@@ -7,32 +7,16 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { api, useBrands, useCategories } from '../../api';
 import type { Paginated, Product } from '../../api/types';
 import type { ReportCollection } from '../../api/hooks/public';
-import { Button, CardGridSkeleton, EmptyState, ListFooterLoader, Tabs, TabsList, TabsTrigger, TabsContent, TabsContext } from '../../components/ui';
+import { Button, CardGridSkeleton, EmptyState, ListFooterLoader } from '../../components/ui';
 import { ProductCard } from '../../components/ProductCard';
 import { colors, useNavColors } from '../../theme/tokens';
-import { CategoryIcon } from '../../components/CategoryIcon';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { TabParamList } from '../../navigation/types';
 
 function getCategoryInitials(name: string): string {
-  const clean = name.trim();
+  const clean = (name || '').trim();
   if (clean.toLowerCase() === 'all') return 'ALL';
   return clean.substring(0, Math.min(2, clean.length)).toUpperCase();
-}
-
-function TabHeaderLabel({ value, label, icon: Icon }: { value: string; label: string; icon: any }) {
-  const ctx = React.useContext(TabsContext);
-  const active = ctx?.value === value;
-  const activeColor = value === 'gold' ? colors.gold.strong : colors.brand[600];
-  const activeTextColor = value === 'gold' ? 'text-gold-800' : 'text-brand-700';
-  return (
-    <View className="flex-row items-center gap-1.5">
-      <Icon size={14} color={active ? activeColor : colors.ink[400]} />
-      <Text className={`text-[11px] font-bold ${active ? activeTextColor : 'text-ink-500'}`}>
-        {label}
-      </Text>
-    </View>
-  );
 }
 
 export function ReportsScreen() {
@@ -43,6 +27,8 @@ export function ReportsScreen() {
   const topInset = insets.top > 0 ? insets.top : (Platform.OS === 'ios' ? 47 : 24);
   const topPadding = topInset + 8;
   const fromDrawer = route.params?.fromDrawer;
+
+  const [activeTab, setActiveTab] = useState<ReportCollection>('pass-fail');
 
   useFocusEffect(
     useCallback(() => {
@@ -59,55 +45,66 @@ export function ReportsScreen() {
 
   return (
     <View className="flex-1 bg-white dark:bg-surface-1" style={{ paddingTop: topPadding }}>
+      {/* Header */}
       <View className="flex-row items-center px-4 mb-2">
         {fromDrawer && (
-          <Pressable
+          <TouchableOpacity
+            activeOpacity={0.7}
             onPress={() => navigation.navigate('Tabs', { screen: 'Home', params: { openDrawer: true } })}
-            className="p-2 -ml-2 mr-2 active:bg-ink-50 dark:active:bg-ink-800 rounded-full"
+            className="p-2 -ml-2 mr-2 rounded-full"
             accessibilityRole="button"
             accessibilityLabel="Go back"
           >
             <ArrowLeft size={24} color={nav.headerTint} />
-          </Pressable>
+          </TouchableOpacity>
         )}
         <Text className="text-2xl font-display font-bold text-ink-900 dark:text-white">Trustified</Text>
       </View>
-      <Tabs defaultValue="pass-fail" className="mt-2 flex-1">
-        <View className="px-4">
-          <TabsList className="bg-ink-50 dark:bg-surface-2 border border-ink-100 dark:border-ink-800">
-            <TabsTrigger
-              value="pass-fail"
-              activeClassName="bg-brand-50 border border-brand-500/50 shadow-sm"
-              inactiveClassName="border border-transparent"
-            >
-              <TabHeaderLabel value="pass-fail" label="Standard" icon={ShieldCheck} />
-            </TabsTrigger>
-            <TabsTrigger
-              value="gold"
-              activeClassName="bg-gold-50 border border-gold/40 shadow-sm"
-              inactiveClassName="border border-transparent"
-            >
-              <TabHeaderLabel value="gold" label="Gold Certified" icon={Trophy} />
-            </TabsTrigger>
-            <TabsTrigger
-              value="nmr"
-              activeClassName="bg-brand-50 border border-brand-500/50 shadow-sm"
-              inactiveClassName="border border-transparent"
-            >
-              <TabHeaderLabel value="nmr" label="NMR Reports" icon={FlaskConical} />
-            </TabsTrigger>
-          </TabsList>
+
+      {/* 3 Top Segmented Tabs: Standard | Gold Certified | NMR Reports */}
+      <View style={{ paddingHorizontal: 16, marginTop: 8 }}>
+        <View style={{ flexDirection: 'row', borderRadius: 12, backgroundColor: '#f5f5f5', borderWidth: 1, borderColor: '#e5e5e5', padding: 4 }}>
+          {(
+            [
+              { key: 'pass-fail', label: 'Standard', Icon: ShieldCheck },
+              { key: 'gold', label: 'Gold Certified', Icon: Trophy },
+              { key: 'nmr', label: 'NMR Reports', Icon: FlaskConical },
+            ] as const
+          ).map(({ key, label, Icon }) => {
+            const active = activeTab === key;
+            const isGold = key === 'gold';
+            return (
+              <TouchableOpacity
+                key={key}
+                activeOpacity={0.7}
+                onPress={() => setActiveTab(key)}
+                style={{
+                  flex: 1,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 4,
+                  paddingVertical: 10,
+                  borderRadius: 8,
+                  borderWidth: 1,
+                  borderColor: active ? (isGold ? '#d4a017' : colors.brand[500]) : 'transparent',
+                  backgroundColor: active ? (isGold ? '#fefce8' : '#f0fdf4') : 'transparent',
+                }}
+              >
+                <Icon size={14} color={active ? (isGold ? colors.gold.strong : colors.brand[600]) : colors.ink[400]} />
+                <Text style={{ fontSize: 11, fontWeight: '700', color: active ? (isGold ? '#92400e' : colors.brand[700]) : colors.ink[500] }}>
+                  {label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
-        <TabsContent value="pass-fail" className="mt-4 flex-1">
-          <ReportsCollectionList collection="pass-fail" showStatusFilter />
-        </TabsContent>
-        <TabsContent value="gold" className="mt-4 flex-1">
-          <ReportsCollectionList collection="gold" showStatusFilter={false} />
-        </TabsContent>
-        <TabsContent value="nmr" className="mt-4 flex-1">
-          <ReportsCollectionList collection="nmr" showStatusFilter />
-        </TabsContent>
-      </Tabs>
+      </View>
+
+      {/* Main Collection Content */}
+      <View className="mt-4 flex-1">
+        <ReportsCollectionList collection={activeTab} showStatusFilter={activeTab !== 'gold'} />
+      </View>
     </View>
   );
 }
@@ -133,12 +130,18 @@ function ReportsCollectionList({ collection, showStatusFilter }: { collection: R
   const initialCategory = routeParams?.category || '';
 
   const [category, setCategory] = useState(initialCategory);
-  // A brand can be preselected from a Certified Brands tap (Home strip / Certified Brands screen).
   const [brand, setBrand] = useState(routeParams?.brand || '');
   const [status, setStatus] = useState<Status>('');
   const [sort, setSort] = useState<Sort>('newest');
   const [brandModalVisible, setBrandModalVisible] = useState(false);
   const [sortModalVisible, setSortModalVisible] = useState(false);
+
+  // If switched to Gold tab where status filter is hidden, clear status filter
+  useEffect(() => {
+    if (!showStatusFilter) {
+      setStatus('');
+    }
+  }, [showStatusFilter]);
 
   // Sync category / brand if navigated here from the Home screen (category list, brand strip)
   useEffect(() => {
@@ -168,8 +171,8 @@ function ReportsCollectionList({ collection, showStatusFilter }: { collection: R
   }, [sort]);
 
   const params = useMemo(
-    () => ({ search: '', category, brand, status, sort, per_page: 24 }),
-    [category, brand, status, sort],
+    () => ({ search: '', category, brand, status: showStatusFilter ? status : '', sort, per_page: 24 }),
+    [category, brand, status, sort, showStatusFilter],
   );
 
   const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage, isRefetching, refetch } = useInfiniteQuery({
@@ -177,13 +180,17 @@ function ReportsCollectionList({ collection, showStatusFilter }: { collection: R
     queryFn: ({ pageParam, signal }) =>
       api.get<Paginated<Product>>(`/reports/${collection}`, { ...params, page: pageParam }, signal),
     initialPageParam: 1,
-    getNextPageParam: (lastPage) =>
-      lastPage.meta.current_page < lastPage.meta.last_page ? lastPage.meta.current_page + 1 : undefined,
+    getNextPageParam: (lastPage) => {
+      if (!lastPage || !lastPage.meta) return undefined;
+      return lastPage.meta.current_page < lastPage.meta.last_page ? lastPage.meta.current_page + 1 : undefined;
+    },
     staleTime: 60_000,
   });
 
-  const products = data?.pages.flatMap((p) => p.data) ?? [];
-  const total = data?.pages[0]?.meta.total ?? 0;
+  const products = Array.isArray(data?.pages)
+    ? data.pages.flatMap((p) => (Array.isArray(p?.data) ? p.data : []))
+    : [];
+  const total = data?.pages?.[0]?.meta?.total ?? products.length;
 
   function clearFilters() {
     setCategory('');
@@ -197,7 +204,7 @@ function ReportsCollectionList({ collection, showStatusFilter }: { collection: R
   // Build active filters list for dismissible chips
   const activeFilters = useMemo(() => {
     const list: { key: string; label: string; clear: () => void }[] = [];
-    if (status) {
+    if (showStatusFilter && status) {
       const opt = STATUS_OPTIONS.find((o) => o.value === status);
       list.push({ key: 'status', label: opt?.label || status, clear: () => setStatus('') });
     }
@@ -214,51 +221,55 @@ function ReportsCollectionList({ collection, showStatusFilter }: { collection: R
       list.push({ key: 'sort', label: opt?.label || sort, clear: () => setSort('newest') });
     }
     return list;
-  }, [status, category, brand, sort, categories, brandList]);
+  }, [showStatusFilter, status, category, brand, sort, categories, brandList]);
 
   return (
-    <View style={{ height: '100%' }}>
+    <View className="flex-1">
       {/* Horizontal Status Filter Chips (Standard / NMR only) */}
       {showStatusFilter && (
         <View className="flex-row gap-2 px-4 mb-4">
-          <Pressable
+          <TouchableOpacity
+            activeOpacity={0.7}
             onPress={() => setStatus('')}
             className={`flex-1 items-center justify-center py-2 rounded-full border ${status === '' ? 'border-brand-600 bg-brand-50' : 'border-ink-200 bg-white'}`}
           >
             <Text className={`text-[11px] font-bold ${status === '' ? 'text-brand-700' : 'text-ink-600'}`}>All</Text>
-          </Pressable>
+          </TouchableOpacity>
           {STATUS_OPTIONS.map((opt) => (
-            <Pressable
+            <TouchableOpacity
               key={opt.value}
+              activeOpacity={0.7}
               onPress={() => setStatus(opt.value as Status)}
               className={`flex-1 items-center justify-center py-2 rounded-full border ${status === opt.value ? 'border-brand-600 bg-brand-50' : 'border-ink-200 bg-white'}`}
             >
               <Text className={`text-[11px] font-bold ${status === opt.value ? 'text-brand-700' : 'text-ink-600'}`}>{opt.label}</Text>
-            </Pressable>
+            </TouchableOpacity>
           ))}
         </View>
       )}
 
       {/* Selectors Row */}
       <View className="flex-row gap-3 px-4 mb-4">
-        <Pressable
+        <TouchableOpacity
+          activeOpacity={0.7}
           onPress={() => setBrandModalVisible(true)}
-          className="flex-1 flex-row items-center justify-between border border-ink-200 dark:border-ink-700 bg-white dark:bg-surface-1 px-3 py-2.5 rounded-xl active:bg-ink-50"
+          className="flex-1 flex-row items-center justify-between border border-ink-200 dark:border-ink-700 bg-white dark:bg-surface-1 px-3 py-2.5 rounded-xl"
         >
           <Text className="text-xs font-bold text-ink-700 dark:text-ink-200 flex-1 mr-1" numberOfLines={1}>
             {selectedBrandName}
           </Text>
           <ChevronDown size={14} color={colors.ink[500]} />
-        </Pressable>
-        <Pressable
+        </TouchableOpacity>
+        <TouchableOpacity
+          activeOpacity={0.7}
           onPress={() => setSortModalVisible(true)}
-          className="flex-1 flex-row items-center justify-between border border-ink-200 dark:border-ink-700 bg-white dark:bg-surface-1 px-3 py-2.5 rounded-xl active:bg-ink-50"
+          className="flex-1 flex-row items-center justify-between border border-ink-200 dark:border-ink-700 bg-white dark:bg-surface-1 px-3 py-2.5 rounded-xl"
         >
           <Text className="text-xs font-bold text-ink-700 dark:text-ink-200 flex-1 mr-1" numberOfLines={1}>
             {selectedSortLabel}
           </Text>
           <ChevronDown size={14} color={colors.ink[500]} />
-        </Pressable>
+        </TouchableOpacity>
       </View>
 
       {/* Active Filters Row (Web style) */}
@@ -268,14 +279,14 @@ function ReportsCollectionList({ collection, showStatusFilter }: { collection: R
           {activeFilters.map((filt) => (
             <View key={filt.key} className="flex-row items-center gap-1 bg-[#eefcf2] px-3 py-1 rounded-full border border-brand-200">
               <Text className="text-[11px] font-bold text-brand-700">{filt.label}</Text>
-              <Pressable onPress={filt.clear} className="p-0.5 rounded-full active:bg-brand-100">
+              <TouchableOpacity activeOpacity={0.7} onPress={filt.clear} className="p-0.5 rounded-full">
                 <X size={10} color={colors.brand[600]} />
-              </Pressable>
+              </TouchableOpacity>
             </View>
           ))}
-          <Pressable onPress={clearFilters} className="ml-auto active:opacity-85">
+          <TouchableOpacity activeOpacity={0.7} onPress={clearFilters} className="ml-auto">
             <Text className="text-xs font-bold text-brand-600 underline">Clear all</Text>
-          </Pressable>
+          </TouchableOpacity>
         </View>
       ) : null}
 
@@ -291,9 +302,16 @@ function ReportsCollectionList({ collection, showStatusFilter }: { collection: R
       {/* Categories Horizontal circular bar (from web) */}
       {categories.length > 0 ? (
         <View className="mb-4 border-b border-ink-100 dark:border-ink-800 pb-3">
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 12 }}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            nestedScrollEnabled={true}
+            directionalLockEnabled={true}
+            contentContainerStyle={{ paddingHorizontal: 16, gap: 12 }}
+          >
             {/* "All" Category circular item */}
-            <Pressable
+            <TouchableOpacity
+              activeOpacity={0.7}
               onPress={() => setCategory('')}
               className="items-center w-[76px]"
             >
@@ -303,14 +321,15 @@ function ReportsCollectionList({ collection, showStatusFilter }: { collection: R
               <Text className={`text-center text-[10px] font-bold ${!category ? 'text-brand-700' : 'text-ink-700'}`}>
                 All
               </Text>
-            </Pressable>
+            </TouchableOpacity>
 
             {/* Individual categories items */}
             {categories.map((cat) => {
               const active = category === cat.slug;
               return (
-                <Pressable
+                <TouchableOpacity
                   key={cat.id}
+                  activeOpacity={0.7}
                   onPress={() => setCategory(cat.slug)}
                   className="items-center w-[76px]"
                 >
@@ -326,14 +345,14 @@ function ReportsCollectionList({ collection, showStatusFilter }: { collection: R
                   <Text className={`text-center text-[10px] font-bold leading-snug line-clamp-2 ${active ? 'text-brand-700' : 'text-ink-700'}`} numberOfLines={2}>
                     {cat.name}
                   </Text>
-                </Pressable>
+                </TouchableOpacity>
               );
             })}
           </ScrollView>
         </View>
       ) : null}
 
-      {/* Main product list */}
+      {/* Main product list with key={collection} to prevent FlashList recycling hang */}
       <View className="flex-1 px-2">
         {isLoading ? (
           <CardGridSkeleton count={6} />
@@ -366,6 +385,7 @@ function ReportsCollectionList({ collection, showStatusFilter }: { collection: R
           </View>
         ) : (
           <FlashList
+            key={collection}
             data={products}
             keyExtractor={(item) => String(item.id)}
             numColumns={2}
@@ -379,8 +399,7 @@ function ReportsCollectionList({ collection, showStatusFilter }: { collection: R
                 <ProductCard product={item} to="ProductDetail" />
               </View>
             )}
-            // Load well ahead of the end (bigger pages, earlier trigger) so scrolling never waits on the network.
-            onEndReachedThreshold={1.5}
+            onEndReachedThreshold={0.5}
             onEndReached={() => {
               if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
             }}
@@ -392,31 +411,32 @@ function ReportsCollectionList({ collection, showStatusFilter }: { collection: R
       {/* Brand Selection Modal */}
       <Modal visible={brandModalVisible} transparent animationType="fade" onRequestClose={() => setBrandModalVisible(false)}>
         <View className="flex-1 bg-black/50 justify-center items-center p-6">
-          <Pressable className="absolute inset-0" onPress={() => setBrandModalVisible(false)} />
+          <TouchableOpacity activeOpacity={1} style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }} onPress={() => setBrandModalVisible(false)} />
           <View className="bg-white dark:bg-surface-1 rounded-3xl w-full max-h-[75%] p-6 shadow-2xl overflow-hidden">
             <View className="flex-row items-center justify-between border-b border-ink-100 dark:border-ink-800 pb-3 mb-4">
               <Text className="text-base font-bold text-ink-900 dark:text-white">Select Brand</Text>
-              <Pressable onPress={() => setBrandModalVisible(false)} className="p-1 rounded-full active:bg-ink-50">
+              <TouchableOpacity activeOpacity={0.7} onPress={() => setBrandModalVisible(false)} className="p-1 rounded-full">
                 <X size={18} color={colors.ink[600]} />
-              </Pressable>
+              </TouchableOpacity>
             </View>
             <FlatList
               data={[{ slug: '', name: 'All Brands' }, ...brandList]}
               keyExtractor={(item) => item.slug}
               showsVerticalScrollIndicator={true}
               renderItem={({ item }) => (
-                <Pressable
+                <TouchableOpacity
+                  activeOpacity={0.7}
                   onPress={() => {
                     setBrand(item.slug);
                     setBrandModalVisible(false);
                   }}
-                  className={`py-3.5 px-3 rounded-2xl flex-row items-center justify-between my-0.5 ${brand === item.slug ? 'bg-brand-50' : 'active:bg-ink-50'}`}
+                  className={`py-3.5 px-3 rounded-2xl flex-row items-center justify-between my-0.5 ${brand === item.slug ? 'bg-brand-50' : ''}`}
                 >
-                  <Text className={`text-sm ${brand === item.slug ? 'font-bold text-brand-700' : 'font-semibold text-ink-800'}`}>
+                  <Text className={`text-sm ${brand === item.slug ? 'font-bold text-brand-700' : 'font-semibold text-ink-800 dark:text-ink-200'}`}>
                     {item.name}
                   </Text>
                   {brand === item.slug && <Text className="text-brand-600 font-bold">✓</Text>}
-                </Pressable>
+                </TouchableOpacity>
               )}
             />
           </View>
@@ -426,29 +446,30 @@ function ReportsCollectionList({ collection, showStatusFilter }: { collection: R
       {/* Sort Selection Modal */}
       <Modal visible={sortModalVisible} transparent animationType="fade" onRequestClose={() => setSortModalVisible(false)}>
         <View className="flex-1 bg-black/50 justify-center items-center p-6">
-          <Pressable className="absolute inset-0" onPress={() => setSortModalVisible(false)} />
+          <TouchableOpacity activeOpacity={1} style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }} onPress={() => setSortModalVisible(false)} />
           <View className="bg-white dark:bg-surface-1 rounded-3xl w-full max-h-[75%] p-6 shadow-2xl overflow-hidden">
             <View className="flex-row items-center justify-between border-b border-ink-100 dark:border-ink-800 pb-3 mb-4">
               <Text className="text-base font-bold text-ink-900 dark:text-white">Sort By</Text>
-              <Pressable onPress={() => setSortModalVisible(false)} className="p-1 rounded-full active:bg-ink-50">
+              <TouchableOpacity activeOpacity={0.7} onPress={() => setSortModalVisible(false)} className="p-1 rounded-full">
                 <X size={18} color={colors.ink[600]} />
-              </Pressable>
+              </TouchableOpacity>
             </View>
             <ScrollView showsVerticalScrollIndicator={true} className="gap-1 mb-2">
               {SORT_OPTIONS.map((opt) => (
-                <Pressable
+                <TouchableOpacity
                   key={opt.value}
+                  activeOpacity={0.7}
                   onPress={() => {
                     setSort(opt.value as Sort);
                     setSortModalVisible(false);
                   }}
-                  className={`py-3.5 px-3 rounded-2xl flex-row items-center justify-between my-0.5 ${sort === opt.value ? 'bg-brand-50' : 'active:bg-ink-50'}`}
+                  className={`py-3.5 px-3 rounded-2xl flex-row items-center justify-between my-0.5 ${sort === opt.value ? 'bg-brand-50' : ''}`}
                 >
-                  <Text className={`text-sm ${sort === opt.value ? 'font-bold text-brand-700' : 'font-semibold text-ink-800'}`}>
+                  <Text className={`text-sm ${sort === opt.value ? 'font-bold text-brand-700' : 'font-semibold text-ink-800 dark:text-ink-200'}`}>
                     {opt.label}
                   </Text>
                   {sort === opt.value && <Text className="text-brand-600 font-bold">✓</Text>}
-                </Pressable>
+                </TouchableOpacity>
               ))}
             </ScrollView>
           </View>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, ScrollView, Pressable, RefreshControl } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
@@ -114,19 +114,20 @@ export function MoreScreen() {
 
       <View className="mt-4 gap-2">
         {items.map((item) => (
-          <Pressable
+          <TouchableOpacity
             key={item.label}
             onPress={item.onPress}
+            activeOpacity={0.7}
             accessibilityRole="button"
             accessibilityLabel={item.label}
-            className="flex-row items-center gap-3 rounded-2xl border border-ink-100 dark:border-ink-800 bg-white dark:bg-surface-1 px-4 py-3.5 active:bg-ink-50">
-            <View className="size-10 items-center justify-center rounded-full bg-ink-50 dark:bg-surface-2">{item.icon}</View>
-            <View className="flex-1">
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 16, borderWidth: 1, borderColor: '#f0f0f0', backgroundColor: '#fff', paddingHorizontal: 16, paddingVertical: 14 }}>
+            <View style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 20, backgroundColor: '#f5f5f5' }}>{item.icon}</View>
+            <View style={{ flex: 1 }}>
               <Text className="text-sm font-semibold text-ink-900 dark:text-white">{item.label}</Text>
               {item.description ? <Text className="mt-0.5 text-xs text-ink-500 dark:text-ink-400">{item.description}</Text> : null}
             </View>
             <ChevronRight size={18} color={colors.ink[300]} />
-          </Pressable>
+          </TouchableOpacity>
         ))}
       </View>
     </ScrollView>
