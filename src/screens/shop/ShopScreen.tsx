@@ -75,7 +75,9 @@ export function ShopScreen() {
         contentContainerStyle={{ paddingBottom: 48 }}
         showsVerticalScrollIndicator={false}
         nestedScrollEnabled={true}
+        directionalLockEnabled={true}
         keyboardShouldPersistTaps="handled"
+        scrollEventThrottle={16}
         refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={onRefresh} colors={[colors.brand[500]]} />}>
         {shopBanners.length > 0 ? (
           <View className="pt-4">

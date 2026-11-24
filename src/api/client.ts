@@ -206,6 +206,18 @@ export const api = {
 /** Resolve backend-relative media paths (e.g. "/uploads/x.png") to absolute URLs. */
 export function mediaUrl(path: string | null | undefined): string | undefined {
   if (!path) return undefined;
-  if (/^https?:\/\//.test(path)) return path;
-  return `${API_ORIGIN}/storage/${path.replace(/^\/+/, '').replace(/^storage\//, '')}`;
+  let url = path;
+  if (!/^https?:\/\//.test(url)) {
+    url = `${API_ORIGIN}/storage/${url.replace(/^\/+/, '').replace(/^storage\//, '')}`;
+  }
+  // Ensure HTTPS for secure loading on Android (avoid cleartext blocks)
+  if (url.startsWith('http://api.trustified.in')) {
+    url = url.replace('http://', 'https://');
+  }
+  // Encode URI to handle spaces or special characters in filenames on Android
+  try {
+    return encodeURI(decodeURI(url));
+  } catch {
+    return url;
+  }
 }

@@ -7,8 +7,15 @@
 import 'react-native-gesture-handler';
 import './src/theme/global.css';
 import React, { useEffect } from 'react';
-import { StatusBar, useColorScheme } from 'react-native';
+import { StatusBar, Appearance } from 'react-native';
+import { colorScheme } from 'nativewind';
 import { enableFreeze } from 'react-native-screens';
+
+// Enforce light mode synchronously before render
+try {
+  Appearance.setColorScheme('light');
+  colorScheme.set('light');
+} catch {}
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 
@@ -45,9 +52,9 @@ function PushNotificationsBridge() {
 }
 
 export default function App() {
-  const scheme = useColorScheme();
-
-  useEffect(() => {}, []);
+  useEffect(() => {
+    colorScheme.set('light');
+  }, []);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -55,7 +62,7 @@ export default function App() {
         <QueryClientProvider client={queryClient}>
           <AuthHydrator>
             <NavigationContainer ref={navigationRef}>
-              <StatusBar barStyle={scheme === 'dark' ? 'light-content' : 'dark-content'} />
+              <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
               <ErrorBoundary label="Root navigator">
                 <RootNavigator />
               </ErrorBoundary>

@@ -102,14 +102,14 @@ export type BadgeVariant = keyof typeof badgeVariants;
  * NativeWind's `dark:` variant on their own and need this instead.
  */
 export function useNavColors() {
-  const dark = useColorScheme() === 'dark';
+  const dark = false;
   return {
     dark,
-    screenBackground: dark ? colors.surface[1] : colors.white,
-    headerBackground: dark ? colors.surface[0] : colors.white,
-    headerTint: dark ? colors.white : colors.ink[900],
-    border: dark ? colors.ink[800] : colors.ink[100],
-    tabActive: colors.brand[dark ? 400 : 600],
-    tabInactive: dark ? colors.ink[500] : colors.ink[400],
+    screenBackground: colors.white,
+    headerBackground: colors.white,
+    headerTint: colors.ink[900],
+    border: colors.ink[100],
+    tabActive: colors.brand[600],
+    tabInactive: colors.ink[400],
   };
 }

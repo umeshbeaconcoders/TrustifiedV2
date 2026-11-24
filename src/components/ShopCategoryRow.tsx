@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView, FlatList } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ChevronRight } from 'lucide-react-native';
@@ -77,19 +77,20 @@ export function ShopCategoryRow({ section }: { section: ShopSectionWithProducts 
       ) : null}
 
       {products.length > 0 ? (
-        <FlatList
+        <ScrollView
           horizontal
-          data={products}
-          keyExtractor={(p) => String(p.id)}
           showsHorizontalScrollIndicator={false}
+          nestedScrollEnabled={true}
+          directionalLockEnabled={true}
           keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{ paddingHorizontal: 20, gap: CARD_GAP }}
-          renderItem={({ item: p }) => (
-            <View style={{ width: CARD_WIDTH }}>
+          scrollEventThrottle={16}
+          contentContainerStyle={{ paddingHorizontal: 20, gap: CARD_GAP }}>
+          {products.map((p) => (
+            <View key={p.id} style={{ width: CARD_WIDTH }}>
               <ProductCard product={p} to="ProductDetail" />
             </View>
-          )}
-        />
+          ))}
+        </ScrollView>
       ) : null}
     </View>
   );

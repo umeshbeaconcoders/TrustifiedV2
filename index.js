@@ -1,7 +1,22 @@
 /**
  * @format
  */
-import { AppRegistry } from 'react-native';
+import { AppRegistry, Appearance } from 'react-native';
+import { colorScheme } from 'nativewind';
+
+// Force Light Mode globally across the entire app
+try {
+  Appearance.setColorScheme('light');
+  colorScheme.set('light');
+  Appearance.addChangeListener(() => {
+    try {
+      Appearance.setColorScheme('light');
+      colorScheme.set('light');
+    } catch {}
+  });
+} catch {
+  // Ignore
+}
 
 // Polyfill: Prevent react-native-css-interop (NativeWind) property inspection from triggering throwing getters on NavigationStateContext
 try {
