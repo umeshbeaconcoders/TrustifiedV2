@@ -921,10 +921,18 @@ function SectionHeader({
       <View className="flex-row items-center justify-between">
         <Text className={`text-xl font-display font-bold ${light ? 'text-white' : 'text-ink-900'}`}>{title}</Text>
         {onSeeAll ? (
-          <Button variant="ghost" size="sm" onPress={onSeeAll} accessibilityLabel={`See all ${title}`}>
+          <TouchableOpacity
+            onPressIn={onSeeAll}
+            delayPressIn={0}
+            activeOpacity={0.7}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            accessibilityRole="button"
+            accessibilityLabel={`See all ${title}`}
+            style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 4 }}
+          >
             <Text className="text-sm font-semibold text-brand-700">See all</Text>
             <ChevronRight size={14} color={colors.brand[700]} />
-          </Button>
+          </TouchableOpacity>
         ) : null}
       </View>
       {subtitle ? (

@@ -47,8 +47,10 @@ export function RootNavigator() {
         headerBackTitleVisible: false,
         headerBackTitle: '',
         gestureEnabled: true,
-        fullScreenGestureEnabled: false,
+        fullScreenGestureEnabled: true,
+        gestureDirection: 'horizontal',
         animation: 'slide_from_right',
+        customAnimationOnGesture: true,
       }}>
       <Stack.Screen name="Splash" component={SplashScreen} options={{ headerShown: false, gestureEnabled: false }} />
       <Stack.Screen name="Tabs" component={TabNavigator} options={{ headerShown: false, gestureEnabled: false }} />

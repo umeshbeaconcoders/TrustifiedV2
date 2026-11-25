@@ -44,10 +44,12 @@ export function ShopCategoryRow({ section }: { section: ShopSectionWithProducts 
           </View>
         </View>
         <TouchableOpacity
-          onPress={() => openCategory()}
+          delayPressIn={0}
+          onPressIn={() => openCategory()}
           activeOpacity={0.7}
           accessibilityRole="button"
           accessibilityLabel={`View all ${section.name} products`}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           className="flex-row items-center gap-1 rounded-full bg-brand-50 px-3 py-1.5 active:opacity-80 dark:bg-brand-950/40">
           <Text className="text-xs font-bold text-brand-700 dark:text-brand-400">View all</Text>
           <ChevronRight size={13} color={colors.brand[600]} />
@@ -66,7 +68,8 @@ export function ShopCategoryRow({ section }: { section: ShopSectionWithProducts 
           {subs.map((sub) => (
             <TouchableOpacity
               key={sub.id}
-              onPress={() => openCategory(sub.slug)}
+              delayPressIn={0}
+              onPressIn={() => openCategory(sub.slug)}
               activeOpacity={0.7}
               accessibilityRole="button"
               className="rounded-full border border-ink-200 bg-white px-3 py-1.5 active:bg-brand-50 dark:border-ink-700 dark:bg-surface-1">

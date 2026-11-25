@@ -80,8 +80,8 @@ android {
         applicationId "com.trustified.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 38
-        versionName "1.14.21"
+        versionCode 39
+        versionName "2.0"
     }
     signingConfigs {
         debug {

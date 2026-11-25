@@ -30,6 +30,7 @@ import { ToastHost } from './src/components/ToastHost';
 import { AuthHydrator } from './src/navigation/AuthHydrator';
 import { navigationRef } from './src/navigation/navigationRef';
 import { RootNavigator } from './src/navigation/RootNavigator';
+import { AndroidSwipeBack } from './src/navigation/AndroidSwipeBack';
 import { usePushNotifications } from './src/push/usePushNotifications';
 
 const queryClient = new QueryClient({
@@ -62,12 +63,14 @@ export default function App() {
         <QueryClientProvider client={queryClient}>
           <AuthHydrator>
             <NavigationContainer ref={navigationRef}>
-              <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-              <ErrorBoundary label="Root navigator">
-                <RootNavigator />
-              </ErrorBoundary>
-              <PushNotificationsBridge />
-              <ToastHost />
+              <AndroidSwipeBack>
+                <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+                <ErrorBoundary label="Root navigator">
+                  <RootNavigator />
+                </ErrorBoundary>
+                <PushNotificationsBridge />
+                <ToastHost />
+              </AndroidSwipeBack>
             </NavigationContainer>
           </AuthHydrator>
           <AppUpdateGate />

@@ -15,6 +15,7 @@ import type { RootStackParamList } from '../../navigation/types';
 import { toast } from '../../stores/toast';
 import { Eye, EyeOff, ArrowLeft } from 'lucide-react-native';
 import { colors, useNavColors } from '../../theme/tokens';
+import { getInstalledVersion } from '../../lib/appVersion';
 
 const passwordSchema = z.object({
   email: z.string().email('Enter a valid email'),
@@ -98,6 +99,7 @@ export function LoginScreen({ navigation, route }: Props) {
       <ScrollView
         className="flex-1"
         contentContainerClassName="px-6 py-12"
+        contentContainerStyle={{ paddingBottom: 48 }}
         keyboardShouldPersistTaps="handled"
       >
         <FadeIn>
@@ -213,6 +215,11 @@ export function LoginScreen({ navigation, route }: Props) {
             <Text className="font-semibold text-brand-700" onPress={() => navigation.navigate('Policy', { slug: 'privacy', title: 'Privacy Policy' })}>
               Privacy Policy
             </Text>
+          </Text>
+
+          {/* App version */}
+          <Text className="mt-6 mb-4 text-center text-xs text-ink-400" style={{ letterSpacing: 0.3 }}>
+            v{getInstalledVersion() ?? '1.14.21'}
           </Text>
 
         </FadeIn>

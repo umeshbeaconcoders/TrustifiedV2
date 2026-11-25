@@ -116,7 +116,8 @@ export function ShopScreen() {
                 {sections.map((section) => (
                   <TouchableOpacity
                     key={section.id}
-                    onPress={() => navigation.navigate('ShopSection', { slug: section.slug, name: section.name })}
+                    delayPressIn={0}
+                    onPressIn={() => navigation.navigate('ShopSection', { slug: section.slug, name: section.name })}
                     activeOpacity={0.7}
                     accessibilityRole="button"
                     accessibilityLabel={section.name}
@@ -156,7 +157,8 @@ export function ShopScreen() {
                     {fillTo(brands, 8).map((brand, i) => (
                       <TouchableOpacity
                         key={`${brand.id}-${i}`}
-                        onPress={() => navigation.navigate('ShopSection', { brand: brand.slug })}
+                        delayPressIn={0}
+                        onPressIn={() => navigation.navigate('ShopSection', { brand: brand.slug })}
                         activeOpacity={0.7}
                         accessibilityRole="button"
                         accessibilityLabel={`Shop ${brand.name}`}
