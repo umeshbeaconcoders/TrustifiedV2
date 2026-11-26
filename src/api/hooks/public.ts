@@ -5,6 +5,7 @@
  */
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../client';
+import { findCachedProductBySlug } from '../prefetch';
 import {
   sanitizeCategory,
   type AppVersionInfo,
@@ -47,15 +48,20 @@ export function useProducts(params: ListParams = {}) {
   return useQuery({
     queryKey: ['products', params],
     queryFn: ({ signal }) => api.get<Paginated<Product>>('/products', params, signal),
-    staleTime: 60_000,
+    staleTime: 2 * 60_000,
   });
 }
 
 export function useProduct(slug: string | undefined) {
-  return useQuery({
+  return useQuery<Envelope<Product>>({
     queryKey: ['products', 'detail', slug],
     queryFn: ({ signal }) => api.get<Envelope<Product>>(`/products/${slug}`, undefined, signal),
     enabled: Boolean(slug),
+    staleTime: 3 * 60_000,
+    placeholderData: (): Envelope<Product> | undefined => {
+      const cached = slug ? findCachedProductBySlug(slug) : undefined;
+      return cached ? { data: cached } : undefined;
+    },
   });
 }
 
@@ -64,6 +70,7 @@ export function useProductReport(slug: string | undefined) {
     queryKey: ['products', 'report', slug],
     queryFn: ({ signal }) => api.get<Envelope<TestReport>>(`/products/${slug}/report`, undefined, signal),
     enabled: Boolean(slug),
+    staleTime: 3 * 60_000,
   });
 }
 
@@ -74,6 +81,7 @@ export function useReport(id: number | undefined) {
     queryKey: ['reports', 'detail', id],
     queryFn: ({ signal }) => api.get<Envelope<TestReport>>(`/reports/${id}`, undefined, signal),
     enabled: Boolean(id),
+    staleTime: 3 * 60_000,
   });
 }
 
@@ -83,7 +91,7 @@ export function useReports(collection: ReportCollection, params: ListParams = {}
   return useQuery({
     queryKey: ['reports', collection, params],
     queryFn: ({ signal }) => api.get<Paginated<Product>>(`/reports/${collection}`, params, signal),
-    staleTime: 60_000,
+    staleTime: 2 * 60_000,
   });
 }
 
@@ -128,6 +136,7 @@ export function useBrand(slug: string | undefined) {
     queryKey: ['brands', 'detail', slug],
     queryFn: ({ signal }) => api.get<Envelope<Brand>>(`/brands/${slug}`, undefined, signal),
     enabled: Boolean(slug),
+    staleTime: 5 * 60_000,
   });
 }
 
@@ -136,6 +145,7 @@ export function useBrandProducts(slug: string | undefined, params: ListParams = 
     queryKey: ['brands', 'products', slug, params],
     queryFn: ({ signal }) => api.get<Paginated<Product>>(`/brands/${slug}/products`, params, signal),
     enabled: Boolean(slug),
+    staleTime: 2 * 60_000,
   });
 }
 
@@ -162,6 +172,7 @@ export function useCategoryProducts(slug: string | undefined, params: ListParams
     queryKey: ['categories', 'products', slug, params],
     queryFn: ({ signal }) => api.get<Paginated<Product>>(`/categories/${slug}/products`, params, signal),
     enabled: Boolean(slug),
+    staleTime: 2 * 60_000,
   });
 }
 
@@ -181,6 +192,7 @@ export function useCategoryRankings(slug: string | undefined) {
     queryFn: ({ signal }) =>
       api.get<Envelope<Product[]> | Paginated<Product>>(`/rankings/categories/${slug}`, undefined, signal),
     enabled: Boolean(slug),
+    staleTime: 3 * 60_000,
   });
 }
 
@@ -191,6 +203,7 @@ export function useReviews(slug: string | undefined, params: ListParams = {}) {
     queryKey: ['reviews', slug, params],
     queryFn: ({ signal }) => api.get<Paginated<Review>>(`/products/${slug}/reviews`, params, signal),
     enabled: Boolean(slug),
+    staleTime: 2 * 60_000,
   });
 }
 
@@ -361,6 +374,7 @@ export function useShopProductsInfinite(params: ShopProductParams = {}) {
       api.get<Paginated<Product>>('/shop/products', { ...params, page: pageParam }, signal),
     initialPageParam: 1,
     getNextPageParam: (last) => (last.meta.current_page < last.meta.last_page ? last.meta.current_page + 1 : undefined),
-    staleTime: 60_000,
+    staleTime: 2 * 60_000,
+    placeholderData: (prev) => prev,
   });
 }

@@ -1,6 +1,7 @@
 /**
  * @format
  */
+import './src/theme/forceLightMode';
 import { AppRegistry, Appearance } from 'react-native';
 import { colorScheme } from 'nativewind';
 
@@ -8,10 +9,12 @@ import { colorScheme } from 'nativewind';
 try {
   Appearance.setColorScheme('light');
   colorScheme.set('light');
-  Appearance.addChangeListener(() => {
+  Appearance.addChangeListener((prefs) => {
     try {
-      Appearance.setColorScheme('light');
-      colorScheme.set('light');
+      if (prefs?.colorScheme !== 'light') {
+        Appearance.setColorScheme('light');
+        colorScheme.set('light');
+      }
     } catch {}
   });
 } catch {

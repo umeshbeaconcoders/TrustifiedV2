@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { AccessibilityInfo, FlatList, type ListRenderItem, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native';
+import { AccessibilityInfo, type ListRenderItem, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native';
+import { FlatList } from 'react-native-gesture-handler';
 import { useIsFocused } from '@react-navigation/native';
 
 const AUTO_SCROLL_MS = 3500;
@@ -62,7 +63,7 @@ export function ProductRail<T>({
   };
 
   return (
-    <FlatList
+    <FlatList<T>
       ref={listRef}
       horizontal
       data={data}
@@ -70,8 +71,8 @@ export function ProductRail<T>({
       keyExtractor={keyExtractor}
       showsHorizontalScrollIndicator={false}
       nestedScrollEnabled={true}
-      directionalLockEnabled={true}
       keyboardShouldPersistTaps="handled"
+      decelerationRate="normal"
       onLayout={(e) => setLayoutWidth(e.nativeEvent.layout.width)}
       onContentSizeChange={(w) => setContentWidth(w)}
       onScroll={onScroll}

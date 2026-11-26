@@ -7,8 +7,10 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { api, useBrands, useCategories } from '../../api';
 import type { Paginated, Product } from '../../api/types';
 import type { ReportCollection } from '../../api/hooks/public';
-import { Button, CardGridSkeleton, EmptyState, ListFooterLoader } from '../../components/ui';
+import { Button, CardGridSkeleton, EmptyState, ListFooterLoader, MediaFrame } from '../../components/ui';
 import { ProductCard } from '../../components/ProductCard';
+import { TrustifiedLogo } from '../../components/icons/TrustifiedLogo';
+import { TrustifiedStamp } from '../../components/icons/TrustifiedStamp';
 import { colors, useNavColors } from '../../theme/tokens';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { TabParamList } from '../../navigation/types';
@@ -58,7 +60,12 @@ export function ReportsScreen() {
             <ArrowLeft size={24} color={nav.headerTint} />
           </TouchableOpacity>
         )}
-        <Text className="text-2xl font-display font-bold text-ink-900 dark:text-white">Trustified</Text>
+        <View className="flex-row items-center gap-2.5">
+          <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: '#141515', alignItems: 'center', justifyContent: 'center' }}>
+            <TrustifiedStamp size={28} />
+          </View>
+          <TrustifiedLogo height={26} />
+        </View>
       </View>
 
       {/* 3 Top Segmented Tabs: Standard | Gold Certified | NMR Reports */}
@@ -184,12 +191,17 @@ function ReportsCollectionList({ collection, showStatusFilter }: { collection: R
       if (!lastPage || !lastPage.meta) return undefined;
       return lastPage.meta.current_page < lastPage.meta.last_page ? lastPage.meta.current_page + 1 : undefined;
     },
-    staleTime: 60_000,
+    staleTime: 2 * 60_000,
+    placeholderData: (prev) => prev,
   });
 
-  const products = Array.isArray(data?.pages)
-    ? data.pages.flatMap((p) => (Array.isArray(p?.data) ? p.data : []))
-    : [];
+  const products = useMemo(
+    () =>
+      Array.isArray(data?.pages)
+        ? data.pages.flatMap((p) => (Array.isArray(p?.data) ? p.data : []))
+        : [],
+    [data],
+  );
   const total = data?.pages?.[0]?.meta?.total ?? products.length;
 
   function clearFilters() {
@@ -335,7 +347,7 @@ function ReportsCollectionList({ collection, showStatusFilter }: { collection: R
                 >
                   <View className={`size-14 rounded-full overflow-hidden border items-center justify-center mb-1.5 ${active ? 'border-2 border-brand-500 bg-brand-50' : 'border-ink-200 bg-white'}`}>
                     {cat.image_url ? (
-                      <Image source={{ uri: cat.image_url }} className="w-full h-full object-cover" />
+                      <MediaFrame src={cat.image_url} alt={cat.name} aspect="square" rounded="full" resizeMode="cover" className="w-full h-full" />
                     ) : (
                       <Text className={`text-sm font-display font-extrabold ${active ? 'text-brand-700' : 'text-ink-300'}`}>
                         {getCategoryInitials(cat.name)}

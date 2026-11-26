@@ -46,7 +46,7 @@ export function SearchScreen() {
     return allBrands.filter((brand) => brand.name.toLowerCase().includes(query));
   }, [debouncedSearch, allBrands]);
 
-  const products = productsRes?.data ?? [];
+  const products = useMemo(() => productsRes?.data ?? [], [productsRes]);
 
   const handleCategoryPress = (slug: string) => {
     navigation.navigate('Tabs', {
@@ -192,7 +192,7 @@ export function SearchScreen() {
                     style={{ width: '48%', flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: '#fafafa', borderWidth: 1, borderColor: '#f0f0f0', padding: 12, borderRadius: 16 }}>
                     <View style={{ width: 32, height: 32, borderRadius: 16, overflow: 'hidden', backgroundColor: '#fff', borderWidth: 1, borderColor: '#f0f0f0', alignItems: 'center', justifyContent: 'center' }}>
                       {cat.image_url ? (
-                        <Image source={{ uri: cat.image_url }} style={{ width: '100%', height: '100%' }} />
+                        <MediaFrame src={cat.image_url} alt={cat.name} aspect="square" rounded="full" resizeMode="cover" className="w-full h-full" />
                       ) : (
                         <Text className="text-xs font-bold text-ink-300">
                           {cat.name.trim().charAt(0).toUpperCase() || '?'}

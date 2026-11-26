@@ -1,5 +1,6 @@
-import React, { useRef } from 'react';
-import { View, Text, TouchableOpacity, type GestureResponderEvent } from 'react-native';
+import React, { useMemo, useRef } from 'react';
+import { View, Text } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
@@ -7,9 +8,11 @@ import { MediaFrame, StatusBadge, StarRating } from './ui';
 import type { Product } from '../api/types';
 import type { RootStackParamList } from '../navigation/types';
 import { navigationRef } from '../navigation/navigationRef';
+import { prefetchProduct } from '../api/prefetch';
+import { preloadImages } from '../lib/preloadImages';
 
 /** RN port of `frontend/apps/web/src/components/product-card.tsx`. */
-export function ProductCard({
+function ProductCardInner({
   product,
   to = 'ProductDetail',
   showRating = true,
@@ -19,7 +22,6 @@ export function ProductCard({
   showRating?: boolean;
 }) {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
   const navigatingRef = useRef(false);
 
   const handlePress = () => {
@@ -32,6 +34,11 @@ export function ProductCard({
       navigatingRef.current = false;
     }, 800);
 
+    // Warm product detail + report + reviews & gallery images in parallel with screen transition
+    prefetchProduct(slug, to === 'ReportDetail');
+    const gallery = Array.isArray(product.gallery) ? product.gallery : [];
+    preloadImages([product.image_url, ...gallery], 'high');
+
     if (navigationRef.isReady()) {
       navigationRef.navigate(to as any, { slug });
     } else {
@@ -39,45 +46,28 @@ export function ProductCard({
     }
   };
 
-  const onTouchStart = (e: GestureResponderEvent) => {
-    touchStartRef.current = {
-      x: e.nativeEvent.pageX,
-      y: e.nativeEvent.pageY,
-      time: Date.now(),
-    };
-  };
+  // Keep latest handler in a ref so FlashList / ScrollView cell recycling never holds a stale closure
+  const latestPressRef = useRef(handlePress);
+  latestPressRef.current = handlePress;
 
-  const onTouchEnd = (e: GestureResponderEvent) => {
-    const start = touchStartRef.current;
-    touchStartRef.current = null;
-    if (!start) return;
-
-    const dx = Math.abs(e.nativeEvent.pageX - start.x);
-    const dy = Math.abs(e.nativeEvent.pageY - start.y);
-    const dt = Date.now() - start.time;
-
-    // If moved less than 15px and released within 450ms, it is a single click / tap
-    if (dx < 15 && dy < 15 && dt < 450) {
-      handlePress();
-    }
-  };
-
-  const onTouchCancel = () => {
-    touchStartRef.current = null;
-  };
+  const tap = useMemo(
+    () =>
+      Gesture.Tap()
+        .maxDistance(8)
+        .maxDuration(350)
+        .runOnJS(true)
+        .onEnd((_event, success) => {
+          if (success) {
+            latestPressRef.current();
+          }
+        }),
+    [],
+  );
 
   return (
-    <View
-      style={{ width: '100%' }}
-      onTouchStart={onTouchStart}
-      onTouchEnd={onTouchEnd}
-      onTouchCancel={onTouchCancel}>
-      <TouchableOpacity
-        activeOpacity={0.7}
-        delayPressIn={0}
-        onPress={handlePress}
-        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-        pressRetentionOffset={{ top: 20, bottom: 20, left: 20, right: 20 }}
+    <GestureDetector gesture={tap}>
+      <View
+        collapsable={false}
         accessibilityRole="button"
         accessibilityLabel={product.name}
         style={{ width: '100%' }}
@@ -123,7 +113,23 @@ export function ProductCard({
             ) : null}
           </View>
         </View>
-      </TouchableOpacity>
-    </View>
+      </View>
+    </GestureDetector>
   );
 }
+
+export const ProductCard = React.memo(ProductCardInner, (prev, next) => {
+  return (
+    prev.to === next.to &&
+    prev.showRating === next.showRating &&
+    prev.product.id === next.product.id &&
+    prev.product.slug === next.product.slug &&
+    prev.product.name === next.product.name &&
+    prev.product.image_url === next.product.image_url &&
+    prev.product.status === next.product.status &&
+    prev.product.is_gold === next.product.is_gold &&
+    prev.product.reviews_count === next.product.reviews_count &&
+    prev.product.rating_avg === next.product.rating_avg &&
+    prev.product.gallery === next.product.gallery
+  );
+});

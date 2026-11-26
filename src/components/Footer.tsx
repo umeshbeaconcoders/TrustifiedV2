@@ -3,6 +3,7 @@ import { View, Text, Pressable, Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Mail, Facebook, Instagram, Youtube, Linkedin, ArrowRight } from 'lucide-react-native';
 import { useSettings } from '../api';
+import { TrustifiedLogo } from './icons/TrustifiedLogo';
 import { TrustifiedStamp } from './icons/TrustifiedStamp';
 
 export function Footer() {
@@ -23,9 +24,9 @@ export function Footer() {
       <View className="px-6 gap-8">
         {/* Brand / Logo section */}
         <View>
-          <View className="flex-row items-center gap-2">
-            <TrustifiedStamp size={32} />
-            <Text className="text-xl font-display font-extrabold text-white">Trustified</Text>
+          <View className="flex-row items-center gap-2.5">
+            <TrustifiedStamp size={36} />
+            <TrustifiedLogo variant="dark" height={24} />
           </View>
           <Text className="mt-4 text-xs leading-relaxed text-ink-400 dark:text-ink-500 font-semibold">
             India's independent blind-testing and certification platform. We buy products off the shelf, test them in accredited labs, and publish the true results — pass or fail.

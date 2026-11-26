@@ -23,6 +23,7 @@ import {
 import { useLogout, useRemoveDeviceToken, useSettings } from '../../api';
 import { Button, Card } from '../../components/ui';
 import { colors } from '../../theme/tokens';
+import { TrustifiedLogo } from '../../components/icons/TrustifiedLogo';
 import type { RootStackParamList } from '../../navigation/types';
 import { toast } from '../../stores/toast';
 
@@ -198,9 +199,12 @@ export function SettingsMenuScreen() {
       </Button>
 
       {settings?.app_version?.ios || settings?.app_version?.android ? (
-        <Text className="mt-6 text-center text-xs text-ink-400 dark:text-ink-500">
-          Trustified {settings.app_version.ios ?? settings.app_version.android}
-        </Text>
+        <View className="mt-6 items-center gap-1.5">
+          <TrustifiedLogo height={18} />
+          <Text className="text-xs text-ink-400 dark:text-ink-500">
+            v{settings.app_version.ios ?? settings.app_version.android}
+          </Text>
+        </View>
       ) : null}
     </ScrollView>
   );

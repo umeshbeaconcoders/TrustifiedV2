@@ -1,5 +1,20 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, ScrollView, Linking, Pressable, Animated, Easing, Dimensions, RefreshControl, Platform, TouchableOpacity, Modal } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  View,
+  Text,
+  ScrollView as RNScrollView,
+  Linking,
+  Animated,
+  Easing,
+  Dimensions,
+  Platform,
+  TouchableOpacity,
+  Modal,
+  StyleSheet,
+  type NativeSyntheticEvent,
+  type NativeScrollEvent,
+} from 'react-native';
+import { ScrollView, RefreshControl } from 'react-native-gesture-handler';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -46,11 +61,13 @@ import { ProductCard } from '../../components/ProductCard';
 import { FadeIn, StaggerChildren } from '../../components/motion';
 import { colors } from '../../theme/tokens';
 import { TrustifiedStamp } from '../../components/icons/TrustifiedStamp';
+import { TrustifiedLogo } from '../../components/icons/TrustifiedLogo';
 import { CategoryIcon } from '../../components/CategoryIcon';
 
 import { InfiniteMarquee } from '../../components/InfiniteMarquee';
 import { BannerSlider } from '../../components/BannerSlider';
 import { ProductRail } from '../../components/ProductRail';
+import { TapTarget } from '../../components/TapTarget';
 import { usePullToRefresh } from '../../lib/usePullToRefresh';
 import { useNavColors } from '../../theme/tokens';
 import type { RootStackParamList, TabParamList } from '../../navigation/types';
@@ -238,6 +255,34 @@ export function HomeScreen() {
   const slideAnim = useRef(new Animated.Value(SCREEN_WIDTH * 0.75)).current;
   const backdropOpacity = useRef(new Animated.Value(0)).current;
 
+  // Crossfade floating header into translucent light glass once scrolled onto white content.
+  const heroHeightRef = useRef(360);
+  const headerHeightRef = useRef(headerTopPadding + 46);
+  const scrolledPastHeroRef = useRef(false);
+  const headerTransition = useRef(new Animated.Value(0)).current;
+
+  const handleScroll = useCallback(
+    (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const y = e.nativeEvent.contentOffset.y;
+      const threshold = Math.max(40, heroHeightRef.current - headerHeightRef.current - 12);
+      const next = y >= threshold;
+      if (next !== scrolledPastHeroRef.current) {
+        scrolledPastHeroRef.current = next;
+        Animated.timing(headerTransition, {
+          toValue: next ? 1 : 0,
+          duration: 180,
+          useNativeDriver: true,
+        }).start();
+      }
+    },
+    [headerTransition],
+  );
+
+  const heroHeaderOpacity = headerTransition.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 0],
+  });
+
   const toggleDrawer = (open: boolean) => {
     if (open) {
       setDrawerOpen(true);
@@ -324,9 +369,12 @@ export function HomeScreen() {
 
   return (
     <View className="flex-1 bg-white dark:bg-surface-1">
-      {/* Floating Transparent Header */}
+      {/* Floating Header — transparent on dark hero, translucent glass on light sections */}
       <View
         pointerEvents="box-none"
+        onLayout={(e) => {
+          headerHeightRef.current = e.nativeEvent.layout.height;
+        }}
         style={{
           position: 'absolute',
           top: 0,
@@ -341,28 +389,98 @@ export function HomeScreen() {
           justifyContent: 'space-between',
         }}
       >
-        <View className="flex-row items-center gap-2">
-          <TrustifiedStamp size={26} />
-          <Text className="text-lg font-display font-extrabold text-white">Trustified</Text>
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            StyleSheet.absoluteFillObject,
+            {
+              backgroundColor: 'rgba(255, 255, 255, 0.86)',
+              borderBottomWidth: StyleSheet.hairlineWidth,
+              borderBottomColor: 'rgba(20, 21, 21, 0.1)',
+              opacity: headerTransition,
+            },
+          ]}
+        />
+
+        <View style={{ justifyContent: 'center' }}>
+          <Animated.View pointerEvents="none" style={{ flexDirection: 'row', alignItems: 'center', gap: 8, opacity: heroHeaderOpacity }}>
+            <View style={{ width: 34, height: 34, alignItems: 'center', justifyContent: 'center' }}>
+              <TrustifiedStamp size={30} />
+            </View>
+            <TrustifiedLogo variant="dark" height={22} />
+          </Animated.View>
+          <Animated.View
+            pointerEvents="none"
+            style={[
+              StyleSheet.absoluteFillObject,
+              { flexDirection: 'row', alignItems: 'center', gap: 8, opacity: headerTransition },
+            ]}
+          >
+            <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: '#141515', alignItems: 'center', justifyContent: 'center' }}>
+              <TrustifiedStamp size={26} />
+            </View>
+            <TrustifiedLogo variant="light" height={22} />
+          </Animated.View>
         </View>
+
         <View className="flex-row items-center gap-2.5">
-          <TouchableOpacity onPress={() => navigation.navigate('Tabs', { screen: 'ShopTab' })} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel="Shop" style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' }}>
-            <ShoppingBag size={18} color="#ffffff" />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate('Tabs', { screen: 'Search' })} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel="Search" style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' }}>
-            <Search size={18} color="#ffffff" />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => toggleDrawer(true)} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel="Menu" style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' }}>
-            <Menu size={18} color="#ffffff" />
-          </TouchableOpacity>
+          {[
+            { label: 'Shop', onPress: () => navigation.navigate('Tabs', { screen: 'ShopTab' }), Icon: ShoppingBag },
+            { label: 'Search', onPress: () => navigation.navigate('Tabs', { screen: 'Search' }), Icon: Search },
+            { label: 'Menu', onPress: () => toggleDrawer(true), Icon: Menu },
+          ].map(({ label, onPress, Icon }) => (
+            <TouchableOpacity
+              key={label}
+              onPress={onPress}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel={label}
+              style={{ width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}
+            >
+              <Animated.View
+                pointerEvents="none"
+                style={[
+                  StyleSheet.absoluteFillObject,
+                  {
+                    borderRadius: 18,
+                    backgroundColor: 'rgba(255, 255, 255, 0.14)',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    opacity: heroHeaderOpacity,
+                  },
+                ]}
+              >
+                <Icon size={18} color="#ffffff" />
+              </Animated.View>
+              <Animated.View
+                pointerEvents="none"
+                style={[
+                  StyleSheet.absoluteFillObject,
+                  {
+                    borderRadius: 18,
+                    backgroundColor: 'rgba(20, 21, 21, 0.08)',
+                    borderWidth: StyleSheet.hairlineWidth,
+                    borderColor: 'rgba(20, 21, 21, 0.1)',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    opacity: headerTransition,
+                  },
+                ]}
+              >
+                <Icon size={18} color="#141515" />
+              </Animated.View>
+            </TouchableOpacity>
+          ))}
         </View>
       </View>
 
       <ScrollView
-        className="flex-1 bg-white dark:bg-surface-1"
-        contentContainerClassName="pb-16"
-        nestedScrollEnabled={true}
-        directionalLockEnabled={true}
+        style={{ flex: 1, backgroundColor: nav.screenBackground }}
+        contentContainerStyle={{ paddingBottom: 64 }}
+        showsVerticalScrollIndicator={false}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+        decelerationRate="normal"
         keyboardShouldPersistTaps="handled"
         refreshControl={
           <RefreshControl
@@ -376,6 +494,9 @@ export function HomeScreen() {
       >
         {/* Hero Section */}
         <View
+          onLayout={(e) => {
+            heroHeightRef.current = e.nativeEvent.layout.height;
+          }}
           className="bg-[#141515] px-6 pb-12 relative overflow-hidden"
           style={{ paddingTop: heroTopPadding }}
         >
@@ -465,7 +586,9 @@ export function HomeScreen() {
             horizontal
             showsHorizontalScrollIndicator={false}
             nestedScrollEnabled={true}
-            directionalLockEnabled={true}
+            keyboardShouldPersistTaps="handled"
+            scrollEventThrottle={16}
+            decelerationRate="normal"
             contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 16, gap: 16 }}
           >
             {WHY_BETTER_ITEMS.map((item) => (
@@ -539,7 +662,9 @@ export function HomeScreen() {
             horizontal
             showsHorizontalScrollIndicator={false}
             nestedScrollEnabled={true}
-            directionalLockEnabled={true}
+            keyboardShouldPersistTaps="handled"
+            scrollEventThrottle={16}
+            decelerationRate="normal"
             contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 16, gap: 16 }}
           >
             {WHAT_WE_TEST_ITEMS.map((item) => (
@@ -571,7 +696,9 @@ export function HomeScreen() {
             horizontal
             showsHorizontalScrollIndicator={false}
             nestedScrollEnabled={true}
-            directionalLockEnabled={true}
+            keyboardShouldPersistTaps="handled"
+            scrollEventThrottle={16}
+            decelerationRate="normal"
             contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 16, gap: 16 }}
           >
             {TESTING_STEPS.map((item, index) => (
@@ -609,7 +736,9 @@ export function HomeScreen() {
             horizontal
             showsHorizontalScrollIndicator={false}
             nestedScrollEnabled={true}
-            directionalLockEnabled={true}
+            keyboardShouldPersistTaps="handled"
+            scrollEventThrottle={16}
+            decelerationRate="normal"
             contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 16, gap: 16 }}
           >
             {SUPPORT_MISSION_ITEMS.map((item) => (
@@ -624,10 +753,13 @@ export function HomeScreen() {
                 <Text className="text-base font-bold text-ink-900 dark:text-white mb-2">{item.title}</Text>
                 <Text className="text-xs leading-relaxed text-ink-600 dark:text-ink-300 font-medium">{item.body}</Text>
                 {item.screen ? (
-                  <TouchableOpacity onPress={() => navigation.navigate('Tabs', { screen: 'ShopTab' })} activeOpacity={0.7} accessibilityRole="button" style={{ marginTop: 12, flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start' }}>
+                  <TapTarget
+                    onPress={() => navigation.navigate('Tabs', { screen: 'ShopTab' })}
+                    accessibilityLabel="Visit the shop"
+                    style={{ marginTop: 12, flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start' }}>
                     <Text className="text-xs font-bold text-brand-600">Visit the shop</Text>
                     <ChevronRight size={14} color={colors.brand[600]} />
-                  </TouchableOpacity>
+                  </TapTarget>
                 ) : null}
               </View>
             ))}
@@ -665,11 +797,10 @@ export function HomeScreen() {
             <View className="px-6">
               <InfiniteMarquee itemWidth={112} gap={16} speed={0.8}>
                 {categories.map((cat) => (
-                  <TouchableOpacity
+                  <TapTarget
                     key={cat.id}
-                    delayPressIn={0}
-                    onPressIn={() => handleCategoryPress(cat.slug)}
-                    activeOpacity={0.7}
+                    onPress={() => handleCategoryPress(cat.slug)}
+                    accessibilityLabel={cat.name}
                     className="items-center w-full rounded-2xl bg-white dark:bg-surface-1 border border-ink-100 dark:border-ink-800 p-4 shadow-sm"
                   >
                     <View className="size-14 rounded-full overflow-hidden bg-ink-50 dark:bg-surface-2 border border-ink-100 dark:border-ink-800 items-center justify-center mb-2">
@@ -684,7 +815,7 @@ export function HomeScreen() {
                     <Text className="text-center text-xs font-bold text-ink-900 dark:text-white leading-snug line-clamp-2" numberOfLines={2}>
                       {cat.name}
                     </Text>
-                  </TouchableOpacity>
+                  </TapTarget>
                 ))}
               </InfiniteMarquee>
             </View>
@@ -703,12 +834,9 @@ export function HomeScreen() {
             <View className="px-6">
               <InfiniteMarquee itemWidth={96} gap={16} speed={0.6}>
                 {brands.map((brand) => (
-                  <TouchableOpacity
+                  <TapTarget
                     key={brand.id}
-                    delayPressIn={0}
-                    onPressIn={() => brand.slug && navigation.navigate('Tabs', { screen: 'Reports', params: { brand: brand.slug } })}
-                    activeOpacity={0.7}
-                    accessibilityRole="button"
+                    onPress={() => brand.slug && navigation.navigate('Tabs', { screen: 'Reports', params: { brand: brand.slug } })}
                     accessibilityLabel={brand.name}
                     className="w-full items-center"
                   >
@@ -723,7 +851,7 @@ export function HomeScreen() {
                     <Text className="mt-1 text-center text-xs font-semibold text-ink-700 dark:text-ink-200" numberOfLines={1}>
                       {brand.name}
                     </Text>
-                  </TouchableOpacity>
+                  </TapTarget>
                 ))}
               </InfiniteMarquee>
             </View>
@@ -743,7 +871,9 @@ export function HomeScreen() {
               horizontal
               showsHorizontalScrollIndicator={false}
               nestedScrollEnabled={true}
-              directionalLockEnabled={true}
+              keyboardShouldPersistTaps="handled"
+              scrollEventThrottle={16}
+              decelerationRate="normal"
               contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 16, gap: 16 }}
             >
               {offers.map((offer) => (
@@ -785,10 +915,8 @@ export function HomeScreen() {
                 gap={16}
                 paddingHorizontal={24}
                 renderItem={({ item: video }) => (
-                  <TouchableOpacity
+                  <TapTarget
                     onPress={() => video.url && Linking.openURL(video.url)}
-                    activeOpacity={0.7}
-                    accessibilityRole="button"
                     accessibilityLabel={video.title ?? 'Watch video'}
                     style={{ width: 256, overflow: 'hidden', borderRadius: 16, borderWidth: 1, borderColor: '#f0f0f0', backgroundColor: '#fff' }}>
                     <View className="relative">
@@ -804,7 +932,7 @@ export function HomeScreen() {
                         {video.title}
                       </Text>
                     </View>
-                  </TouchableOpacity>
+                  </TapTarget>
                 )}
               />
             </View>
@@ -851,9 +979,11 @@ export function HomeScreen() {
         >
           {/* Drawer Header */}
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 24, borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.08)' }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <TrustifiedStamp size={28} />
-              <Text className="text-lg font-display font-extrabold text-ink-900 dark:text-white">Trustified</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: '#141515', alignItems: 'center', justifyContent: 'center' }}>
+                <TrustifiedStamp size={28} />
+              </View>
+              <TrustifiedLogo height={26} />
             </View>
             <TouchableOpacity onPress={() => toggleDrawer(false)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
               <X size={20} color={colors.ink[600]} />
@@ -861,18 +991,16 @@ export function HomeScreen() {
           </View>
 
           {/* Drawer Links */}
-          <ScrollView contentContainerStyle={{ paddingVertical: 16, gap: 4 }} showsVerticalScrollIndicator={false}>
+          <RNScrollView contentContainerStyle={{ paddingVertical: 16, gap: 4 }} showsVerticalScrollIndicator={false}>
             <DrawerLink label="Home" onPress={() => { toggleDrawer(false); navigation.navigate('Tabs', { screen: 'Home' }); }} />
             <DrawerLink label="Products" onPress={() => { toggleDrawer(false); navigation.navigate('Tabs', { screen: 'Reports', params: { fromDrawer: true } }); }} />
             <DrawerLink label="Certified Brands" onPress={() => { toggleDrawer(false); navigation.navigate('CertifiedBrands', { fromDrawer: true }); }} />
             <DrawerLink label="Shop" onPress={() => { toggleDrawer(false); navigation.navigate('Tabs', { screen: 'ShopTab' }); }} />
-            <DrawerLink label="Rankings" onPress={() => { toggleDrawer(false); navigation.navigate('RankingsIndex'); }} />
-            <DrawerLink label="Verify Certificate" onPress={() => { toggleDrawer(false); navigation.navigate('Verify'); }} />
             <DrawerLink label="Challenge a Result" onPress={() => { toggleDrawer(false); navigation.navigate('Challenge'); }} />
             <DrawerLink label="About Us" onPress={() => { toggleDrawer(false); navigation.navigate('About'); }} />
-            <DrawerLink label="Gold Certification" onPress={() => { toggleDrawer(false); navigation.navigate('Testing'); }} />
+            
             <DrawerLink label="Get Certified" onPress={() => { toggleDrawer(false); navigation.navigate('GetCertified'); }} />
-          </ScrollView>
+          </RNScrollView>
         </Animated.View>
       </Modal>
     </View>
@@ -903,6 +1031,8 @@ function Stat({ label, value, icon }: { label: string; value: string | number; i
   );
 }
 
+const SEE_ALL_HIT_SLOP = { top: 12, bottom: 12, left: 12, right: 12 };
+
 function SectionHeader({
   title,
   subtitle,
@@ -921,18 +1051,15 @@ function SectionHeader({
       <View className="flex-row items-center justify-between">
         <Text className={`text-xl font-display font-bold ${light ? 'text-white' : 'text-ink-900'}`}>{title}</Text>
         {onSeeAll ? (
-          <TouchableOpacity
-            onPressIn={onSeeAll}
-            delayPressIn={0}
-            activeOpacity={0.7}
-            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-            accessibilityRole="button"
+          <TapTarget
+            onPress={onSeeAll}
+            hitSlop={SEE_ALL_HIT_SLOP}
             accessibilityLabel={`See all ${title}`}
             style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 4 }}
           >
             <Text className="text-sm font-semibold text-brand-700">See all</Text>
             <ChevronRight size={14} color={colors.brand[700]} />
-          </TouchableOpacity>
+          </TapTarget>
         ) : null}
       </View>
       {subtitle ? (

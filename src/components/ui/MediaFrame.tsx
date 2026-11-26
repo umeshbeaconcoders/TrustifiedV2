@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, Image, type ViewStyle } from 'react-native';
-import FastImage, { type Source } from 'react-native-fast-image';
+import { View, Text, type ViewStyle } from 'react-native';
+import FastImage from 'react-native-fast-image';
 import { ImageOff } from 'lucide-react-native';
 import { colors } from '../../theme/tokens';
 import { mediaUrl } from '../../api/client';
@@ -13,6 +13,7 @@ export interface MediaFrameProps {
   className?: string;
   style?: ViewStyle;
   resizeMode?: 'contain' | 'cover' | 'stretch' | 'center';
+  priority?: 'low' | 'normal' | 'high';
 }
 
 const aspectRatios: Record<NonNullable<MediaFrameProps['aspect']>, number | undefined> = {
@@ -40,12 +41,19 @@ function getInitials(name: string): string {
 
 /**
  * RN port of `frontend/packages/ui/src/components/media-frame.tsx` —
- * FastImage (disk+memory cache, fade-in) inside a soft-gradient-equivalent
- * frame, with a graceful fallback initials/icon on load failure/empty src. Per
- * ground rules, every image in this app goes through this component (or
- * FastImage directly) instead of RN's built-in <Image>.
+ * FastImage (immutable disk+memory cache) inside a soft-gradient-equivalent
+ * frame, with a graceful fallback initials/icon on load failure/empty src.
  */
-export function MediaFrame({ src, alt, aspect = 'square', rounded = 'xl', className = '', style, resizeMode = 'contain' }: MediaFrameProps) {
+export function MediaFrame({
+  src,
+  alt,
+  aspect = 'square',
+  rounded = 'xl',
+  className = '',
+  style,
+  resizeMode = 'contain',
+  priority = 'normal',
+}: MediaFrameProps) {
   const [failed, setFailed] = useState(false);
   const resolved = mediaUrl(src ?? undefined) ?? (src ?? undefined);
   const ratio = aspectRatios[aspect];
@@ -59,9 +67,13 @@ export function MediaFrame({ src, alt, aspect = 'square', rounded = 'xl', classN
       className={`items-center justify-center overflow-hidden bg-ink-50 ${roundedClasses[rounded]} ${className}`}
       style={[ratio ? { aspectRatio: ratio } : null, style]}>
       {resolved && !failed ? (
-        <Image
-          source={{ uri: resolved }}
-          resizeMode={resizeMode}
+        <FastImage
+          source={{
+            uri: resolved,
+            priority: FastImage.priority[priority],
+            cache: FastImage.cacheControl.immutable,
+          }}
+          resizeMode={FastImage.resizeMode[resizeMode]}
           style={{ width: '100%', height: '100%' }}
           onError={() => setFailed(true)}
           accessibilityLabel={alt}

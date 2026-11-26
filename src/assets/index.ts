@@ -1,5 +1,5 @@
 // Export static assets for easy imports
-export const Logo = require('./logo.png');
-// Add other assets here as needed, e.g.:
-// export const SomeImage = require('./someImage.png');
+export const Logo = require('./trustified-logo.png');
+export const LogoWhite = require('./trustified-logo-white.png');
+export const SplashVideo = require('./Vedio/vedio.mp4');
 

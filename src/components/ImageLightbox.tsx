@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Modal, View, Text, Pressable, Animated, PanResponder, Dimensions, StatusBar } from 'react-native';
 import FastImage from 'react-native-fast-image';
 import { Minus, Plus, X } from 'lucide-react-native';
+import { mediaUrl } from '../api/client';
 
 const MIN_ZOOM = 1;
 const MAX_ZOOM = 4;
@@ -202,7 +203,8 @@ export function ImageLightbox({
     }),
   ).current;
 
-  if (!src) return null;
+  const resolvedSrc = mediaUrl(src ?? undefined) ?? (src ?? undefined);
+  if (!resolvedSrc) return null;
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose} statusBarTranslucent>
@@ -253,7 +255,8 @@ export function ImageLightbox({
             }}
           >
             <FastImage
-              source={{ uri: src }}
+              key={resolvedSrc}
+              source={{ uri: resolvedSrc, cache: FastImage.cacheControl.immutable }}
               resizeMode={FastImage.resizeMode.contain}
               style={{ width: SCREEN_W, height: IMAGE_H }}
               accessibilityLabel={alt}

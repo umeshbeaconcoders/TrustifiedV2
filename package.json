@@ -1,6 +1,6 @@
 {
   "name": "Trustified",
-  "version": "2.0",
+  "version": "2.0.1",
   "private": true,
   "description": "Trustified — React Native mobile app (bare RN CLI, TypeScript). Consumer counterpart to frontend/apps/web, consuming the same Laravel API.",
   "scripts": {

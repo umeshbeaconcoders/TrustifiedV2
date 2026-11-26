@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   Platform,
   useWindowDimensions,
 } from 'react-native';
+import { FlashList, type ListRenderItem } from '@shopify/flash-list';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ArrowLeft, Check, ChevronDown, LayoutGrid, X } from 'lucide-react-native';
@@ -19,8 +20,10 @@ import type { Product } from '../../api/types';
 import { BannerSlider } from '../../components/BannerSlider';
 import { ProductCard } from '../../components/ProductCard';
 import { ShopCategoryRow } from '../../components/ShopCategoryRow';
+import { RNGHScrollView } from '../../components/RNGHScrollView';
 import { Button, CardGridSkeleton, EmptyState, ListFooterLoader, MediaFrame } from '../../components/ui';
 import { colors, useNavColors } from '../../theme/tokens';
+import { preloadImages } from '../../lib/preloadImages';
 import type { RootStackParamList } from '../../navigation/types';
 
 type RouteProps = RouteProp<RootStackParamList, 'ShopSection'>;
@@ -158,10 +161,27 @@ export function ShopSectionScreen() {
   );
   const { data, isLoading, isError, isRefetching, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } = useShopProductsInfinite(params);
 
-  const products: Product[] = data?.pages.flatMap((p) => p.data) ?? [];
-  const total = data?.pages[0]?.meta.total;
+  const products: Product[] = useMemo(() => data?.pages.flatMap((p) => p.data) ?? [], [data]);
+  const seededProducts = useMemo(
+    () => (!subSlug && !brand && products.length === 0 ? (section?.products ?? []) : []),
+    [subSlug, brand, products.length, section?.products],
+  );
+  const displayProducts = useMemo(
+    () => (products.length > 0 ? products : seededProducts),
+    [products, seededProducts],
+  );
+  const total = data?.pages[0]?.meta.total ?? (seededProducts.length > 0 ? section?.products_count : undefined);
+
+  useEffect(() => {
+    if (displayProducts.length > 0) {
+      preloadImages(
+        displayProducts.slice(0, 10).map((p) => p.image_url),
+        'normal',
+      );
+    }
+  }, [displayProducts]);
   const nextPageFailed = isError && products.length > 0;
-  const otherSections = sections.filter((s) => s.slug !== slug);
+  const otherSections = useMemo(() => sections.filter((s) => s.slug !== slug), [sections, slug]);
   const cardWidth = Math.floor((width - GRID_PADDING * 2 - GRID_GAP) / 2);
 
   const title = isAll ? 'All products' : (activeSub?.name ?? section?.name ?? route.params?.name ?? '');
@@ -255,6 +275,19 @@ export function ShopSectionScreen() {
     </View>
   );
 
+  const renderGridProduct: ListRenderItem<Product> = useCallback(
+    ({ item }) => (
+      <View style={{ flex: 1, alignItems: 'center', paddingHorizontal: GRID_GAP / 2 }}>
+        <View style={{ width: cardWidth }}>
+          <ProductCard product={item} />
+        </View>
+      </View>
+    ),
+    [cardWidth],
+  );
+
+  const keyExtractor = useCallback((p: Product) => String(p.id), []);
+
   if (notFound) {
     return (
       <View className="flex-1 items-center justify-center bg-white px-6 dark:bg-surface-1">
@@ -299,22 +332,24 @@ export function ShopSectionScreen() {
         ) : null}
       </View>
 
-      {isLoading && products.length === 0 ? (
+      {isLoading && displayProducts.length === 0 ? (
         <View className="px-3">
           {header}
           <CardGridSkeleton count={6} />
         </View>
-      ) : isError && products.length === 0 ? (
+      ) : isError && displayProducts.length === 0 ? (
         <View className="flex-1 justify-center px-5">
           <EmptyState title="Couldn't load products" description="The server didn't respond. Please retry in a moment." />
         </View>
       ) : (
-        <FlatList
-          data={products}
-          keyExtractor={(p) => String(p.id)}
+        <FlashList
+          data={displayProducts}
+          keyExtractor={keyExtractor}
           numColumns={2}
-          // Short or partial rows are centred instead of hugging the left edge.
-          columnWrapperStyle={{ justifyContent: 'center', gap: GRID_GAP, paddingHorizontal: GRID_PADDING }}
+          estimatedItemSize={255}
+          drawDistance={450}
+          renderScrollComponent={RNGHScrollView}
+          contentContainerStyle={{ paddingHorizontal: GRID_PADDING / 2 }}
           ItemSeparatorComponent={() => <View style={{ height: GRID_GAP }} />}
           ListHeaderComponent={header}
           ListEmptyComponent={
@@ -327,11 +362,7 @@ export function ShopSectionScreen() {
             </View>
           }
           ListFooterComponent={footer}
-          renderItem={({ item }) => (
-            <View style={{ width: cardWidth }}>
-              <ProductCard product={item} />
-            </View>
-          )}
+          renderItem={renderGridProduct}
           onEndReachedThreshold={1.5}
           onEndReached={() => {
             if (hasNextPage && !isFetchingNextPage && !nextPageFailed) void fetchNextPage();

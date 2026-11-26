@@ -1,5 +1,3 @@
-import { useColorScheme } from 'react-native';
-
 /**
  * Plain-JS mirror of tailwind.config.js's color ramp, for contexts that
  * cannot take a NativeWind className (icon `color` props, StatusBar,

@@ -31,16 +31,18 @@ type Props = NativeStackScreenProps<RootStackParamList, 'ReportDetail'>;
 export function ReportDetailScreen({ route, navigation }: Props) {
   const { slug, reportId } = route.params;
   const { data: productRes, isLoading, isError, refetch: refetchProduct } = useProduct(slug);
-  const { data: latestReportRes, refetch: refetchLatestReport } = useProductReport(slug);
-  const { data: specificReportRes, refetch: refetchSpecificReport } = useReport(reportId);
+  const { data: latestReportRes, isLoading: latestReportLoading, refetch: refetchLatestReport } = useProductReport(slug);
+  const { data: specificReportRes, isLoading: specificReportLoading, refetch: refetchSpecificReport } = useReport(reportId);
   // A specific reportId always wins over "latest" — including while it's
   // still loading, so the screen doesn't flash the wrong (latest) report first.
   const reportRes = reportId ? specificReportRes : latestReportRes;
+  const reportLoading = reportId ? specificReportLoading : latestReportLoading;
   const { refreshing, onRefresh } = usePullToRefresh([refetchProduct, refetchLatestReport, refetchSpecificReport]);
 
-  if (isLoading) return <Spinner className="flex-1" />;
+  const productData = productRes?.data;
+  if (isLoading && !productData) return <Spinner className="flex-1" />;
 
-  const product = productRes?.data;
+  const product = productData;
   if (isError || !product) {
     return (
       <View className="flex-1 justify-center px-6">
@@ -171,13 +173,13 @@ export function ReportDetailScreen({ route, navigation }: Props) {
                 </View>
               ) : null}
 
-              {product.reviews_count > 0 ? (
+              {Number(product.reviews_count) > 0 ? (
                 <View>
                   <Text className="text-xs text-ink-500 dark:text-ink-400 font-bold">Community rating</Text>
                   <View className="flex-row items-center gap-1.5 mt-1">
-                    <StarRating value={product.rating_avg} size={14} />
+                    <StarRating value={Number(product.rating_avg) || 0} size={14} />
                     <Text className="text-sm text-ink-900 dark:text-white font-bold">
-                      {product.rating_avg.toFixed(1)} ({product.reviews_count} reviews)
+                      {(Number(product.rating_avg) || 0).toFixed(1)} ({Number(product.reviews_count)} reviews)
                     </Text>
                   </View>
                 </View>
@@ -244,6 +246,8 @@ export function ReportDetailScreen({ route, navigation }: Props) {
 
           {hasReport && report ? (
             <ReportView report={report} hideMetaStrip />
+          ) : reportLoading ? (
+            <Spinner className="py-8" />
           ) : isExpired ? (
             <EmptyState
               title="This certification has expired"

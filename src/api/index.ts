@@ -1,4 +1,6 @@
 export * from './client';
+export * from './queryClient';
+export * from './prefetch';
 export * from './types';
 export * from './hooks/public';
 export * from './hooks/auth';

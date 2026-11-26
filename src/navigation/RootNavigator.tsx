@@ -53,7 +53,7 @@ export function RootNavigator() {
         customAnimationOnGesture: true,
       }}>
       <Stack.Screen name="Splash" component={SplashScreen} options={{ headerShown: false, gestureEnabled: false }} />
-      <Stack.Screen name="Tabs" component={TabNavigator} options={{ headerShown: false, gestureEnabled: false }} />
+      <Stack.Screen name="Tabs" component={TabNavigator} options={{ headerShown: false, gestureEnabled: false, animation: 'fade' }} />
 
       <Stack.Screen name="ProductDetail" component={ProductDetailScreen} options={{ title: 'Product' }} />
       <Stack.Screen name="ReportDetail" component={ReportDetailScreen} options={{ title: 'Test Report' }} />

@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, Linking, TouchableOpacity } from 'react-native';
+import { View, Text, Linking } from 'react-native';
 import { ShoppingCart, ExternalLink, Tag } from 'lucide-react-native';
+import { TapTarget } from './TapTarget';
 import type { BuyLink } from '../api/types';
 
 export function appendUtmParams(url: string): string {
@@ -39,13 +40,12 @@ export function BuyLinks({
           const bgClass = isWebsite ? 'bg-[#3e6a00]' : 'bg-[#121710] dark:bg-black';
 
           return (
-            <TouchableOpacity
+            <TapTarget
               key={i}
-              activeOpacity={0.8}
               onPress={() => link.url && Linking.openURL(appendUtmParams(link.url))}
               accessibilityRole="button"
               accessibilityLabel={`Buy on ${label}`}
-              className={`h-12 flex-row items-center justify-center gap-2 px-3 rounded-2xl ${bgClass} border border-transparent dark:border-ink-800`}
+              className={`h-12 flex-row items-center justify-center gap-2 px-3 rounded-2xl ${bgClass}`}
               style={{ width: '48.5%' }}
             >
               <ShoppingCart size={17} color="#ffffff" />
@@ -53,7 +53,7 @@ export function BuyLinks({
                 {label}
               </Text>
               <ExternalLink size={15} color="#ffffff" />
-            </TouchableOpacity>
+            </TapTarget>
           );
         })}
       </View>

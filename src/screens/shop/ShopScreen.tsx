@@ -1,16 +1,24 @@
-import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, RefreshControl, Platform } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import { View, Text, TouchableOpacity, Platform, InteractionManager } from 'react-native';
+import { FlashList, type ListRenderItem } from '@shopify/flash-list';
+import { RefreshControl } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ShoppingBag, Search, LayoutGrid, Award } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBanners, useShopBrands, useShopSections } from '../../api';
-import type { Brand } from '../../api/types';
+import type { Brand, ShopSectionWithProducts } from '../../api/types';
 import { BannerSlider } from '../../components/BannerSlider';
 import { ShopCategoryRow } from '../../components/ShopCategoryRow';
 import { InfiniteMarquee } from '../../components/InfiniteMarquee';
+import { TapTarget } from '../../components/TapTarget';
+import { TrustifiedLogo } from '../../components/icons/TrustifiedLogo';
+import { TrustifiedStamp } from '../../components/icons/TrustifiedStamp';
+import { RNGHScrollView } from '../../components/RNGHScrollView';
 import { MediaFrame, CardGridSkeleton, EmptyState } from '../../components/ui';
 import { colors, useNavColors } from '../../theme/tokens';
+import { prefetchSecondaryTabsData, prefetchShopSection } from '../../api/prefetch';
+import { preloadImages } from '../../lib/preloadImages';
 import type { RootStackParamList } from '../../navigation/types';
 
 /** Repeats a short list until it is at least `min` long, so a marquee strip always spans the screen. */
@@ -22,87 +30,105 @@ function fillTo<T>(list: T[], min: number): T[] {
 }
 
 /**
- * Shop home — a showcase of products that have affiliate buy links (NOT a report listing):
- * shop-page banners, one auto-scrolling row per category (with its sub category pills), a
- * "Shop by category" grid, a "Shop by brand" strip, then the footer banners.
- * Customers only ever see "category" / "sub category" — never "section".
+ * Shop home — virtualized with FlashList + RNGH ScrollView so only visible category rows mount,
+ * banners/images preload with FastImage, and tapping anywhere opens immediately.
  */
 export function ShopScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const nav = useNavColors();
   const insets = useSafeAreaInsets();
   const topInset = insets.top > 0 ? insets.top : Platform.OS === 'ios' ? 47 : 24;
+  const navigatingRef = useRef(false);
+
+  const navigateShopSection = useCallback(
+    (params: RootStackParamList['ShopSection']) => {
+      if (navigatingRef.current) return;
+      navigatingRef.current = true;
+      setTimeout(() => {
+        navigatingRef.current = false;
+      }, 800);
+      prefetchShopSection({ section: params?.slug, sub: params?.sub, brand: params?.brand });
+      navigation.navigate('ShopSection', params);
+    },
+    [navigation],
+  );
 
   const { data: sectionsRes, isLoading, isError, isRefetching, refetch } = useShopSections();
   const { data: shopBannersRes, refetch: refetchBanners } = useBanners('shop');
   const { data: footerBannersRes } = useBanners('footer');
   const { data: brandsRes, refetch: refetchBrands } = useShopBrands();
 
-  const sections = sectionsRes?.data ?? [];
-  const shopBanners = shopBannersRes?.data ?? [];
-  const footerBanners = footerBannersRes?.data ?? [];
-  const brands: Brand[] = Array.isArray(brandsRes?.data) ? brandsRes.data : [];
+  const sections = useMemo(() => sectionsRes?.data ?? [], [sectionsRes]);
+  const shopBanners = useMemo(() => shopBannersRes?.data ?? [], [shopBannersRes]);
+  const footerBanners = useMemo(() => footerBannersRes?.data ?? [], [footerBannersRes]);
+  const brands: Brand[] = useMemo(() => (Array.isArray(brandsRes?.data) ? brandsRes.data : []), [brandsRes]);
+  const marqueeBrands = useMemo(() => fillTo(brands, 8), [brands]);
 
-  const onRefresh = () => {
+  // Warm image cache & background-prefetch Home/Products tabs once Shop settles
+  useEffect(() => {
+    if (sections.length === 0) return;
+    const urls: (string | null | undefined)[] = [
+      ...shopBanners.map((b) => b.image_url),
+      ...footerBanners.map((b) => b.image_url),
+      ...sections.map((s) => s.image_url),
+      ...brands.slice(0, 12).map((b) => b.logo_url),
+    ];
+    preloadImages(urls, 'normal');
+
+    const task = InteractionManager.runAfterInteractions(() => {
+      prefetchSecondaryTabsData();
+    });
+    return () => task.cancel();
+  }, [sections, shopBanners, footerBanners, brands]);
+
+  const onRefresh = useCallback(() => {
     void Promise.all([refetch(), refetchBanners(), refetchBrands()]);
-  };
+  }, [refetch, refetchBanners, refetchBrands]);
 
-  return (
-    <View className="flex-1 bg-white dark:bg-surface-1">
-      <View
-        style={{ backgroundColor: nav.headerBackground, paddingTop: topInset + 8, paddingBottom: 12, paddingHorizontal: 20 }}
-        className="flex-row items-center justify-between border-b border-ink-100 dark:border-ink-800">
-        <View className="flex-row items-center gap-2.5">
-          <View className="h-9 w-9 items-center justify-center rounded-xl bg-brand-500/10">
-            <ShoppingBag size={20} color={colors.brand[600]} />
-          </View>
-          <View>
-            <Text className="text-lg font-display font-extrabold leading-tight text-ink-900 dark:text-white">Trustified Shop</Text>
-            <Text className="text-[11px] font-medium text-ink-500 dark:text-ink-400">Lab-tested products with trusted places to buy</Text>
-          </View>
+  const renderSection: ListRenderItem<ShopSectionWithProducts> = useCallback(
+    ({ item }) => <ShopCategoryRow section={item} />,
+    [],
+  );
+
+  const keyExtractor = useCallback((item: ShopSectionWithProducts) => String(item.id), []);
+
+  const listHeader = useMemo(
+    () =>
+      shopBanners.length > 0 ? (
+        <View className="pt-4">
+          <BannerSlider banners={shopBanners} />
         </View>
-        <TouchableOpacity
-          onPress={() => navigation.navigate('Tabs', { screen: 'Search' })}
-          activeOpacity={0.7}
-          accessibilityRole="button"
-          accessibilityLabel="Search"
-          style={{ height: 36, width: 36, alignItems: 'center', justifyContent: 'center', borderRadius: 18, backgroundColor: '#f0f0f0' }}>
-          <Search size={17} color={nav.headerTint} />
-        </TouchableOpacity>
+      ) : null,
+    [shopBanners],
+  );
+
+  const listEmpty = useMemo(() => {
+    if (isLoading) {
+      return (
+        <View className="px-5 pt-8">
+          <CardGridSkeleton count={4} />
+        </View>
+      );
+    }
+    if (isError) {
+      return (
+        <View className="px-5 py-12">
+          <EmptyState title="Couldn't load the shop" description="The server didn't respond. Pull down to retry." />
+        </View>
+      );
+    }
+    return (
+      <View className="px-5 py-12">
+        <EmptyState title="The shop is being stocked" description="Check back soon — shoppable products will appear here." />
       </View>
+    );
+  }, [isLoading, isError]);
 
-      <ScrollView
-        contentContainerStyle={{ paddingBottom: 48 }}
-        showsVerticalScrollIndicator={false}
-        nestedScrollEnabled={true}
-        directionalLockEnabled={true}
-        keyboardShouldPersistTaps="handled"
-        scrollEventThrottle={16}
-        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={onRefresh} colors={[colors.brand[500]]} />}>
-        {shopBanners.length > 0 ? (
-          <View className="pt-4">
-            <BannerSlider banners={shopBanners} />
-          </View>
-        ) : null}
-
-        {isLoading ? (
-          <View className="px-5 pt-8">
-            <CardGridSkeleton count={4} />
-          </View>
-        ) : isError ? (
-          <View className="px-5 py-12">
-            <EmptyState title="Couldn't load the shop" description="The server didn't respond. Pull down to retry." />
-          </View>
-        ) : sections.length === 0 ? (
-          <View className="px-5 py-12">
-            <EmptyState title="The shop is being stocked" description="Check back soon — shoppable products will appear here." />
-          </View>
-        ) : (
+  const listFooter = useMemo(
+    () => (
+      <View>
+        {sections.length > 0 ? (
           <>
-            {sections.map((section) => (
-              <ShopCategoryRow key={section.id} section={section} />
-            ))}
-
             {/* Shop by category — centred even with only one or two categories */}
             <View className="mt-10 border-t border-ink-100 bg-ink-50/40 px-5 py-6 dark:border-ink-800 dark:bg-surface-2/40">
               <View className="mb-5 items-center">
@@ -114,12 +140,9 @@ export function ShopScreen() {
               </View>
               <View className="flex-row flex-wrap justify-center gap-3.5">
                 {sections.map((section) => (
-                  <TouchableOpacity
+                  <TapTarget
                     key={section.id}
-                    delayPressIn={0}
-                    onPressIn={() => navigation.navigate('ShopSection', { slug: section.slug, name: section.name })}
-                    activeOpacity={0.7}
-                    accessibilityRole="button"
+                    onPress={() => navigateShopSection({ slug: section.slug, name: section.name })}
                     accessibilityLabel={section.name}
                     style={{ width: '47%', alignItems: 'center', borderRadius: 16, borderWidth: 1, borderColor: '#f0f0f0', backgroundColor: '#fff', padding: 16 }}>
                     <View style={{ marginBottom: 12, height: 96, width: 96, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', borderRadius: 48, borderWidth: 2, borderColor: 'rgba(42,184,65,0.2)', backgroundColor: '#f5f5f5' }}>
@@ -137,13 +160,13 @@ export function ShopScreen() {
                         {section.products_count} product{section.products_count === 1 ? '' : 's'}
                       </Text>
                     ) : null}
-                  </TouchableOpacity>
+                  </TapTarget>
                 ))}
               </View>
             </View>
 
             {/* Shop by brand — every brand that has shop products; tap = that brand's shop products */}
-            {brands.length > 0 ? (
+            {marqueeBrands.length > 0 ? (
               <View className="border-t border-ink-100 bg-white py-6 dark:border-ink-800 dark:bg-surface-1">
                 <View className="mb-4 items-center px-5">
                   <View className="mb-0.5 flex-row items-center gap-1.5">
@@ -154,13 +177,10 @@ export function ShopScreen() {
                 </View>
                 <View className="px-5">
                   <InfiniteMarquee itemWidth={104} gap={16} speed={0.6}>
-                    {fillTo(brands, 8).map((brand, i) => (
-                      <TouchableOpacity
+                    {marqueeBrands.map((brand, i) => (
+                      <TapTarget
                         key={`${brand.id}-${i}`}
-                        delayPressIn={0}
-                        onPressIn={() => navigation.navigate('ShopSection', { brand: brand.slug })}
-                        activeOpacity={0.7}
-                        accessibilityRole="button"
+                        onPress={() => navigateShopSection({ brand: brand.slug })}
                         accessibilityLabel={`Shop ${brand.name}`}
                         style={{ width: '100%', alignItems: 'center', borderRadius: 16, borderWidth: 1, borderColor: '#f0f0f0', backgroundColor: '#fff', padding: 12 }}>
                         <View style={{ marginBottom: 8, height: 56, width: '100%', alignItems: 'center', justifyContent: 'center' }}>
@@ -175,22 +195,75 @@ export function ShopScreen() {
                         <Text className="text-center text-xs font-bold text-ink-800 dark:text-ink-100" numberOfLines={1}>
                           {brand.name}
                         </Text>
-                      </TouchableOpacity>
+                      </TapTarget>
                     ))}
                   </InfiniteMarquee>
                 </View>
               </View>
             ) : null}
           </>
-        )}
+        ) : null}
 
         {/* Banners with position "footer", at the very end of the page */}
-        {footerBanners.length > 0 ? (
+        {!isLoading && footerBanners.length > 0 ? (
           <View className="mt-8">
             <BannerSlider banners={footerBanners} />
           </View>
         ) : null}
-      </ScrollView>
+      </View>
+    ),
+    [isLoading, sections, marqueeBrands, footerBanners, navigateShopSection],
+  );
+
+  return (
+    <View className="flex-1 bg-white dark:bg-surface-1">
+      <View
+        style={{ backgroundColor: nav.headerBackground, paddingTop: topInset + 8, paddingBottom: 12, paddingHorizontal: 20 }}
+        className="flex-row items-center justify-between border-b border-ink-100 dark:border-ink-800">
+        <View className="flex-row items-center gap-2.5 flex-1 mr-3">
+          <View style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: '#141515', alignItems: 'center', justifyContent: 'center' }}>
+            <TrustifiedStamp size={30} />
+          </View>
+          <View className="flex-1">
+            <View className="flex-row items-center gap-2">
+              <TrustifiedLogo height={22} />
+              <View className="rounded-md bg-brand-50 px-2 py-0.5 border border-brand-100">
+                <Text className="text-[11px] font-extrabold uppercase tracking-wider text-brand-700">Shop</Text>
+              </View>
+            </View>
+            <Text className="text-[11px] font-medium text-ink-500 dark:text-ink-400 mt-0.5" numberOfLines={1}>
+              Lab-tested products with trusted places to buy
+            </Text>
+          </View>
+        </View>
+        <TouchableOpacity
+          onPress={() => navigation.navigate('Tabs', { screen: 'Search' })}
+          activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel="Search"
+          style={{ height: 36, width: 36, alignItems: 'center', justifyContent: 'center', borderRadius: 18, backgroundColor: '#f0f0f0' }}>
+          <Search size={17} color={nav.headerTint} />
+        </TouchableOpacity>
+      </View>
+
+      <View className="flex-1">
+        <FlashList
+          data={sections}
+          keyExtractor={keyExtractor}
+          renderItem={renderSection}
+          estimatedItemSize={360}
+          drawDistance={500}
+          renderScrollComponent={RNGHScrollView}
+          ListHeaderComponent={listHeader}
+          ListEmptyComponent={listEmpty}
+          ListFooterComponent={listFooter}
+          contentContainerStyle={{ paddingBottom: 48 }}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          scrollEventThrottle={16}
+          refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={onRefresh} colors={[colors.brand[500]]} />}
+        />
+      </View>
     </View>
   );
 }

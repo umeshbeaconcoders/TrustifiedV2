@@ -26,9 +26,11 @@ const DEFAULT_API = 'https://api.trustified.in';
 export const API_ORIGIN = (_Config.API_ORIGIN ?? DEFAULT_API).replace(/\/$/, '');
 const API_BASE = _Config.API_URL ?? `${API_ORIGIN}/api/v1`;
 
-// 🔍 DEBUG: Log resolved base URL at module load
-console.log('[API] API_ORIGIN =', API_ORIGIN);
-console.log('[API] API_BASE =', API_BASE);
+// 🔍 DEBUG: Log resolved base URL at module load (dev only)
+if (__DEV__) {
+  console.log('[API] API_ORIGIN =', API_ORIGIN);
+  console.log('[API] API_BASE =', API_BASE);
+}
 
 const KEYCHAIN_SERVICE = 'trustified.auth.token';
 
@@ -149,9 +151,11 @@ async function request<T>(method: string, path: string, options: RequestOptions 
 
     const fullUrl = buildUrl(path, options.params);
 
-    // 🔍 DEBUG: Log every outgoing request
-    console.log(`[API] ▶ ${method} ${fullUrl}`);
-    if (options.params) console.log('[API]   params =', JSON.stringify(options.params));
+    // 🔍 DEBUG: Log every outgoing request in dev
+    if (__DEV__) {
+      console.log(`[API] ▶ ${method} ${fullUrl}`);
+      if (options.params) console.log('[API]   params =', JSON.stringify(options.params));
+    }
 
     const fetchOptions: RequestInit = {
       method,
@@ -166,8 +170,9 @@ async function request<T>(method: string, path: string, options: RequestOptions 
 
     const response = await fetch(fullUrl, fetchOptions);
 
-    // 🔍 DEBUG: Log response status
-    console.log(`[API] ◀ ${response.status} ${response.statusText} — ${method} ${fullUrl}`);
+    if (__DEV__) {
+      console.log(`[API] ◀ ${response.status} ${response.statusText} — ${method} ${fullUrl}`);
+    }
 
     if (response.status === 204) return undefined as T;
 
@@ -180,14 +185,17 @@ async function request<T>(method: string, path: string, options: RequestOptions 
     }
 
     if (!response.ok) {
-      // 🔍 DEBUG: Log non-2xx errors with body
-      console.error(`[API] ✖ HTTP ${response.status} for ${method} ${fullUrl}`);
-      console.error('[API]   response body =', text.slice(0, 500));
+      if (__DEV__) {
+        console.error(`[API] ✖ HTTP ${response.status} for ${method} ${fullUrl}`);
+        console.error('[API]   response body =', text.slice(0, 500));
+      }
       throw new ApiError(response.status, (json as ApiErrorBody) ?? { message: response.statusText });
     }
     return json as T;
   } catch (err) {
-    console.error(`[API EXCEPTION] Error in ${method} ${path}:`, err);
+    if (__DEV__) {
+      console.error(`[API EXCEPTION] Error in ${method} ${path}:`, err);
+    }
     throw err;
   }
 }

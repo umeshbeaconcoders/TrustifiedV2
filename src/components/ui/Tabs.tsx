@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useMemo } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text } from 'react-native';
+import { TapTarget } from '../TapTarget';
 
 interface TabsContextValue {
   value: string;
@@ -54,18 +55,29 @@ export function TabsTrigger({
   if (!ctx) throw new Error('TabsTrigger must be used within <Tabs>');
   const active = ctx.value === value;
   return (
-    <TouchableOpacity
+    <TapTarget
       accessibilityRole="tab"
       accessibilityState={{ selected: active }}
-      activeOpacity={0.7}
+      accessibilityLabel={typeof children === 'string' ? children : value}
       onPress={() => ctx.setValue(value)}
-      className={`flex-1 items-center justify-center rounded-lg py-2.5 ${className} ${active ? activeClassName || 'bg-white shadow-sm' : inactiveClassName}`}>
+      className={`flex-1 items-center justify-center rounded-lg py-2.5 ${className} ${active ? activeClassName || 'bg-white' : inactiveClassName}`}
+      style={
+        active
+          ? {
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.06,
+              shadowRadius: 2,
+              elevation: 1,
+            }
+          : undefined
+      }>
       {typeof children === 'string' ? (
         <Text className={`text-sm font-semibold ${active ? 'text-ink-900' : 'text-ink-500'}`}>{children}</Text>
       ) : (
         <View pointerEvents="none">{children}</View>
       )}
-    </TouchableOpacity>
+    </TapTarget>
   );
 }
 

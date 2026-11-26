@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, Pressable } from 'react-native';
+import { View, Text } from 'react-native';
 import { Star } from 'lucide-react-native';
+import { TapTarget } from '../TapTarget';
 import { colors } from '../../theme/tokens';
 
 /** Read-only star display — RN port of `frontend/packages/ui/src/components/star-rating.tsx`. */
@@ -37,18 +38,18 @@ export function StarInput({
         {Array.from({ length: 5 }, (_, i) => {
           const starValue = i + 1;
           return (
-            <Pressable
+            <TapTarget
               key={i}
               accessibilityRole="button"
               accessibilityLabel={`Rate ${starValue} out of 5 for ${label}`}
-              hitSlop={6}
+              hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
               onPress={() => onChange(starValue)}>
               <Star
                 size={24}
                 color={colors.gold[400]}
                 fill={starValue <= value ? colors.gold[400] : 'transparent'}
               />
-            </Pressable>
+            </TapTarget>
           );
         })}
       </View>

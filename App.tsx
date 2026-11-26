@@ -7,7 +7,7 @@
 import 'react-native-gesture-handler';
 import './src/theme/global.css';
 import React, { useEffect } from 'react';
-import { StatusBar, Appearance } from 'react-native';
+import { StatusBar, Appearance, Linking } from 'react-native';
 import { colorScheme } from 'nativewind';
 import { enableFreeze } from 'react-native-screens';
 
@@ -23,7 +23,8 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 enableFreeze(false);
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { queryClient } from './src/api/queryClient';
 import { AppUpdateGate } from './src/components/AppUpdateGate';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
 import { ToastHost } from './src/components/ToastHost';
@@ -32,23 +33,50 @@ import { navigationRef } from './src/navigation/navigationRef';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { AndroidSwipeBack } from './src/navigation/AndroidSwipeBack';
 import { usePushNotifications } from './src/push/usePushNotifications';
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      // Sensible default; individual hooks in src/api/hooks/* override this
-      // per query-type (see staleTime tuning notes there).
-      staleTime: 30_000,
-      retry: 1,
-    },
-  },
-});
+import { tryOpenInternalLink } from './src/lib/openLink';
 
 function PushNotificationsBridge() {
   // Registers device token on mount/login/token-refresh and wires
   // foreground/background/killed-state notification-tap deep linking.
   // See src/push/usePushNotifications.ts (Phase 5 / Task 5.1).
   usePushNotifications();
+  return null;
+}
+
+function DeepLinkBridge() {
+  const pendingUrlRef = React.useRef<string | null>(null);
+
+  useEffect(() => {
+    const flushPending = () => {
+      const pending = pendingUrlRef.current;
+      if (!pending || !navigationRef.isReady()) return;
+      if (navigationRef.getCurrentRoute()?.name === 'Splash') return;
+      pendingUrlRef.current = null;
+      tryOpenInternalLink(navigationRef, pending);
+    };
+
+    const handleUrl = (url: string | null | undefined) => {
+      if (!url) return;
+      if (!navigationRef.isReady() || navigationRef.getCurrentRoute()?.name === 'Splash') {
+        pendingUrlRef.current = url;
+        return;
+      }
+      tryOpenInternalLink(navigationRef, url);
+    };
+
+    void Linking.getInitialURL()
+      .then((url) => handleUrl(url))
+      .catch(() => {});
+
+    const linkSub = Linking.addEventListener('url', ({ url }) => handleUrl(url));
+    const navSub = navigationRef.addListener('state', flushPending);
+
+    return () => {
+      linkSub.remove();
+      navSub();
+    };
+  }, []);
+
   return null;
 }
 
@@ -69,6 +97,7 @@ export default function App() {
                   <RootNavigator />
                 </ErrorBoundary>
                 <PushNotificationsBridge />
+                <DeepLinkBridge />
                 <ToastHost />
               </AndroidSwipeBack>
             </NavigationContainer>

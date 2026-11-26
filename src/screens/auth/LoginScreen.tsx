@@ -16,6 +16,7 @@ import { toast } from '../../stores/toast';
 import { Eye, EyeOff, ArrowLeft } from 'lucide-react-native';
 import { colors, useNavColors } from '../../theme/tokens';
 import { getInstalledVersion } from '../../lib/appVersion';
+import { TrustifiedLogo } from '../../components/icons/TrustifiedLogo';
 
 const passwordSchema = z.object({
   email: z.string().email('Enter a valid email'),
@@ -104,22 +105,9 @@ export function LoginScreen({ navigation, route }: Props) {
       >
         <FadeIn>
 
-          {/* Trustified® wordmark */}
+          {/* Trustified® official logo */}
           <View className="items-center mb-8">
-            <View className="flex-row items-start">
-              <Text
-                className="font-display font-extrabold text-ink-900 dark:text-white"
-                style={{ fontSize: 32, letterSpacing: -0.5 }}
-              >
-                Trustified
-              </Text>
-              <Text
-                className="text-ink-400 dark:text-ink-500 font-semibold"
-                style={{ fontSize: 14, marginTop: 4 }}
-              >
-                ®
-              </Text>
-            </View>
+            <TrustifiedLogo height={32} />
           </View>
 
           {/* Welcome back heading — same as web */}

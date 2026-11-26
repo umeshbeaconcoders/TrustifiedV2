@@ -13,7 +13,8 @@
  */
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  darkMode: 'class',
+  // Lock app to Light Mode: compiles dark:* under an unused selector so NativeWind emits zero dark rules.
+  darkMode: ['variant', '.never-dark-mode &'],
   content: ['./App.tsx', './src/**/*.{js,jsx,ts,tsx}'],
   presets: [require('nativewind/preset')],
   theme: {

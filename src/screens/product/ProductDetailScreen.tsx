@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, ScrollView, Linking, TouchableOpacity, Image, RefreshControl, Platform } from 'react-native';
+import { View, Text, Linking } from 'react-native';
+import { ScrollView, RefreshControl } from 'react-native-gesture-handler';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   PlayCircle,
@@ -18,10 +19,12 @@ import { BuyLinks } from '../../components/BuyLinks';
 import { ImageLightbox } from '../../components/ImageLightbox';
 import { ReviewForm } from '../../components/ReviewForm';
 import { ReviewList } from '../../components/ReviewList';
+import { TapTarget } from '../../components/TapTarget';
 import { FadeIn } from '../../components/motion';
 import { colors } from '../../theme/tokens';
 import { extractYoutubeId, formatDate } from '../../lib/format';
 import { usePullToRefresh } from '../../lib/usePullToRefresh';
+import { preloadImages } from '../../lib/preloadImages';
 import type { RootStackParamList } from '../../navigation/types';
 
 // Web trust indicators data
@@ -46,13 +49,24 @@ type Props = NativeStackScreenProps<RootStackParamList, 'ProductDetail'>;
 
 export function ProductDetailScreen({ route, navigation }: Props) {
   const { slug } = route.params;
-  const { data: productRes, isLoading, isError, refetch: refetchProduct } = useProduct(slug);
+  const { data: productRes, isLoading, isError, isPlaceholderData, refetch: refetchProduct } = useProduct(slug);
   const { data: reviewsRes, refetch: refetchReviews } = useReviews(slug, { sort: 'high_to_low', per_page: 20 });
   const [selectedImageIndex, setSelectedImageIndex] = React.useState(0);
   const [lightboxOpen, setLightboxOpen] = React.useState(false);
   const { refreshing, onRefresh } = usePullToRefresh([refetchProduct, refetchReviews]);
 
-  if (isLoading) {
+  const productData = productRes?.data;
+  React.useEffect(() => {
+    setSelectedImageIndex(0);
+  }, [slug]);
+
+  React.useEffect(() => {
+    if (!productData) return;
+    const gal = Array.isArray(productData.gallery) ? productData.gallery : [];
+    preloadImages([productData.image_url, ...gal], 'high');
+  }, [productData]);
+
+  if (isLoading && !productData) {
     return (
       <View className="flex-1 gap-4 bg-white dark:bg-surface-1 p-4">
         <Skeleton className="aspect-square w-full" />
@@ -62,7 +76,7 @@ export function ProductDetailScreen({ route, navigation }: Props) {
     );
   }
 
-  const product = productRes?.data;
+  const product = productData;
   if (isError || !product) {
     return (
       <View className="flex-1 justify-center px-6">
@@ -76,6 +90,8 @@ export function ProductDetailScreen({ route, navigation }: Props) {
 
   const gallery = Array.isArray(product.gallery) ? product.gallery : [];
   const images = [product.image_url, ...gallery].filter((s): s is string => typeof s === 'string' && s.length > 0);
+  const safeImageIndex = selectedImageIndex < images.length ? selectedImageIndex : 0;
+  const selectedImage = images[safeImageIndex];
   const reviews = reviewsRes?.data ?? [];
   const buyLinks = Array.isArray(product.buy_links) ? product.buy_links : [];
   const testReports = Array.isArray(product.test_reports) ? product.test_reports : [];
@@ -84,44 +100,74 @@ export function ProductDetailScreen({ route, navigation }: Props) {
 
   return (
     <ScrollView
-      className="flex-1 bg-white dark:bg-surface-1"
-      contentContainerClassName="pb-16"
+      style={{ flex: 1, backgroundColor: '#ffffff' }}
+      contentContainerStyle={{ paddingBottom: 64 }}
+      showsVerticalScrollIndicator={false}
+      scrollEventThrottle={16}
+      keyboardShouldPersistTaps="handled"
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.brand[500]]} />}
     >
       <FadeIn>
         <View className="p-4">
           {/* Main Product Image — tap to open the full-screen zoom/pan viewer */}
-          {/* Main product image (selected) */}
-<TouchableOpacity
-  onPress={() => images[selectedImageIndex] && setLightboxOpen(true)}
-  activeOpacity={0.9}
-  accessibilityRole="button"
-  accessibilityLabel="View full-size image"
->
-  <MediaFrame src={images[selectedImageIndex]} alt={product.name} aspect="square" rounded="2xl" />
-  {images[selectedImageIndex] ? (
-    <View className="absolute bottom-3 right-3 size-9 rounded-full bg-ink-900/70 items-center justify-center">
-      <ZoomIn size={16} color="#fff" />
-    </View>
-  ) : null}
-</TouchableOpacity>
+          <TapTarget
+            onPress={() => selectedImage && setLightboxOpen(true)}
+            accessibilityLabel="View full-size image"
+            style={{ position: 'relative' }}
+          >
+            <MediaFrame
+              key={selectedImage ?? 'placeholder'}
+              src={selectedImage}
+              alt={product.name}
+              aspect="square"
+              rounded="2xl"
+              priority="high"
+            />
+            {selectedImage ? (
+              <View pointerEvents="none" className="absolute bottom-3 right-3 size-9 rounded-full bg-ink-900/70 items-center justify-center">
+                <ZoomIn size={16} color="#fff" />
+              </View>
+            ) : null}
+          </TapTarget>
 
-          {/* Dynamic Image Gallery Slider (Circular Thumbnails) */}
+          {/* Dynamic Image Gallery Slider (RNGH + TapTarget so iOS never swallows taps) */}
           {images.length > 1 ? (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-3 mt-3 pb-2 px-1">
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              nestedScrollEnabled
+              keyboardShouldPersistTaps="handled"
+              scrollEventThrottle={16}
+              contentContainerStyle={{ gap: 12, marginTop: 12, paddingBottom: 8, paddingHorizontal: 4 }}
+            >
               {images.map((img, idx) => {
-                const active = idx === selectedImageIndex;
+                const active = idx === safeImageIndex;
                 return (
-                  <TouchableOpacity
-                    key={idx}
-                    activeOpacity={0.7}
+                  <TapTarget
+                    key={`${img}-${idx}`}
                     onPress={() => setSelectedImageIndex(idx)}
-                    className={`size-16 rounded-xl overflow-hidden border-2 bg-white ${active ? 'border-brand-600 shadow-md' : 'border-ink-200'}`}
+                    accessibilityLabel={`${product.name} image ${idx + 1}`}
+                    style={{
+                      width: 64,
+                      height: 64,
+                      borderRadius: 12,
+                      overflow: 'hidden',
+                      borderWidth: 2,
+                      borderColor: active ? colors.brand[600] : colors.ink[200],
+                      backgroundColor: '#ffffff',
+                    }}
                   >
-                    <View pointerEvents="none" className="w-full h-full">
-                      <MediaFrame src={img} alt={product.name} aspect="square" rounded="xl" className="w-full h-full" />
+                    <View pointerEvents="none" style={{ width: '100%', height: '100%' }}>
+                      <MediaFrame
+                        src={img}
+                        alt={product.name}
+                        aspect="auto"
+                        rounded="lg"
+                        priority="high"
+                        style={{ width: '100%', height: '100%' }}
+                      />
                     </View>
-                  </TouchableOpacity>
+                  </TapTarget>
                 );
               })}
             </ScrollView>
@@ -188,16 +234,18 @@ export function ProductDetailScreen({ route, navigation }: Props) {
                   This certification has expired — the detailed report is no longer published.
                 </Text>
               </View>
+            ) : isPlaceholderData && testReports.length === 0 ? (
+              <Skeleton height={76} className="mt-3 rounded-2xl" />
             ) : testReports.length > 0 ? (
               <View className="gap-1">
                 {testReports.map((rep, index) => {
                   const isLatest = index === 0;
                   const typeLabel = rep.type === 'gold' ? 'Gold' : rep.type === 'nmr' ? 'NMR' : 'Standard';
                   return (
-                    <TouchableOpacity
+                    <TapTarget
                       key={rep.id}
                       onPress={() => navigation.navigate('ReportDetail', { slug: product.slug, reportId: rep.id })}
-                      activeOpacity={0.8}
+                      accessibilityLabel={`Trustified Report ${rep.batch_no || ''}`}
                       style={{ position: 'relative', borderRadius: 16, borderWidth: 1, borderColor: '#bbf7d0', backgroundColor: '#fff', padding: 20, marginTop: 16, overflow: 'visible', alignItems: 'center' }}
                     >
                       {isLatest ? (
@@ -251,7 +299,7 @@ export function ProductDetailScreen({ route, navigation }: Props) {
                         />
                         <ChevronRight size={16} color="#c1cec8" />
                       </View>
-                    </TouchableOpacity>
+                    </TapTarget>
                   );
                 })}
               </View>
@@ -298,7 +346,7 @@ export function ProductDetailScreen({ route, navigation }: Props) {
 
       <ImageLightbox
         visible={lightboxOpen}
-        src={images[selectedImageIndex]}
+        src={selectedImage}
         alt={product.name}
         onClose={() => setLightboxOpen(false)}
       />
